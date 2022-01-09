@@ -3,6 +3,7 @@ Scripts and data for functional diversity under ocean acidification across diffe
 
 Data architecture> Scripts and data are from the folder named "seb" within the master branch valeriano/nuria_acid. Dowloaded from github on 2021-12-29. 
 
+Folders
 folder data> data for the analysis, including raw data 
 folder FD> functional diversity files
 folder plot> plots obtained
