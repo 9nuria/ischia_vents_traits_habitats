@@ -162,3 +162,30 @@ ggsave("fig5_trait_change.png", plot= figall, path = dir_plot, device="png", hei
 #https://ggplot2-book.org/facet.html
 
 
+## by Seb ####
+
+# computing relative change as (Low pH - Ambient) / Ambient = (Low pH /Ambient) - 1
+
+# complete data frame
+
+df_plot <- df %>%
+  mutate( habitat= factor( c( rep("shallow_reef",2), rep("cave",2), rep("reef",2), rep("deep_reef",2) ) ) ) %>%
+  mutate(ph=factor( rep(c("amb", "low"),4) ) )
+
+df_plot
+
+# trait: form
+k="form"
+df_plot_k <- df_plot %>% 
+  select( habitat, ph, starts_with(k)) %>%
+  pivot_longer(cols=starts_with(k), names_to = "categ", values_to = "cover") %>%
+  mutate(categ=str_replace_all(string=categ, pattern=paste0(k,"."), replacement = "") )
+
+#  stacked barplot for pH level with facets as habitat  
+plot_k <- ggplot(df_plot_k,
+                 aes(x=ph,y=cover,fill=categ))+
+  geom_bar(stat = "identity",color="black")+
+  facet_wrap(~habitat,nrow=1)
+
+plot_k
+
