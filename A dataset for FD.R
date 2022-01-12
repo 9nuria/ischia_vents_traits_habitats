@@ -1,4 +1,4 @@
-## preparing datasets for analyzes using data sent by Nuria on 2021-05-05 #####
+## This script is to prepare datasets for analyzes using data sent by Nuria on 2021-05-05 #####
 
 ## preparing #####
 rm(list=ls())
