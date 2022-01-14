@@ -3,6 +3,7 @@
 ## preparing #####
 rm(list=ls())
 library(tidyverse)
+library(mFD)
 
 # folder to load raw data 
 dir_raw_data<-"./data/from_nuria"
@@ -72,17 +73,17 @@ dim(quadrats_species_cover) # 294 quadrats and 225 species
 # species trait values and FEs ####
 
 # loading data from csv ----
-sp_fe_tr<-read.csv(file.path(dir_raw_data,"species_fe_subset_with_traits.csv") )
-head(sp_fe_tr)
-nrow(sp_fe_tr) # 233 species
+sp_tr<-read.csv(file.path(dir_raw_data,"species_traits.csv") )
+nrow(sp_tr) # 233 species
 
 # species in quadrats with no trait values ---  
-species_notraits<-colnames(quadrats_species_cover)[ ! (colnames(quadrats_species_cover) %in% sp_fe_tr$Species) ]              
-species_notraits # 9 taxa + bare substrata
+species_notraits<-colnames(quadrats_species_cover)[ ! (colnames(quadrats_species_cover) %in% sp_tr$Species) ]
+
+species_notraits # => 9 taxa + bare substrata
 
 # removing them from quadrat*species cover matrix
 quadrats_species_cover<-quadrats_species_cover[, 
-                        colnames(quadrats_species_cover) %in% sp_fe_tr$Species]
+                        colnames(quadrats_species_cover) %in% sp_tr$Species]
 dim(quadrats_species_cover)
 
 # names of species
@@ -91,7 +92,7 @@ length(sp_nm) # 215 species
 
 
 # filtering absent species from trait dataframe
-sp_fe_tr<-sp_fe_tr[sp_fe_tr$Species %in% sp_nm,]
+sp_tr<-sp_tr[sp_tr$Species %in% sp_nm,]
 
 # table with trait coding (Q = categorical , O = ordinal) ----
 traits_cat<-data.frame( trait_name= c("form", "feeding", "growth",
@@ -104,8 +105,8 @@ traits_cat<-data.frame( trait_name= c("form", "feeding", "growth",
 
 
 # species traits dataframe with correct coding of variables ----
-sp_tr<-sp_fe_tr[,traits_cat$trait_name] 
-row.names(sp_tr)<-sp_fe_tr$Species
+row.names(sp_tr)<-sp_tr$Species
+sp_tr<-sp_tr[,traits_cat$trait_name] 
 
 
 sp_tr$form<-as.factor(sp_tr$form)
@@ -132,32 +133,25 @@ sp_tr$chem<-as.ordered(sp_tr$chem)
 levels(sp_tr$chem) # OK
 
 
+# clustering species into FE ----
+sp_to_fe<-mFD::sp.to.fe(sp_tr = sp_tr, tr_cat = traits_cat)
 
-
-# dataframe with species and FE ----
-sp_fe<-sp_fe_tr[,c("Species", "FE")]
-
-# correcting names of some FE which have space
-sp_fe$FE<-gsub(sp_fe$FE, pattern = " ", replacement = "")
+# looking at number of species per FE
+summary(sp_to_fe$fe_nb_sp) # => from 1 to 14 (median= 2)
 
 # names and number of FEs
-fe_nm<-unique(sp_fe$FE)
+fe_nm<-unique(sp_to_fe$fe_nm)
 length(fe_nm) # 74 FE
 
 # list of species in each FE
 fe_sp<-list()
-for (k in fe_nm)
-{
-  fe_sp[[k]]<-sp_fe[which(sp_fe$FE==k),"Species"]
+for (k in fe_nm) {
+  fe_sp[[k]]<-names( sp_to_fe$sp_fe[which(sp_to_fe$sp_fe==k)] )
 }# end of k
 
-# number of species per FE
-fe_nbsp<-unlist( lapply(fe_sp, length) )
-summary(fe_nbsp) # from 1 to 14species
-
 # trait values of FE
-fe_tr<-sp_tr[ unlist( lapply(fe_sp, function(x) x[1]) ) ,  ]
-row.names(fe_tr)<-fe_nm  
+fe_tr<-sp_to_fe$fe_tr
+head(fe_tr)
 
 # FE trait values and cover in quadrats ----
 quadrats_fe_cover<-matrix(0, 
@@ -167,7 +161,7 @@ quadrats_fe_cover<-matrix(0,
 
 for (k in fe_nm)
 {
-  sp_k<-sp_fe[which(sp_fe$FE==k),"Species"]
+  sp_k<-fe_sp[[k]]
   
   if (length(sp_k)==1) {
     quadrats_fe_cover[,k]<-quadrats_species_cover[, sp_k ]
@@ -204,6 +198,7 @@ save(quadrats_species_cover, file=file.path(dir_data,"quadrats_species_cover.Rda
 save(habph_species_cover, file=file.path(dir_data,"habph_species_cover.Rdata") )
 save(sp_tr, file=file.path(dir_data,"sp_tr.Rdata") )
 save(traits_cat, file=file.path(dir_data,"traits_cat.Rdata") )
+save(sp_to_fe, file=file.path(dir_data,"sp_to_fe.Rdata") )
 save(fe_tr, file=file.path(dir_data,"fe_tr.Rdata") )
 save(fe_sp, file=file.path(dir_data,"fe_sp.Rdata") )
 save(quadrats_fe_cover, file=file.path(dir_data,"quadrats_fe_cover.Rdata") )
