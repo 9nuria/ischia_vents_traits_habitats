@@ -60,15 +60,6 @@ data_models <- lapply(matrices, function(d) {
 
 
 
-priors_mod <- lapply(data_models, function(dat_m) {
-  
-  mn <- brms::get_prior(tr | trials(s) ~ 1 + pH + (1 + pH | habitat), data = dat_m, family = multinomial())
-  
-  mn
-  
-})
-
-
 
 models <- lapply(1:length(data_models), function(x) {
   
@@ -92,25 +83,14 @@ save(models, file = "model/models_rand_2.RData")
 
 load("model/models_rand_2.RData")
 
-re_formula=“NULL”
 
-summary(models[[1]])
-bayes_R2(models[[1]])
+conditions <- make_conditions(models[[1]], "habitat")
 
-conditions <- make_conditions(models[[2]], "habitat")
-conditional_effects(models[[2]] , effects ="pH", conditions = conditions, re_formula = NULL, categorical = TRUE)
-
-conditional_effects(models[[1]] , categorical = TRUE,  effects ="habitat")
-conditional_effects(models[[3]] , categorical = TRUE
-conditional_effects(models[[4]] , categorical = TRUE)
-conditional_effects(models[[5]] , categorical = TRUE)
-conditional_effects(models[[6]] , categorical = TRUE)
-conditional_effects(models[[7]] , categorical = TRUE)
-conditional_effects(models[[8]] , categorical = TRUE)
-conditional_effects(models[[9]] , categorical = TRUE)
-conditional_effects(models[[10]] , categorical = TRUE)
-conditional_effects(models[[11]] , categorical = TRUE)
-conditional_effects(models[[12]] , categorical = TRUE)
-conditional_effects(models[[13]] , categorical = TRUE)
-
+conditional_effects(models[["form"]] , effects ="pH", conditions = conditions, re_formula = NULL, categorical = TRUE)
+conditional_effects(models[["feeding"]] , effects ="pH", conditions = conditions, re_formula = NULL, categorical = TRUE)
+conditional_effects(models[["growth"]] , effects ="pH", conditions = conditions, re_formula = NULL, categorical = TRUE)
+conditional_effects(models[["calcification"]] , effects ="pH", conditions = conditions, re_formula = NULL, categorical = TRUE)
+conditional_effects(models[["mobility"]] , effects ="pH", conditions = conditions, re_formula = NULL, categorical = TRUE)
+conditional_effects(models[["agerepromaturity"]] , effects ="pH", conditions = conditions, re_formula = NULL, categorical = TRUE)
+conditional_effects(models[["chem"]] , effects ="pH", conditions = conditions, re_formula = NULL, categorical = TRUE)
 
