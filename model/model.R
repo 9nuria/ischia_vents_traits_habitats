@@ -65,11 +65,8 @@ models <- lapply(1:length(data_models), function(x) {
   
 dat_m <- data_models[[x]]
 
-p <- priors_mod[[x]]
-  
 mn <- brms::brm(tr | trials(s) ~ 1 + pH + (1 + pH | habitat), data = dat_m, family = multinomial(), control=list(adapt_delta=0.99, max_treedepth=15), 
                   chains = 2, cores = 2, iter = 4000, warmup = 1000,
-                  priors = p,
                   inits = "0",
                   backend = "cmdstanr",
                   threads = 28)
