@@ -119,49 +119,6 @@ for (t in names(fe_tr) ) {
 
 df<- as.data.frame(habph2_tr_moddom)
 
-# computing delta (response change) as Ambient- Low pH
-
-delta.df<-rbind(
-  shallow_reef=apply(df[c("shallow_reef_low", "shallow_reef_amb"),], 2, diff),
-  cave = apply(df[c("cave_low", "cave_amb"),], 2, diff),
-  reef = apply(df[c("reef_low", "reef_amb"),], 2, diff),
-  deep_reef= apply( df[c("deep_reef_low", "deep_reef_amb"),], 2, diff))
-
-delta.df<-as.data.frame(delta.df)
-delta.df$habitat <- rownames(delta.df)
-
-
-delta.dflong<-delta.df%>%
-  tidyr::gather(trait, delta, form.a:chem.2)
-
-delta.dflong$habitat<-factor(delta.dflong$habitat, ordered=TRUE, levels= c("shallow_reef", "cave", "reef", "deep_reef"))
-
-#Figure
-
-
-figall<-ggplot(delta.dflong, aes(trait, delta, fill = trait)) +
-  geom_bar(stat = "identity", position=position_dodge(width=0.8, preserve = "single"), alpha=0.5) +
-  # ylab("Cover trait change")+
-  geom_hline(yintercept = 0) +
-  scale_fill_discrete()+
-  #  scale_y_continuous(breaks = 0:nlevels(DF$variable)) +
-  theme_light() +
-  theme(axis.text.y= element_text (face="bold", size= 14),
-        axis.title.y = element_blank(),
-        axis.text.x=element_blank(), 
-        axis.title.x = element_blank(),
-        legend.position="bottom",
-        legend.text=element_text(size=14, face="bold"))+
-  facet_grid(habitat~., 
-             labeller=labeller(habitat=c("shallow_reef"= "Shallow Reef", "cave"="Cave", "reef"="Reef", "deep_reef"= "Deep Reef")))+
-  theme(strip.text = element_text(size=20, color="white", face="bold"))
-figall
-
-ggsave("fig5_trait_change.png", plot= figall, path = dir_plot, device="png", height=35, width=35,  dpi=300)
-
-#https://ggplot2-book.org/facet.html
-
-
 ## by Seb ####
 
 # computing relative change as (Low pH - Ambient) / Ambient = (Low pH /Ambient) - 1
@@ -189,3 +146,162 @@ plot_k <- ggplot(df_plot_k,
 
 plot_k
 
+## by Nuria##
+# colors for categories
+colors6<-c("#1b9e77", "#e7298a", "#7570b3", "#d95f02", "#0c2c84", "#c4c0c2")
+colors4b<-c("#1b9e77", "#d95f02", "#7570b3", "#e7298a")
+colors3<-c("#1b9e77", "#7570b3", "#e7298a")
+colors2<-c("#1b9e77", "#e7298a")
+colorsph<-c("#bcd7e6", "#e31a1c")
+
+# trait: form
+k="form"
+df_plot_k <- df_plot %>% 
+  select( habitat, ph, starts_with(k)) %>%
+  pivot_longer(cols=starts_with(k), names_to = "categ", values_to = "cover") %>%
+  mutate(categ=str_replace_all(string=categ, pattern=paste0(k,"."), replacement = "") )
+
+#order habitats by depth
+
+df_plot_k$habitat<-(factor(df_plot_k$habitat, levels=c("shallow_reef","cave","reef","deep_reef"), labels=c("Shallow reef","Cave","Reef","Deep reef")))
+df_plot_k$ph<-(factor(df_plot_k$ph, levels=c("amb","low"), labels=c("ambient","low")))
+
+##### Plot 1 Morphological form
+plot1 <- ggplot(df_plot_k,aes(x=ph,y=cover,color=categ, group=categ))+
+  geom_line(linetype="dashed")+
+  geom_point(size=5)+
+  geom_rect(aes(xmin=which(levels(as.factor(ph))=="ambient")-0.6,
+                xmax=which(levels(as.factor(ph))=="ambient")+0.5,
+                ymin=-Inf, ymax=Inf), 
+            fill="#deebf7", color="NA", alpha= 0.05,inherit.aes=FALSE )+
+  geom_rect(aes(xmin=which(levels(as.factor(ph))=="low")-0.5,
+                xmax=which(levels(as.factor(ph))=="low")+0.6,
+                ymin=-Inf, ymax=Inf),
+            fill="#fdbb84", color="NA", alpha= 0.05, inherit.aes=FALSE)+
+  scale_color_manual(values= colors4b, name="", labels=c("Encrusting", "Filaments", "Massive", "Tree"))+
+  scale_y_continuous(name ="Cover (%)", limits=c(0,100), breaks = c(0,25,50,75,100)) +
+  scale_x_discrete(name="", labels= c("", ""))+
+  labs(title = "Morphological form")+
+  theme_bw()+
+  theme (plot.title = element_text(size=14, hjust=0.5),
+    axis.title.x=element_blank())+
+  facet_wrap(~habitat,nrow=1)+(theme(strip.text=element_text(size=14)))
+
+plot1
+
+# trait: feeding
+f="feeding"
+
+df_plot_f <- df_plot %>% 
+  select( habitat, ph, starts_with(f)) %>%
+  pivot_longer(cols=starts_with(f), names_to = "categ", values_to = "cover") %>%
+  mutate(categ=str_replace_all(string=categ, pattern=paste0(f,"."), replacement = "") )
+
+#order habitats by depth
+
+df_plot_f$habitat<-(factor(df_plot_f$habitat, levels=c("shallow_reef","cave","reef","deep_reef"), labels=c("Shallow reef","Cave","Reef","Deep reef")))
+df_plot_f$ph<-(factor(df_plot_f$ph, levels=c("amb","low"), labels=c("ambient","low")))
+
+plot2 <- ggplot(df_plot_f,aes(x=ph,y=cover,color=categ, group=categ))+
+  geom_line(linetype="dashed")+
+  geom_point(size=5)+
+  geom_rect(aes(xmin=which(levels(as.factor(ph))=="ambient")-0.6,
+                xmax=which(levels(as.factor(ph))=="ambient")+0.5,
+                ymin=-Inf, ymax=Inf), 
+            fill="#deebf7", color="NA", alpha= 0.05,inherit.aes=FALSE )+
+  geom_rect(aes(xmin=which(levels(as.factor(ph))=="low")-0.5,
+                xmax=which(levels(as.factor(ph))=="low")+0.6,
+                ymin=-Inf, ymax=Inf),
+            fill="#fdbb84", color="NA", alpha= 0.05, inherit.aes=FALSE)+
+  scale_color_manual(values= colors6, name="", labels=c("Autotroph", "Filter feeder", "Herbivor/Grazer", "Carnivor", "Detritivor", "Parasite"))+
+  scale_y_continuous(name ="Cover (%)", limits=c(0,100), breaks = c(0,25,50,75,100)) +
+  scale_x_discrete(name="", labels= c("", ""))+
+  labs(title = "Feeding")+
+  theme_bw()+
+  guides(color=guide_legend(ncol=2))+
+  theme (plot.title = element_text(size=14, hjust=0.5),
+         axis.title.x=element_blank())+
+  facet_wrap(~habitat,nrow=1)+(theme(strip.background = element_blank(),
+                                     strip.text.x = element_blank()))
+
+plot2
+# trait: growth
+g="growth"
+
+df_plot_g <- df_plot %>% 
+  select( habitat, ph, starts_with(g)) %>%
+  pivot_longer(cols=starts_with(g), names_to = "categ", values_to = "cover") %>%
+  mutate(categ=str_replace_all(string=categ, pattern=paste0(g,"."), replacement = "") )
+
+#order habitats by depth
+
+df_plot_g$habitat<-(factor(df_plot_g$habitat, levels=c("shallow_reef","cave","reef","deep_reef"), labels=c("Shallow reef","Cave","Reef","Deep reef")))
+df_plot_g$ph<-(factor(df_plot_g$ph, levels=c("amb","low"), labels=c("ambient","low")))
+
+plot3 <- ggplot(df_plot_g,aes(x=ph,y=cover,color=categ, group=categ))+
+  geom_line(linetype="dashed")+
+  geom_point(size=5)+
+  geom_rect(aes(xmin=which(levels(as.factor(ph))=="ambient")-0.6,
+                xmax=which(levels(as.factor(ph))=="ambient")+0.5,
+                ymin=-Inf, ymax=Inf), 
+            fill="#deebf7", color="NA", alpha= 0.05,inherit.aes=FALSE )+
+  geom_rect(aes(xmin=which(levels(as.factor(ph))=="low")-0.5,
+                xmax=which(levels(as.factor(ph))=="low")+0.6,
+                ymin=-Inf, ymax=Inf),
+            fill="#fdbb84", color="NA", alpha= 0.05, inherit.aes=FALSE)+
+  scale_color_manual(values= colors3, name="", labels=c("Low", "Moderate", "High"))+
+  scale_y_continuous(name ="Cover (%)", limits=c(0,100), breaks = c(0,25,50,75,100)) +
+  scale_x_discrete(name="", labels= c("", ""))+
+  labs(title = "Growth")+
+  theme_bw()+
+  theme (plot.title = element_text(size=14, hjust=0.5),
+         axis.title.x=element_blank())+
+  facet_wrap(~habitat,nrow=1)+(theme(strip.background = element_blank(),
+                                     strip.text.x = element_blank()))
+
+plot3
+
+# trait: growth
+c="calcification"
+
+df_plot_c <- df_plot %>% 
+  select( habitat, ph, starts_with(c)) %>%
+  pivot_longer(cols=starts_with(c), names_to = "categ", values_to = "cover") %>%
+  mutate(categ=str_replace_all(string=categ, pattern=paste0(c,"."), replacement = "") )
+
+#order habitats by depth
+
+df_plot_c$habitat<-(factor(df_plot_c$habitat, levels=c("shallow_reef","cave","reef","deep_reef"), labels=c("Shallow reef","Cave","Reef","Deep reef")))
+df_plot_c$ph<-(factor(df_plot_c$ph, levels=c("amb","low"), labels=c("ambient","low")))
+
+plot4 <- ggplot(df_plot_c,aes(x=ph,y=cover,color=categ, group=categ))+
+  geom_line(linetype="dashed")+
+  geom_point(size=5)+
+  geom_rect(aes(xmin=which(levels(as.factor(ph))=="ambient")-0.6,
+                xmax=which(levels(as.factor(ph))=="ambient")+0.5,
+                ymin=-Inf, ymax=Inf), 
+            fill="#deebf7", color="NA", alpha= 0.05,inherit.aes=FALSE )+
+  geom_rect(aes(xmin=which(levels(as.factor(ph))=="low")-0.5,
+                xmax=which(levels(as.factor(ph))=="low")+0.6,
+                ymin=-Inf, ymax=Inf),
+            fill="#fdbb84", color="NA", alpha= 0.05, inherit.aes=FALSE)+
+  scale_color_manual(values= colors2, name="", labels=c("No", "Yes"))+
+  scale_y_continuous(name ="Cover (%)", limits=c(0,100), breaks = c(0,25,50,75,100)) +
+  scale_x_discrete(name="", labels= c("Ambient", "Low pH"))+
+  labs(title = "Calcification")+
+  theme_bw()+
+  theme (plot.title = element_text(size=14, hjust=0.5),
+         axis.title.x=element_blank())+
+  facet_wrap(~habitat,nrow=1)+(theme(strip.background = element_blank(),
+                                     strip.text.x = element_blank()))
+
+plot4
+
+#layout 4 plots
+
+all4<-(plot1/plot2/plot3/plot4)
+all4
+
+getwd()
+
+ggsave("fig5_functions_cover_4plots.png", plot= all4, device="png", height=25, width=20, units="cm", dpi=300)
