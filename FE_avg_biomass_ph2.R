@@ -1,4 +1,24 @@
+# Change abundance traits
 
+## preparing #####
+rm(list=ls())
+
+# libraries ---
+library(tidyverse)
+library(mFD)
+library(patchwork)
+
+# folder with ready to use data ----
+dir_data<-"./data"
+
+# loading dataset built in script A ----
+load(file.path(dir_data, "fe_tr.Rdata"))
+load(file.path(dir_data, "quadrats_fe_cover.Rdata"))
+load(file.path(dir_data, "sites_quadrats_info.Rdata"))
+
+
+dim(quadrats_fe_cover)
+dim(habph_fe_cover)
 
 library(tidyverse)
 
