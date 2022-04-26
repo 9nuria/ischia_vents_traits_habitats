@@ -62,7 +62,7 @@ head(quad_sp_tr)
 # average and standard error
 pH_hab_mean_se <- quad_sp_tr %>%
   select(-Quadrats) %>%
-  group_by(pH_hab, Trait, Modality) %>%
+  group_by(pH_hab, Trait, Modality, ph, habitat) %>%
   summarise( across(.cols = cover, 
                     .fns = list(mean = mean, se = std_err), 
                     .names="{.col}_{.fn}"
