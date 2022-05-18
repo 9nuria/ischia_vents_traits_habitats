@@ -112,7 +112,7 @@ load(file=file.path(getwd(),"/model/mn.RData"))
 ## Predictions ----
 # The predictions take time as well
 # Predicted_values = vector("list", 7) ; for (i in 1:7) {Predicted_values[[i]] = predict(mn[[i]], data_model[[i]]$tr)}
-load(file=file.path(getwd(),"/model/Predicted_values.RData")) ; data_predicted = vector("list", 7)
+load(file=file.path(dir_data,"Predicted_values.RData")) ; data_predicted = vector("list", 7)
 {data_predicted[[1]] = data.frame(Habitat = rep(data_model[[1]]$tr$habitat, 2), pH = rep(data_model[[1]]$tr$pH, 2), 
                                  Condition = c(rep("1",294), rep("2",294)),
                                  Cover = c(Predicted_values[[1]][1:294,1,1], Predicted_values[[1]][1:294,1,2]), 
