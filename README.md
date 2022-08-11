@@ -21,3 +21,8 @@ H change trait abund: Change in trait abundance with pH across habitats
 ```{Session Info, echo = T}
 sessionInfo()
 ```
+
+### Raw data
+```{r table, echo = T}
+head(cars)
+```
