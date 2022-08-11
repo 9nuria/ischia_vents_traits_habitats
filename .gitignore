@@ -3,3 +3,4 @@
 .RData
 .Ruserdata
 echo .DS_Store >> .gitignore
+.git/info/exclude
