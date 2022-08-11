@@ -19,10 +19,5 @@ G diversity indices: diversity indices across habitats and 2 pH conditions witth
 H change trait abund: Change in trait abundance with pH across habitats
 
 ```{Session Info, echo = T}
-sessionInfo()
-```
-
-### Raw data
-```{r table, echo = T}
-head(cars)
+print(sessionInfo())
 ```
