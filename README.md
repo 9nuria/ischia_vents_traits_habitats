@@ -17,3 +17,7 @@ E mds permdisp: taxonomic and functional MDS based on hill numbers with stats
 F functional hull: new figure FD with Ambient and Low pH conditions
 G diversity indices: diversity indices across habitats and 2 pH conditions witth stats
 H change trait abund: Change in trait abundance with pH across habitats
+
+```{Session Info, echo = T}
+sessionInfo()
+```
