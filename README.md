@@ -16,24 +16,9 @@ Folders
 - :file_folder: outputs contains the following sub-folders
   - :file_folder: plots which hosts the plots built with this scripts
 
-<del>
-Data architecture> Scripts and data are from the folder named "seb" within the master branch valeriano/nuria_acid. Dowloaded from github on 2021-12-29. 
-
-folder data> data for the analysis, including raw data 
-folder FD> functional diversity files
-folder plot> plots obtained
-
-Scripts
-A dataset for FD: preparing datasets for analysis using raw data
-B FD: computing FD with the new package
-C mean beta: Correlation of beta-diversity between taxonomic and functional facets as boxplot and scatter plot. Figures for SM 
-D trait dominance: category abundance for each trait across habitats and pH conditions. Remove it? 
-E mds permdisp: taxonomic and functional MDS based on hill numbers with stats
-F functional hull: new figure FD with Ambient and Low pH conditions
-G diversity indices: diversity indices across habitats and 2 pH conditions witth stats
-H change trait abund: Change in trait abundance with pH across habitats </del>
-
 ```{Session Info, echo = T}
+utils::sessionInfo()
+
 R version 4.0.3 (2020-10-10)
 Platform: x86_64-apple-darwin17.0 (64-bit)
 Running under: macOS  12.2.1
@@ -50,3 +35,20 @@ other attached packages:
 [15] mFD_1.0.1       forcats_0.5.1   stringr_1.4.0   dplyr_1.0.8     purrr_0.3.4     readr_2.1.2     tidyr_1.2.0    
 [22] tibble_3.1.7    ggplot2_3.3.6   tidyverse_1.3.1
 ```
+
+<del>
+Data architecture> Scripts and data are from the folder named "seb" within the master branch valeriano/nuria_acid. Dowloaded from github on 2021-12-29. 
+
+folder data> data for the analysis, including raw data 
+folder FD> functional diversity files
+folder plot> plots obtained
+
+Scripts
+A dataset for FD: preparing datasets for analysis using raw data
+B FD: computing FD with the new package
+C mean beta: Correlation of beta-diversity between taxonomic and functional facets as boxplot and scatter plot. Figures for SM 
+D trait dominance: category abundance for each trait across habitats and pH conditions. Remove it? 
+E mds permdisp: taxonomic and functional MDS based on hill numbers with stats
+F functional hull: new figure FD with Ambient and Low pH conditions
+G diversity indices: diversity indices across habitats and 2 pH conditions witth stats
+H change trait abund: Change in trait abundance with pH across habitats </del>
