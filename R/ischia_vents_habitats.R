@@ -587,14 +587,14 @@ data_model[[7]] <- lapply(matrice_mobility, function(d) {
 rm(Calcification, Chem, Feeding, Form, Growth, Mobility, Reproduction,matrice_calcification, matrice_chem, 
    matrice_feeding, matrice_form, matrice_growth, matrice_mobility, matrice_reproduction)
 
-# Bayesian Model -
+# Bayesian Model
 # The model lasts more than 4 hours with a 2,3 GHz Dual-Core Intel Core i5 and 16 GB memory
 # mn = vector("list", 7) ; for (i in 1:7) {
 #  mn[[i]] <- brms::brm(tr | trials(s) ~ 1 + pH + (1 + pH | habitat), data = data_model[[i]]$tr, 
 #                  family = multinomial(), control=list(adapt_delta=0.99, max_treedepth=15), 
 #                  chains = 2, cores = 2, iter = 4000, warmup = 1000, backend = "cmdstanr")}
 
-# Predictions -
+# Predictions
 # The predictions take time as well
 # Predicted_values = vector("list", 7) ; for (i in 1:7) {Predicted_values[[i]] = 
 #                                                          predict(mn[[i]], data_model[[i]]$tr)}
@@ -809,16 +809,16 @@ for (t in names(fe_tr)) {
 
 ## Saving outputs --------------------------------------------------------------------------------------------------
 
-save(quadrats_species_cover, file=file.path(dir_data,"quadrats_species_cover.Rdata"))
-save(quadrats_multidimFD, file=file.path(dir_data,"quadrats_multidimFD.Rdata"))
-save(quadrats_beta_hill, file=file.path(dir_data,"quadrats_beta_hill.Rdata"))
-save(habph_species_cover, file=file.path(dir_data,"habph_species_cover.Rdata"))
-save(habph_multidimFD, file=file.path(dir_data,"habph_multidimFD.Rdata"))
-save(quadrats_biodiv, file=file.path(dir_data,"quadrats_biodiv.Rdata"))
-save(quadrats_fe_cover, file=file.path(dir_data,"quadrats_fe_cover.Rdata"))
-save(habph_fe_cover, file=file.path(dir_data,"habph_fe_cover.Rdata"))
-save(fe_4D_coord, file=file.path(dir_data,"fe_4D_coord.Rdata"))
-save(traits_cat, file=file.path(dir_data,"traits_cat.Rdata"))
-save(sp_to_fe, file=file.path(dir_data,"sp_to_fe.Rdata"))
-save(fe_tr, file=file.path(dir_data,"fe_tr.Rdata"))
-save(fe_sp, file=file.path(dir_data,"fe_sp.Rdata"))
+save(quadrats_species_cover, file = file.path(dir_data, "quadrats_species_cover.Rdata"))
+save(quadrats_multidimFD, file = file.path(dir_data, "quadrats_multidimFD.Rdata"))
+save(habph_species_cover, file = file.path(dir_data, "habph_species_cover.Rdata"))
+save(quadrats_beta_hill, file = file.path(dir_data, "quadrats_beta_hill.Rdata"))
+save(quadrats_fe_cover, file = file.path(dir_data, "quadrats_fe_cover.Rdata"))
+save(habph_multidimFD, file = file.path(dir_data, "habph_multidimFD.Rdata"))
+save(quadrats_biodiv, file = file.path(dir_data, "quadrats_biodiv.Rdata"))
+save(habph_fe_cover, file = file.path(dir_data, "habph_fe_cover.Rdata"))
+save(fe_4D_coord, file = file.path(dir_data, "fe_4D_coord.Rdata"))
+save(traits_cat, file = file.path(dir_data, "traits_cat.Rdata"))
+save(sp_to_fe, file = file.path(dir_data, "sp_to_fe.Rdata"))
+save(fe_tr, file = file.path(dir_data, "fe_tr.Rdata"))
+save(fe_sp, file = file.path(dir_data, "fe_sp.Rdata"))
