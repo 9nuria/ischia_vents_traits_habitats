@@ -23,6 +23,9 @@ R version 4.0.3 (2020-10-10)
 Platform: x86_64-apple-darwin17.0 (64-bit)
 Running under: macOS  12.2.1
 
+Matrix products: default
+LAPACK: /Library/Frameworks/R.framework/Versions/4.0/Resources/lib/libRlapack.dylib
+
 locale:
 [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
 
@@ -30,10 +33,11 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
- [1] lme4_1.1-28     brms_2.16.3     Rcpp_1.0.8.3    Matrix_1.4-1    devtools_2.4.3  usethis_2.1.5   MASS_7.3-55    
- [8] vegan_2.5-7     lattice_0.20-45 permute_0.9-7   patchwork_1.1.1 ape_5.6-2       geometry_0.4.5  reshape2_1.4.4 
-[15] mFD_1.0.1       forcats_0.5.1   stringr_1.4.0   dplyr_1.0.8     purrr_0.3.4     readr_2.1.2     tidyr_1.2.0    
-[22] tibble_3.1.7    ggplot2_3.3.6   tidyverse_1.3.1
+ [1] vegan_2.5-7     lattice_0.20-45 permute_0.9-7   forcats_0.5.1   stringr_1.4.0  
+ [6] dplyr_1.0.8     purrr_0.3.4     readr_2.1.2     tidyr_1.2.0     tibble_3.1.7   
+[11] ggplot2_3.3.6   tidyverse_1.3.1 reshape2_1.4.4  patchwork_1.1.1 mFD_1.0.1      
+[16] MASS_7.3-55     lme4_1.1-28     Matrix_1.4-1    geometry_0.4.5  devtools_2.4.3 
+[21] usethis_2.1.5   brms_2.16.3     Rcpp_1.0.8.3    ape_5.6-2  
 ```
 -------------------
 
