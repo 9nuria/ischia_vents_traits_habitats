@@ -1,17 +1,24 @@
 # Functional biodiversity shifts within and across benthic habitats under ocean acidification
-----------------------
 
 ![GitHub](https://img.shields.io/badge/github-%23181717.svg?&style=for-the-badge&logo=github&logoColor=white")
 ![Gitlab](https://img.shields.io/badge/gitlab-%23FCA121.svg?&style=for-the-badge&logo=gitlab&logoColor=black")
 ![R](https://img.shields.io/badge/R-v4.0.3-276DC3?style=for-the-badge&logo=r&logoColor=white")
-[![GitHub commits](https://badgen.net/github/commits/9nuria/ischia_vents_habitats.js)](https://github.com/9nuria/ischia_vents_habitats.js/commit/)
-[![GitHub latest commit](https://badgen.net/github/last-commit/9nuria/ischia_vents_habitats.js)](https://github.com/9nuria/ischia_vents_habitats.js/commit/)
 
 Scripts and data for functional diversity under ocean acidification across different habitat types
 
 Data architecture> Scripts and data are from the folder named "seb" within the master branch valeriano/nuria_acid. Dowloaded from github on 2021-12-29. 
 
 Folders
+- :file_folder: R contains the current script and R project related to this study
+- :file_folder: data contains the following sub-folders
+  - :file_folder: 1 – raw_data which hosts original .csv files
+  - :file_folder: 2 – elaborated_data which hosts the data built with this script
+  - :file_folder: 3 – model which hosts the models built with this script
+  - :file_folder: 4 – useful_scripts which hosts other script useful for this script
+- :file_folder: outputs contains the following sub-folders
+  - :file_folder: plots which hosts the plots built with this scripts
+
+
 folder data> data for the analysis, including raw data 
 folder FD> functional diversity files
 folder plot> plots obtained
