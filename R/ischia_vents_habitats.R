@@ -8,19 +8,19 @@ rm(list=ls()) ; options(mc.cores = parallel::detectCores())
 ## Loading packages and data ---------------------------------------------------------------------------------------
 
 # Packages
-library(tidyverse)
-library(mFD)
-library(reshape2)
-library(geometry)
 library(ape)
-library(patchwork)
-library(vegan)
-library(MASS)
-library(devtools)
-library(Matrix) 
-library(Rcpp)
 library(brms)
+library(devtools)
+library(geometry)
 library(lme4)
+library(MASS)
+library(Matrix) 
+library(mFD)
+library(patchwork)
+library(Rcpp)
+library(reshape2)
+library(tidyverse)
+library(vegan)
 
 # Directories
 dir_raw_data   <- "./data/1 – raw_data"              # folder to load raw data 
@@ -668,7 +668,6 @@ data_predicted = vector("list", 7)
                                    Q97.5 = c(Predicted_values[[7]][1:294,4,1], Predicted_values[[7]][1:294,4,2]),
                                    Trait = rep("Mobility", 294*1*2))}
 data_predicted = data_predicted %>% bind_rows()
-View(data_predicted)
 
 # Vizualisation
 data_predicted_viz = data_predicted %>% group_by(Habitat, pH, Condition, Trait) %>% summarise_all(mean) 
