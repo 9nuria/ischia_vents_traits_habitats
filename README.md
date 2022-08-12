@@ -7,18 +7,16 @@
 Scripts and data for functional diversity under ocean acidification across different habitat types
 
 Folders
-- :file_folder: R contains the current script and R project related to this study
-- :file_folder: data contains the following sub-folders
-  - :file_folder: 1 – raw_data which hosts original .csv files
-  - :file_folder: 2 – elaborated_data which hosts the data built with this script
-  - :file_folder: 3 – model which hosts the models built with this script
-  - :file_folder: 4 – useful_scripts which hosts other script useful for this script
-- :file_folder: outputs contains the following sub-folders
-  - :file_folder: plots which hosts the plots built with this scripts
+- :file_folder: ``R`` contains the current script and R project related to this study
+- :file_folder: ``data`` contains the following sub-folders
+  - :file_folder: ``1 – raw_data`` which hosts original .csv files
+  - :file_folder: ``2 – elaborated_data`` which hosts the data built with this script
+  - :file_folder: ``3 – model`` which hosts the models built with this script
+  - :file_folder: ``4 – useful_scripts`` which hosts other script useful for this script
+- :file_folder: ``outputs`` contains the following sub-folders
+  - :file_folder: ``plots`` which hosts the plots built with this scripts
 
 ```{Session Info, echo = T}
-utils::sessionInfo()
-
 R version 4.0.3 (2020-10-10)
 Platform: x86_64-apple-darwin17.0 (64-bit)
 Running under: macOS  12.2.1
