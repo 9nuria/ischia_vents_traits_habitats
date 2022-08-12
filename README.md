@@ -5,8 +5,8 @@
 ![R](https://img.shields.io/badge/R-v4.0.3-276DC3?style=for-the-badge&logo=r&logoColor=white")
 
 Scripts and data for functional diversity under ocean acidification across different habitat types
+This Github repository is structured as follows:
 
-Folders
 - :file_folder: ``R`` contains the current script and R project related to this study
 - :file_folder: ``data`` contains the following sub-folders
   - :file_folder: ``1 – raw_data`` which hosts original .csv files
@@ -15,6 +15,8 @@ Folders
   - :file_folder: ``4 – useful_scripts`` which hosts other script useful for this script
 - :file_folder: ``outputs`` contains the following sub-folders
   - :file_folder: ``plots`` which hosts the plots built with this scripts
+
+This analyze has been launched with the following machine parameters
 
 ```{Session Info, echo = T}
 R version 4.0.3 (2020-10-10)
@@ -33,6 +35,7 @@ other attached packages:
 [15] mFD_1.0.1       forcats_0.5.1   stringr_1.4.0   dplyr_1.0.8     purrr_0.3.4     readr_2.1.2     tidyr_1.2.0    
 [22] tibble_3.1.7    ggplot2_3.3.6   tidyverse_1.3.1
 ```
+-------------------
 
 <del>
 Data architecture> Scripts and data are from the folder named "seb" within the master branch valeriano/nuria_acid. Dowloaded from github on 2021-12-29. 
@@ -49,4 +52,5 @@ D trait dominance: category abundance for each trait across habitats and pH cond
 E mds permdisp: taxonomic and functional MDS based on hill numbers with stats
 F functional hull: new figure FD with Ambient and Low pH conditions
 G diversity indices: diversity indices across habitats and 2 pH conditions witth stats
-H change trait abund: Change in trait abundance with pH across habitats </del>
+H change trait abund: Change in trait abundance with pH across habitats 
+</del>
