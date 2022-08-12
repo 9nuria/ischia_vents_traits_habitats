@@ -1,4 +1,13 @@
 # ischia_vents_habitats
+
+https://img.shields.io/badge/R-v4.0.3-276DC3?style=for-the-badge&logo=r&logoColor=white
+
+/github/license/micromatch/micromatch
+/github/watchers/micromatch/micromatch
+/github/stars/micromatch/micromatch
+/github/forks/micromatch/micromatch
+/github/issues/micromatch/micromatch
+
 Scripts and data for functional diversity under ocean acidification across different habitat types
 
 Data architecture> Scripts and data are from the folder named "seb" within the master branch valeriano/nuria_acid. Dowloaded from github on 2021-12-29. 
