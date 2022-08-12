@@ -3,7 +3,7 @@
 ## Kroeker, Fiorenza Micheli, Alice Mirasole, Sebastien Villéger, Cinzia De Vittor, Valeriano Parravacini 
 ## *corresponding author. Email: nuria.teixido@imev-mer.fr; nuria.teixido@szn.it 
 
-rm(list=ls()) ; options(mc.cores = parallel::detectCores())
+rm(list=ls()) ; options(mc.cores = parallel::detectCores()) ; setwd("..")
 
 ## Loading packages and data ---------------------------------------------------------------------------------------
 
@@ -708,7 +708,7 @@ fig.tax.v3v4 <- ggplot(pcoa_taxo, aes(x = V3, y = V4, group = condition, fill = 
   scale_shape_manual(values  = c(rep(21, 2), rep(24, 2), rep(22, 2), rep(23, 2))) + 
   labs(title = "A) Taxonomic diversity", x = "V3", y = "V4") + scale_x_continuous(limits = c(-0.55, 0.6)) + 
   scale_y_continuous(limits  = c(-0.5, 0.5)) + theme(legend.position='none')
-mdsv3v4<-(fig.tax.v3v4/fig.fun.v3v4)
+mdsv3v4 <- (fig.tax.v3v4/fig.fun.v3v4)
 
 # SCRIPT C ---------------------------------------------------------------------------------------------------------
 #### Making Supplementary Figures S7 and S8 ------------------------------------------------------------------------
@@ -786,24 +786,24 @@ habph_tr_moddom <- list() ; plot_t_mod_pcover = list () ; for (t in names(fe_tr)
 ## Savings figures -------------------------------------------------------------------------------------------------
 
 # Main Figures  
-ggsave(FD_xy[[1]], filename = "fig2_FD_pc1vs2low_vs_amb.png", path = dir_plot, device = "png", width = 6,     # 2
-       height = 12)              
-ggsave("fig3_mds_funct_taxo_v1v2.png", plot = mdsv1v2, path = dir_plot, device = "png", height = 35,          # 3
-       width = 35, units = "cm", dpi = 300)
-ggsave("fig4_indicesdiv.png", plot = boxplot, path = dir_plot, device = "png", height = 35, width = 35,       # 4
+ggsave(FD_xy[[1]], filename = "Figure_2.png", path = dir_plot, device = "png", width = 6, height = 12,        # 2
+       dpi = 300)              
+ggsave("Figure_3.png", plot = mdsv1v2, path = dir_plot, device = "png", height = 35, width = 35,              # 3
        units = "cm", dpi = 300)
-ggsave("fig5_multifunc.png", plot = Final_Plot, path = dir_plot, device = "png", height = 26.5, width = 21,   # 5
+ggsave("Figure_4.png", plot = boxplot, path = dir_plot, device = "png", height = 35, width = 35,              # 4
+       units = "cm", dpi = 300)
+ggsave("Figure_5.png", plot = Final_Plot, path = dir_plot, device = "png", height = 26.5, width = 21,         # 5
        units = "cm", dpi = 300)
 
 # Supplementary figures
-ggsave(FD_xy[[2]], filename = "FD_pc3vs4low_vs_amb.png", path = dir_plot, device = "png", width = 6,          # S4
+ggsave(FD_xy[[2]], filename = "Figure_S4.png", path = dir_plot, device = "png", width = 6,                    # S4
        height = 12)              
-ggsave("fig_mds_funct_taxo_sm_v3v4.png", plot = mdsv3v4, path = dir_plot, device = "png", height = 35,        # S6
+ggsave(mdsv3v4, filename = "Figure_S6.png", path = dir_plot, device = "png", height = 35,                     # S6
        width = 35, units = "cm", dpi = 300)
-ggsave(beta_cor_plot, filename = "beta_taxo_funct.png", path = dir_plot, width = 4)                           # S7
-ggsave(boxplot_beta, filename = "boxplot_beta_taxo_funct.png", path = dir_plot, width = 9, height = 5)        # S8
+ggsave(beta_cor_plot, filename = "Figure_S7.png", path = dir_plot, width = 4)                                 # S7
+ggsave(boxplot_beta, filename = "Figure_S8.png", path = dir_plot, width = 9, height = 5)                      # S8
 for (t in names(fe_tr)) {  
-  ggsave(plot_t_mod_pcover[[t]], filename = paste0(t, "_habpH_cover.png"), path = dir_plot_trait,             # Sx
+  ggsave(plot_t_mod_pcover[[t]], filename = paste0("Figure_Sx_", t, "_.png"), path = dir_plot_trait,          # Sx
          width = 14, height = 5)}
 
 ## Saving outputs --------------------------------------------------------------------------------------------------
