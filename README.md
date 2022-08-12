@@ -4,17 +4,17 @@
 ![Gitlab](https://img.shields.io/badge/gitlab-%23FCA121.svg?&style=for-the-badge&logo=gitlab&logoColor=black")
 ![R](https://img.shields.io/badge/R-v4.0.3-276DC3?style=for-the-badge&logo=r&logoColor=white")
 
-Scripts and data for functional diversity under ocean acidification across different habitat types
+Scripts and data for functional diversity under ocean acidification across different habitat types    
 This Github repository is structured as follows:
 
 - :file_folder: [``R``](https://github.com/9nuria/ischia_vents_habitats/tree/main/R) contains the current script and R project related to this study
-- :file_folder: ``data`` contains the following sub-folders
-  - :file_folder: ``1 – raw_data`` which hosts original .csv files
-  - :file_folder: ``2 – elaborated_data`` which hosts the data built with this script
-  - :file_folder: ``3 – model`` which hosts the models built with this script
-  - :file_folder: ``4 – useful_scripts`` which hosts other script useful for this script
-- :file_folder: ``outputs`` contains the following sub-folders
-  - :file_folder: ``plots`` which hosts the plots built with this script
+- :file_folder: [``data``](https://github.com/9nuria/ischia_vents_habitats/tree/main/data) contains the following sub-folders
+  - :file_folder: [``1 – raw_data``](https://github.com/9nuria/ischia_vents_habitats/tree/main/data/1%20–%20raw_data) which hosts original .csv files
+  - :file_folder: [``2 – elaborated_data``](https://github.com/9nuria/ischia_vents_habitats/tree/main/data/2%20–%20data_generated) which hosts the data built with this script
+  - :file_folder: [``3 – model``](https://github.com/9nuria/ischia_vents_habitats/tree/main/data/3%20–%20model) which hosts the models built with this script
+  - :file_folder: [``4 – useful_scripts``](https://github.com/9nuria/ischia_vents_habitats/tree/main/data/4%20–%20useful_scripts) which hosts other script useful for this script
+- :file_folder: [``outputs``](https://github.com/9nuria/ischia_vents_habitats/tree/main/outputs) contains the following sub-folders
+  - :file_folder: [``plot``](https://github.com/9nuria/ischia_vents_habitats/tree/main/outputs/plot) which hosts the plots built with this script
 
 This analyze has been launched with the following machine parameters
 
