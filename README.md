@@ -7,7 +7,7 @@
 Scripts and data for functional diversity under ocean acidification across different habitat types
 This Github repository is structured as follows:
 
-- :file_folder: [``R``](https://github.com/9nuria/ischia_vents_habitats/tree/main/R) contains the current script and R project related to this study
+- :file_folder: ``[R](https://github.com/9nuria/ischia_vents_habitats/tree/main/R)`` contains the current script and R project related to this study
 - :file_folder: ``data`` contains the following sub-folders
   - :file_folder: ``1 – raw_data`` which hosts original .csv files
   - :file_folder: ``2 – elaborated_data`` which hosts the data built with this script
