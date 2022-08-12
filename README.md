@@ -1,7 +1,7 @@
 # ischia_vents_habitats
 
-< img alt = "Badge" src = "https://img.shields.io/badge/R-v4.0.3-276DC3?style=for-the-badge&logo=r&logoColor=white"/>
 ![example branch parameter](https://github.com/github/docs/actions/workflows/main.yml/badge.svg?branch=feature-1)
+![example branch parameter](https://img.shields.io/badge/R-v4.0.3-276DC3?style=for-the-badge&logo=r&logoColor=white")
 
 Scripts and data for functional diversity under ocean acidification across different habitat types
 
