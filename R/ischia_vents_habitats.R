@@ -31,6 +31,11 @@ dir_model      <- "./data/3 – model"                 # folder to save models
 
 # Generic functions
 std_err <- function(x) {sd(x)/sqrt(length(x))}       # function to compute standard error
+long_to_wide_distance <- function (df) {             # function to convert distances
+  matNames <- sort(unique(as.character(unlist(df[1:2])))) ; colnames(df)[3] <- "value"
+  myMat <- matrix(0, length(matNames), length(matNames), dimnames = list(matNames, matNames))
+  myMat[as.matrix(df[c(1,2)])] <- df$value ; myMat[as.matrix(df[c(2,1)])] <- df$value
+  return(as.dist(myMat))}
 
 # Raw data
 sites_quadrats_info <- read.csv(file.path(dir_raw_data,"Sites_Quadrats.csv"))
@@ -54,9 +59,8 @@ load(file.path(dir_data, "habph_fe_cover.Rdata"))
 load(file.path(dir_data, "sites_quadrats_info.Rdata"))
 load(file.path(dir_data, "Predicted_values.RData")) 
 
-# Model and useful scripts
+# Model 
 load(file.path(dir_model,"mn.RData"))
-source(file = "./data/4 – useful_scripts/long_to_wide_dist.R")
 
 ## Data preparation ------------------------------------------------------------------------------------------------
 # SCRIPT A ---------------------------------------------------------------------------------------------------------
