@@ -345,8 +345,11 @@ range_axes         <- range_faxes_coord + c(-1, 1) * (range_faxes_coord[2] - ran
 habph2_fd          <- habph2_multidimFD$functional_diversity_indices
 
 # Building the figure
-pairs_axes         <- list(c(1,2), c(3,4))
-FD_xy = list()
+pairs_axes         <- list(c(1,2), c(3,4)) ; FD_xy = list()
+labels = c("Shallow Reef Ambient pH", "Shallow Reef Low pH", "Cave Ambient pH", "Cave Low pH",
+           "Reef Ambient pH", "Reef Low pH", "Deep Reef Ambient pH", "Deep Reef Low pH") %>% data.frame()
+rownames(labels) = hab_ph2
+
 for (z in 1:length(pairs_axes)) {
   xy <- pairs_axes[[z]]                                                      # names of axes 
   ggplot_list <- list()                                                      # list to store ggplot
@@ -355,7 +358,7 @@ for (z in 1:length(pairs_axes)) {
     sp_v  <- names(which(habph2_multidimFD$details$asb_sp_occ[v,] == 1))     # species present in v
     # background with axes range set + title
     ggplot_v <- background.plot(range_faxes = range_axes, faxes_nm = paste0("PC", xy), color_bg = "grey95")
-    ggplot_v <- ggplot_v + labs(subtitle=v)
+    ggplot_v <- ggplot_v + labs(subtitle=labels[v,])
     # convex hull of species pool
     ggplot_v <- pool.plot(ggplot_bg = ggplot_v, sp_coord2D = pool_coord[,xy], vertices_nD = pool_vert_nm, 
                           plot_pool = F, color_ch = NA, fill_ch = "white", alpha_ch = 1)
@@ -673,26 +676,96 @@ data_predicted = vector("list", 7)
                                    Trait = rep("Mobility", 294*1*2))}
 data_predicted = data_predicted %>% bind_rows()
 
+# SCRIPT J ---------------------------------------------------------------------------------------------------------
 # Vizualisation
 data_predicted_viz = data_predicted %>% group_by(Habitat, pH, Condition, Trait) %>% summarise_all(mean) 
 data_predicted_viz$Habitat = factor(data_predicted_viz$Habitat, levels = c('shallow_reef','cave','reef','deep_reef'))
 
-Final_Plot <- ggplot(data = data_predicted_viz, aes(x = pH, y = Cover, color = Condition, group = Condition)) +
+colors6  <-c("#1b9e77", "#e7298a", "#7570b3", "#d95f02", "#0c2c84", "#c4c0c2")
+colors4b <-c("#1b9e77", "#d95f02", "#7570b3", "#e7298a")
+colors3  <-c("#1b9e77", "#7570b3", "#e7298a")
+colors2  <-c("#1b9e77", "#e7298a")
+colorsph <-c("#bcd7e6", "#e31a1c")
+
+# Trait: Form
+form_data_predicted_viz <- data_predicted_viz %>% dplyr::filter(Trait == "Form") 
+plot1 <- ggplot(form_data_predicted_viz, aes(x = pH, y = Cover, color = Condition, group = Condition)) +
   geom_line(linetype = "dashed") + geom_point(size = 5) +
-  geom_errorbar(aes(ymin = Cover - std.error, ymax = Cover + std.error), width = .2, 
-                position = position_dodge(0.05)) +
-  geom_rect(aes(xmin = which(levels(as.factor(pH)) == "ambient") - 0.6, 
+  geom_errorbar(aes(ymin = Cover - std.error, ymax = Cover + std.error), width=.2, position = position_dodge(0.05)) +
+  geom_rect(aes(xmin = which(levels(as.factor(pH)) == "ambient") - 0.6,
                 xmax = which(levels(as.factor(pH)) == "ambient") + 0.5, ymin = -Inf, ymax = Inf), 
-            fill = "#deebf7", color = "NA", alpha = 0.05, inherit.aes = FALSE) +
-  geom_rect(aes(xmin = which(levels(as.factor(pH)) == "low") - 0.5, 
-                xmax = which(levels(as.factor(pH)) == "low")+0.6, ymin = -Inf, ymax = Inf),
-            fill = "#fdbb84", color = "NA", alpha = 0.05, inherit.aes = FALSE) +
-  scale_y_continuous(name = "Cover (%)", limits = c(0, 100), breaks = c(0, 25, 50, 75, 100)) +
-  scale_x_discrete(name = "", labels = c("Ambient", "Low pH")) + theme_bw() +
-  theme(plot.title = element_text(size=14, hjust=0.5), axis.title.x = element_blank()) +
-  facet_grid(Trait~Habitat, labeller = labeller(Habitat = c("cave" = "Cave", "deep_reef" = "Deep Reef", 
-                                                            "reef" = "Reef", "shallow_reef" = "Shallow Reef"))) + 
-  theme(strip.text = element_text(size = 14))
+            fill = "#deebf7", color = "NA", alpha = 0.05, inherit.aes = F) +
+  geom_rect(aes(xmin = which(levels(as.factor(pH)) == "low") - 0.5,
+                xmax = which(levels(as.factor(pH)) == "low") + 0.6, ymin = -Inf, ymax = Inf),
+            fill = "#fdbb84", color = "NA", alpha = 0.05, inherit.aes = F) +
+  scale_color_manual(values= colors4b, name="", labels = c("Encrusting", "Filaments", "Massive", "Tree")) +
+  scale_y_continuous(name = "Cover (%)", limits = c(0,100), breaks = c(0, 25, 50, 75, 100)) +
+  scale_x_discrete(name = "", labels = c("","")) + labs(title = "Morphological form") + theme_bw() +
+  theme(plot.title = element_text(size = 14, hjust = 0.5), axis.title.x = element_blank()) +
+  facet_wrap(~Habitat, nrow = 1, labeller = 
+               labeller(Habitat = c("shallow_reef" = "Shallow Reef", "cave" = "Cave", "reef" = "Reef", 
+                                    "deep_reef" = "Deep Reef"))) + theme(strip.text = element_text(size = 14))
+
+# Trait: Feeding
+feed_data_predicted_viz <- data_predicted_viz %>% dplyr::filter(Trait=="Feeding") 
+plot2 <- ggplot(feed_data_predicted_viz, aes(x = pH, y = Cover, color = Condition, group = Condition)) +
+  geom_line(linetype = "dashed") + geom_point(size = 5) +
+  geom_errorbar(aes(ymin = Cover - std.error, ymax = Cover + std.error), width=.2, position = position_dodge(0.05)) +
+  geom_rect(aes(xmin = which(levels(as.factor(pH)) == "ambient") - 0.6,
+                xmax = which(levels(as.factor(pH)) == "ambient") + 0.5, ymin = -Inf, ymax = Inf), 
+            fill = "#deebf7", color = "NA", alpha = 0.05, inherit.aes = F) +
+  geom_rect(aes(xmin = which(levels(as.factor(pH)) == "low") - 0.5,
+                xmax = which(levels(as.factor(pH)) == "low") + 0.6, ymin = -Inf, ymax = Inf),
+            fill = "#fdbb84", color = "NA", alpha = 0.05, inherit.aes = F) +
+  scale_color_manual(values = colors6, name = "", labels = c("Autotroph", "Filter feeder", "Herbivor/Grazer", 
+                                                             "Carnivor", "Detritivor", "Parasite")) +
+  scale_y_continuous(name = "Cover (%)", limits = c(0,100), breaks = c(0, 25, 50, 75, 100)) +
+  scale_x_discrete(name = "", labels = c("","")) + labs(title = "Feeding") + theme_bw() +
+  theme(plot.title = element_text(size = 14, hjust = 0.5), axis.title.x = element_blank()) +
+  facet_wrap(~Habitat, nrow = 1, labeller = 
+               labeller(Habitat = c("shallow_reef" = "Shallow Reef", "cave" = "Cave", "reef" = "Reef", 
+                                    "deep_reef" = "Deep Reef"))) + theme(strip.text = element_text(size = 14))
+
+# Trait: growth
+growth_data_predicted_viz <- data_predicted_viz %>% filter(Trait == "Growth") 
+plot3 <- ggplot(growth_data_predicted_viz, aes(x = pH, y = Cover, color = Condition, group = Condition)) +
+  geom_line(linetype = "dashed") + geom_point(size = 5) +
+  geom_errorbar(aes(ymin = Cover - std.error, ymax = Cover + std.error), width=.2, position = position_dodge(0.05)) +
+  geom_rect(aes(xmin = which(levels(as.factor(pH)) == "ambient") - 0.6,
+                xmax = which(levels(as.factor(pH)) == "ambient") + 0.5, ymin = -Inf, ymax = Inf), 
+            fill = "#deebf7", color = "NA", alpha = 0.05, inherit.aes = F) +
+  geom_rect(aes(xmin = which(levels(as.factor(pH)) == "low") - 0.5,
+                xmax = which(levels(as.factor(pH)) == "low") + 0.6, ymin = -Inf, ymax = Inf),
+            fill = "#fdbb84", color = "NA", alpha = 0.05, inherit.aes = F) +
+  scale_color_manual(values = colors3, name = "", labels = c("Low", "Moderate", "High")) +
+  scale_y_continuous(name = "Cover (%)", limits = c(0,100), breaks = c(0, 25, 50, 75, 100)) +
+  scale_x_discrete(name = "", labels = c("","")) + labs(title = "Grotwh") + theme_bw() +
+  theme(plot.title = element_text(size = 14, hjust = 0.5), axis.title.x = element_blank()) +
+  facet_wrap(~Habitat, nrow = 1, labeller = 
+               labeller(Habitat = c("shallow_reef" = "Shallow Reef", "cave" = "Cave", "reef" = "Reef", 
+                                    "deep_reef" = "Deep Reef"))) + theme(strip.text = element_text(size = 14))
+
+# Trait: calcification
+cal_data_predicted_viz <- data_predicted_viz %>% filter(Trait == "Calcification") 
+plot4 <- ggplot(cal_data_predicted_viz, aes(x = pH, y = Cover, color = Condition, group = Condition)) +
+  geom_line(linetype = "dashed") + geom_point(size = 5) +
+  geom_errorbar(aes(ymin = Cover - std.error, ymax = Cover + std.error), width=.2, position = position_dodge(0.05)) +
+  geom_rect(aes(xmin = which(levels(as.factor(pH)) == "ambient") - 0.6,
+                xmax = which(levels(as.factor(pH)) == "ambient") + 0.5, ymin = -Inf, ymax = Inf), 
+            fill = "#deebf7", color = "NA", alpha = 0.05, inherit.aes = F) +
+  geom_rect(aes(xmin = which(levels(as.factor(pH)) == "low") - 0.5,
+                xmax = which(levels(as.factor(pH)) == "low") + 0.6, ymin = -Inf, ymax = Inf),
+            fill = "#fdbb84", color = "NA", alpha = 0.05, inherit.aes = F) +
+  scale_color_manual(values= colors2, name="", labels=c("No", "Yes"))+
+  scale_y_continuous(name = "Cover (%)", limits = c(0,100), breaks = c(0, 25, 50, 75, 100)) +
+  scale_x_discrete(name = "", labels = c("","")) + labs(title = "Calcification") + theme_bw() +
+  theme(plot.title = element_text(size = 14, hjust = 0.5), axis.title.x = element_blank()) +
+  facet_wrap(~Habitat, nrow = 1, labeller = 
+               labeller(Habitat = c("shallow_reef" = "Shallow Reef", "cave" = "Cave", "reef" = "Reef", 
+                                    "deep_reef" = "Deep Reef"))) + theme(strip.text = element_text(size = 14))
+
+# Everything combined
+all4 <- (plot1/plot2/plot3/plot4)
 
 # SCRIPT E ---------------------------------------------------------------------------------------------------------
 #### Making Supplementary Figure 6 ---------------------------------------------------------------------------------
@@ -796,7 +869,7 @@ ggsave("Figure_3.png", plot = mdsv1v2, path = dir_plot, device = "png", height =
        units = "cm", dpi = 300)
 ggsave("Figure_4.png", plot = boxplot, path = dir_plot, device = "png", height = 35, width = 35,              # 4
        units = "cm", dpi = 300)
-ggsave("Figure_5.png", plot = Final_Plot, path = dir_plot, device = "png", height = 26.5, width = 21,         # 5
+ggsave("Figure_5.png", plot = all4, path = dir_plot, device="png", height = 25, width = 20,                   # 5
        units = "cm", dpi = 300)
 
 # Supplementary figures
