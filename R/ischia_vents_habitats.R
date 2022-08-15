@@ -726,8 +726,8 @@ plot2 <- ggplot(feed_data_predicted_viz, aes(x = pH, y = Cover, color = Conditio
                labeller(Habitat = c("shallow_reef" = "Shallow Reef", "cave" = "Cave", "reef" = "Reef", 
                                     "deep_reef" = "Deep Reef"))) + theme(strip.text = element_text(size = 14))
 
-# Trait: growth
-growth_data_predicted_viz <- data_predicted_viz %>% filter(Trait == "Growth") 
+# Trait: Growth
+growth_data_predicted_viz <- data_predicted_viz %>% dplyr::filter(Trait == "Growth") 
 plot3 <- ggplot(growth_data_predicted_viz, aes(x = pH, y = Cover, color = Condition, group = Condition)) +
   geom_line(linetype = "dashed") + geom_point(size = 5) +
   geom_errorbar(aes(ymin = Cover - std.error, ymax = Cover + std.error), width=.2, position = position_dodge(0.05)) +
@@ -745,8 +745,8 @@ plot3 <- ggplot(growth_data_predicted_viz, aes(x = pH, y = Cover, color = Condit
                labeller(Habitat = c("shallow_reef" = "Shallow Reef", "cave" = "Cave", "reef" = "Reef", 
                                     "deep_reef" = "Deep Reef"))) + theme(strip.text = element_text(size = 14))
 
-# Trait: calcification
-cal_data_predicted_viz <- data_predicted_viz %>% filter(Trait == "Calcification") 
+# Trait: Calcification
+cal_data_predicted_viz <- data_predicted_viz %>% dplyr::filter(Trait == "Calcification") 
 plot4 <- ggplot(cal_data_predicted_viz, aes(x = pH, y = Cover, color = Condition, group = Condition)) +
   geom_line(linetype = "dashed") + geom_point(size = 5) +
   geom_errorbar(aes(ymin = Cover - std.error, ymax = Cover + std.error), width=.2, position = position_dodge(0.05)) +
