@@ -23,8 +23,8 @@ library(tidyverse)
 library(vegan)
 
 # Directories
-dir_raw_data   <- "./data/1 – raw_data"              # folder to load raw data 
-dir_data       <- "./data/2 – data_generated"        # folder to save ready to use data
+dir_raw_data   <- "./data/1 – raw data"              # folder to load raw data 
+dir_data       <- "./data/2 – data generated"        # folder to save ready to use data
 dir_plot       <- "./outputs/plot"                   # folder with plot 
 dir_plot_trait <- "./outputs/plot/traits"            # folder to save plot as png
 dir_model      <- "./data/3 – model"                 # folder to save models
