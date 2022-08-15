@@ -720,7 +720,7 @@ plot2 <- ggplot(feed_data_predicted_viz, aes(x = pH, y = Cover, color = Conditio
   scale_color_manual(values = colors6, name = "", labels = c("Autotroph", "Filter feeder", "Herbivor/Grazer", 
                                                              "Carnivor", "Detritivor", "Parasite")) +
   scale_y_continuous(name = "Cover (%)", limits = c(0,100), breaks = c(0, 25, 50, 75, 100)) +
-  scale_x_discrete(name = "", labels = c("","")) + labs(title = "Feeding") + theme_bw() +
+  scale_x_discrete(name = "", labels = c("","")) + labs(title = "Feeding activity") + theme_bw() +
   theme(plot.title = element_text(size = 14, hjust = 0.5), axis.title.x = element_blank()) +
   facet_wrap(~Habitat, nrow = 1, labeller = 
                labeller(Habitat = c("shallow_reef" = "Shallow Reef", "cave" = "Cave", "reef" = "Reef", 
@@ -739,7 +739,7 @@ plot3 <- ggplot(growth_data_predicted_viz, aes(x = pH, y = Cover, color = Condit
             fill = "#fdbb84", color = "NA", alpha = 0.05, inherit.aes = F) +
   scale_color_manual(values = colors3, name = "", labels = c("Low", "Moderate", "High")) +
   scale_y_continuous(name = "Cover (%)", limits = c(0,100), breaks = c(0, 25, 50, 75, 100)) +
-  scale_x_discrete(name = "", labels = c("","")) + labs(title = "Grotwh") + theme_bw() +
+  scale_x_discrete(name = "", labels = c("","")) + labs(title = "Growth rate") + theme_bw() +
   theme(plot.title = element_text(size = 14, hjust = 0.5), axis.title.x = element_blank()) +
   facet_wrap(~Habitat, nrow = 1, labeller = 
                labeller(Habitat = c("shallow_reef" = "Shallow Reef", "cave" = "Cave", "reef" = "Reef", 
@@ -758,7 +758,7 @@ plot4 <- ggplot(cal_data_predicted_viz, aes(x = pH, y = Cover, color = Condition
             fill = "#fdbb84", color = "NA", alpha = 0.05, inherit.aes = F) +
   scale_color_manual(values= colors2, name="", labels=c("No", "Yes"))+
   scale_y_continuous(name = "Cover (%)", limits = c(0,100), breaks = c(0, 25, 50, 75, 100)) +
-  scale_x_discrete(name = "", labels = c("","")) + labs(title = "Calcification") + theme_bw() +
+  scale_x_discrete(name = "", labels= c("Ambient", "Low pH")) + labs(title = "Calcification") + theme_bw() +
   theme(plot.title = element_text(size = 14, hjust = 0.5), axis.title.x = element_blank()) +
   facet_wrap(~Habitat, nrow = 1, labeller = 
                labeller(Habitat = c("shallow_reef" = "Shallow Reef", "cave" = "Cave", "reef" = "Reef", 
