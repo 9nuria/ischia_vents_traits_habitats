@@ -349,7 +349,6 @@ pairs_axes         <- list(c(1,2), c(3,4)) ; FD_xy = list()
 labels = c("Shallow Reef Ambient pH", "Shallow Reef Low pH", "Cave Ambient pH", "Cave Low pH",
            "Reef Ambient pH", "Reef Low pH", "Deep Reef Ambient pH", "Deep Reef Low pH") %>% data.frame()
 rownames(labels) = hab_ph2
-
 for (z in 1:length(pairs_axes)) {
   xy <- pairs_axes[[z]]                                                      # names of axes 
   ggplot_list <- list()                                                      # list to store ggplot
@@ -766,6 +765,62 @@ plot4 <- ggplot(cal_data_predicted_viz, aes(x = pH, y = Cover, color = Condition
 
 # Everything combined
 all4 <- (plot1/plot2/plot3/plot4)
+
+# SCRIPT L ---------------------------------------------------------------------------------------------------------
+#### Making Figure 6 -----------------------------------------------------------------------------------------------
+
+data_trait     <- data_predicted %>% group_by(., Habitat, pH, Condition, Trait) %>% summarise_all(mean) %>% 
+  data.frame()
+data_trait     <- data_trait %>% group_split(Trait)
+# Habitat function
+Habitat        <- data_trait[[4]] %>% dplyr::filter(., Condition %in% c("c","d")) %>% 
+  group_by(Habitat, pH, Trait) %>% 
+  summarize(., Cover = sum(Cover), std.error = mean(std.error), Q2.5 = sum(Q2.5), Q97.5 = sum(Q97.5))
+# Primary production
+Prim_Prod      <- data_trait[[3]] %>% dplyr::filter(., Condition == "a") %>% group_by(Habitat, pH, Trait) %>% 
+  summarize(., Cover = sum(Cover), std.error = mean(std.error), Q2.5 = sum(Q2.5), Q97.5 = sum(Q97.5))
+# Herbivory
+Herbivory      <- data_trait[[3]] %>% dplyr::filter(., Condition == "c") %>% group_by(Habitat, pH, Trait) %>% 
+  summarize(., Cover = sum(Cover), std.error = mean(std.error), Q2.5 = sum(Q2.5), Q97.5 = sum(Q97.5))
+# Predation
+Predation      <- data_trait[[3]] %>% dplyr::filter(., Condition == "d") %>% group_by(Habitat, pH, Trait) %>% 
+  summarize(., Cover = sum(Cover), std.error = mean(std.error), Q2.5 = sum(Q2.5), Q97.5 = sum(Q97.5))
+# Calcification
+Calcification  <- data_trait[[1]] %>% dplyr::filter(., Condition == "b") %>% group_by(Habitat, pH, Trait) %>% 
+  summarize(., Cover = sum(Cover), std.error = mean(std.error), Q2.5 = sum(Q2.5), Q97.5 = sum(Q97.5))
+# Dataset functionning
+data_functions <- rbind(Habitat, Prim_Prod, Herbivory, Predation, Calcification) %>% data.frame() %>% 
+  mutate(., Function = c(rep("Habitat", 8), rep("Primary Production", 8), rep("Herbivory", 8), rep("Predation", 8), 
+                         rep("Calcification", 8))) %>% 
+  dplyr::select(Function, Habitat, pH, Cover, std.error, Q2.5, Q97.5) 
+
+# Quantify the difference between OA and ambient
+data_functions       = data_functions %>% group_split(pH) 
+change_dataset       = data.frame(Cover = seq(1, length(data_functions[[1]]$Q2.5), 1), Q2.5 = NA, Q97.5 = NA)
+change_dataset$Cover = data_functions[[2]]$Cover - data_functions[[1]]$Cover
+change_dataset$Q2.5  = data_functions[[2]]$Q2.5  - data_functions[[1]]$Q2.5
+change_dataset$Q97.5 = data_functions[[2]]$Q97.5 - data_functions[[1]]$Q97.5
+change_dataset$std.e = sqrt(data_functions[[2]]$std.error^2 + data_functions[[1]]$std.error^2)
+Qmin_value = NA ; Qmax_value = NA ; for (i in 1:length(data_functions[[1]]$Q2.5)) {
+  Qmin_value[i]      = min(change_dataset[i, c(2:3)])
+  Qmax_value[i]      = max(change_dataset[i, c(2:3)])}
+change_dataset$Q2.5  = Qmin_value ; change_dataset$Q97.5 = Qmax_value
+Function_Change      = cbind(data_functions[[1]][,c(1:2)], change_dataset) %>% data.frame()
+
+# Vizualisation
+colors5 = c("#5D2F92", "#C14D9C", "#E26F98", "#EDCB61", "#F3A65E")
+Function_Change$Habitat = factor(Function_Change$Habitat, levels = c('shallow_reef','cave','reef','deep_reef'))
+Figure_6 = ggplot(Function_Change) + geom_hline(yintercept = 0) + 
+  facet_wrap(~Habitat, ncol = 4, labeller = labeller(Habitat = c("shallow_reef" = "Shallow Reef", "cave" = "Cave", 
+                                                                 "reef" = "Reef", "deep_reef" = "Deep Reef"))) +
+  geom_linerange(aes(x = Function, ymin = Cover - std.e, ymax = Cover + std.e, color = Function), 
+                 position = position_dodge(.7), size = 2, linetype = 1) + scale_color_manual(values = colors5) +
+  geom_point(aes(x = Function, y = Cover, color = Function), position = position_dodge(.7), size = 5, shape = 20) +
+  coord_flip() + theme_bw() + labs(x = "", color = "") + scale_y_continuous(name = "Change in cover (%)") +
+  theme(legend.position = "bottom", axis.text = element_text(size = 12, color = "black"),
+        axis.title = element_text(size = 12), legend.text = element_text(size = 12),
+        axis.line.x = element_line(), axis.ticks.x = element_line(), strip.text.x = element_text(size = 14),
+        panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank())  
 
 # SCRIPT E ---------------------------------------------------------------------------------------------------------
 #### Making Supplementary Figure 6 ---------------------------------------------------------------------------------
