@@ -790,7 +790,7 @@ Calcification  <- data_trait[[1]] %>% dplyr::filter(., Condition == "b") %>% gro
   summarize(., Cover = sum(Cover), std.error = mean(std.error), Q2.5 = sum(Q2.5), Q97.5 = sum(Q97.5))
 # Dataset functionning
 data_functions <- rbind(Habitat, Prim_Prod, Herbivory, Predation, Calcification) %>% data.frame() %>% 
-  mutate(., Function = c(rep("Habitat", 8), rep("Primary Production", 8), rep("Herbivory", 8), rep("Predation", 8), 
+  mutate(., Function = c(rep("Complexity", 8), rep("Primary Production", 8), rep("Herbivory", 8), rep("Predation", 8), 
                          rep("Calcification", 8))) %>% 
   dplyr::select(Function, Habitat, pH, Cover, std.error, Q2.5, Q97.5) 
 
@@ -807,20 +807,62 @@ Qmin_value = NA ; Qmax_value = NA ; for (i in 1:length(data_functions[[1]]$Q2.5)
 change_dataset$Q2.5  = Qmin_value ; change_dataset$Q97.5 = Qmax_value
 Function_Change      = cbind(data_functions[[1]][,c(1:2)], change_dataset) %>% data.frame()
 
+# Statistics from Figure 4
+sub_data_change = quadrats_biodiv %>% group_by(condition) %>% 
+  summarise(SR = mean(Nb_sp), SR_std = std_err(Nb_sp), FER = mean(FE_richness), FER_std = std_err(FE_richness),
+            FDis = mean(fdis), FDis_std = std_err(fdis)) %>% data.frame() %>% 
+  mutate(Habitat = c(rep("shallow_reef",2), rep("cave",2), rep("reef",2), rep("deep_reef", 2)),
+         pH = rep(c("Ambient pH", "Low pH"),4)) %>% 
+  dplyr::select(Habitat, pH, SR, FER, FDis, SR_std, FER_std, FDis_std) %>% group_split(pH)
+
+# Quantify the change for indexes
+change_subdataset          = data.frame(SR = rep(NA, 4), FER = rep(NA, 4), FDis = rep(NA, 4),
+                                        SR_std = rep(NA, 4), FER_std = rep(NA, 4), FDis_std = rep(NA, 4))
+change_subdataset$SR       = sub_data_change[[2]]$SR - sub_data_change[[1]]$SR
+change_subdataset$FER      = sub_data_change[[2]]$FER - sub_data_change[[1]]$FER
+change_subdataset$FDis     = sub_data_change[[2]]$FDis - sub_data_change[[1]]$FDis
+change_subdataset$SR_std   = sqrt(sub_data_change[[2]]$SR_std^2 + sub_data_change[[1]]$SR_std^2)
+change_subdataset$FER_std  = sqrt(sub_data_change[[2]]$FER_std^2 + sub_data_change[[1]]$FER_std^2)
+change_subdataset$FDis_std = sqrt(sub_data_change[[2]]$FDis_std^2 + sub_data_change[[1]]$FDis_std^2)
+
+# Build the statistics dataset
+Stat_Change = data.frame(Habitat = sub_data_change[[1]]$Habitat, 
+                         Index_label = c(rep("SR", 4), rep("FE", 4), rep("FDis", 4)),
+                         Index = c(change_subdataset$SR, change_subdataset$FER, change_subdataset$FDis),
+                         std_err = c(change_subdataset$SR_std, change_subdataset$FER_std, change_subdataset$FDis_std))
+
 # Vizualisation
-colors5 = c("#5D2F92", "#C14D9C", "#E26F98", "#EDCB61", "#F3A65E")
+Stat_Change$Habitat = factor(Stat_Change$Habitat, levels = c('shallow_reef','cave','reef','deep_reef'))
 Function_Change$Habitat = factor(Function_Change$Habitat, levels = c('shallow_reef','cave','reef','deep_reef'))
-Figure_6 = ggplot(Function_Change) + geom_hline(yintercept = 0) + 
+
+Fig6sub1 = ggplot(Stat_Change) + geom_hline(yintercept = 0) + 
   facet_wrap(~Habitat, ncol = 4, labeller = labeller(Habitat = c("shallow_reef" = "Shallow Reef", "cave" = "Cave", 
                                                                  "reef" = "Reef", "deep_reef" = "Deep Reef"))) +
-  geom_linerange(aes(x = Function, ymin = Cover - std.e, ymax = Cover + std.e, color = Function), 
-                 position = position_dodge(.7), size = 2, linetype = 1) + scale_color_manual(values = colors5) +
-  geom_point(aes(x = Function, y = Cover, color = Function), position = position_dodge(.7), size = 5, shape = 20) +
+  geom_linerange(aes(x = Index_label, ymin = Index - std_err, ymax = Index + std_err, color = Index), 
+                 position = position_dodge(.7), size = 2, linetype = 1) + 
+  geom_point(aes(x = Index_label, y = Index, color = Index), position = position_dodge(.7), size = 5, shape = 20) +
+  coord_flip() + theme_bw() + labs(x = "", color = "") + scale_y_continuous(name = "Index Change", limits = c(-7.5, 7.5)) +
+  scale_color_distiller(palette = "RdBu", direction = 1) +
+  theme(legend.position = "none", axis.text = element_text(size = 12, color = "black"),
+        axis.title = element_text(size = 12), legend.text = element_text(size = 12), 
+        axis.line.x = element_line(), axis.ticks.x = element_line(), strip.text.x = element_text(size = 14),
+        panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank())  
+
+Fig6sub2 = ggplot(Function_Change) + geom_hline(yintercept = 0) + 
+  facet_wrap(~Habitat, ncol = 4, labeller = labeller(Habitat = c("shallow_reef" = "Shallow Reef", "cave" = "Cave", 
+                                                                 "reef" = "Reef", "deep_reef" = "Deep Reef"))) +
+  geom_linerange(aes(x = Function, ymin = Cover - std.e, ymax = Cover + std.e, color = Cover), 
+                 position = position_dodge(.7), size = 2, linetype = 1) + 
+  geom_point(aes(x = Function, y = Cover, color = Cover), position = position_dodge(.7), size = 5, shape = 20) +
   coord_flip() + theme_bw() + labs(x = "", color = "") + scale_y_continuous(name = "Change in cover (%)") +
-  theme(legend.position = "bottom", axis.text = element_text(size = 12, color = "black"),
+  scale_color_distiller(palette = "RdBu", direction = 1) +
+  theme(legend.position = "none", axis.text = element_text(size = 12, color = "black"),
         axis.title = element_text(size = 12), legend.text = element_text(size = 12),
         axis.line.x = element_line(), axis.ticks.x = element_line(), strip.text.x = element_text(size = 14),
         panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank())  
+
+# Combine
+Figure_6 = Fig6sub1 / Fig6sub2 + plot_layout(heights = c(1,3))
 
 # SCRIPT E ---------------------------------------------------------------------------------------------------------
 #### Making Supplementary Figure 6 ---------------------------------------------------------------------------------
