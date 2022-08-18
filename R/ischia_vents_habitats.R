@@ -864,7 +864,7 @@ Fig6sub2 = ggplot(Function_Change) + geom_hline(yintercept = 0) +
   geom_point(aes(x = Function, y = Cover, fill = Cover), position = position_dodge(.7), 
              size = 7, shape = 21, color = "black") +
   coord_flip() + theme_bw() + labs(x = "", color = "") + 
-  scale_y_continuous(name = "Change in cover (%)", breaks = c(-30, 0, 30)) +
+  scale_y_continuous(name = "Change in cover (%)", breaks = c(-35, 0, 35)) +
   scale_fill_gradientn(colours = color_gradient(100)) + scale_color_gradientn(colours = color_gradient(100)) +
   theme(legend.position = "none", axis.text = element_text(size = 12, color = "black"),
         axis.title = element_text(size = 12), legend.text = element_text(size = 12), strip.background = element_blank(),
