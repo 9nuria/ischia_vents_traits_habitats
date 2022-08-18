@@ -834,7 +834,8 @@ Stat_Change = data.frame(Habitat = sub_data_change[[1]]$Habitat,
 # Vizualisation
 Stat_Change$Habitat = factor(Stat_Change$Habitat, levels = c('shallow_reef','cave','reef','deep_reef'))
 Function_Change$Habitat = factor(Function_Change$Habitat, levels = c('shallow_reef','cave','reef','deep_reef'))
-color_gradient <- colorRampPalette(c("brown3", "royalblue3"))
+color_gradient <- colorRampPalette(c("red4", "brown3", "skyblue1", "royalblue3"))
+plot(rep(1,100),col=color_gradient(100),pch=19,cex=3)                          # Viz palette
 
 Fig6sub1 = ggplot(Stat_Change) + geom_hline(yintercept = 0) + 
   facet_wrap(~Habitat, ncol = 4, labeller = labeller(Habitat = c("shallow_reef" = "Shallow Reef", "cave" = "Cave", 
@@ -867,6 +868,7 @@ Fig6sub2 = ggplot(Function_Change) + geom_hline(yintercept = 0) +
 
 # Combine
 Figure_6 = Fig6sub1 / Fig6sub2 + plot_layout(heights = c(1,3))
+Figure_6
 
 # SCRIPT E ---------------------------------------------------------------------------------------------------------
 #### Making Supplementary Figure 6 ---------------------------------------------------------------------------------
