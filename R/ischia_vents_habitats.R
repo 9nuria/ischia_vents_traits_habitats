@@ -834,6 +834,7 @@ Stat_Change = data.frame(Habitat = sub_data_change[[1]]$Habitat,
 # Vizualisation
 Stat_Change$Habitat = factor(Stat_Change$Habitat, levels = c('shallow_reef','cave','reef','deep_reef'))
 Function_Change$Habitat = factor(Function_Change$Habitat, levels = c('shallow_reef','cave','reef','deep_reef'))
+color_gradient <- colorRampPalette(c("brown3", "royalblue3"))
 
 Fig6sub1 = ggplot(Stat_Change) + geom_hline(yintercept = 0) + 
   facet_wrap(~Habitat, ncol = 4, labeller = labeller(Habitat = c("shallow_reef" = "Shallow Reef", "cave" = "Cave", 
@@ -841,23 +842,26 @@ Fig6sub1 = ggplot(Stat_Change) + geom_hline(yintercept = 0) +
   geom_linerange(aes(x = Index_label, ymin = Index - std_err, ymax = Index + std_err, color = Index), 
                  position = position_dodge(.7), size = 2, linetype = 1) + 
   geom_point(aes(x = Index_label, y = Index, color = Index), position = position_dodge(.7), size = 5, shape = 20) +
-  coord_flip() + theme_bw() + labs(x = "", color = "") + scale_y_continuous(name = "Index Change", limits = c(-7.5, 7.5)) +
-  scale_color_distiller(palette = "RdBu", direction = 1) +
+  coord_flip() + theme_bw() + labs(x = "", color = "") + 
+  scale_y_continuous(name = "Index Change", limits = c(-7.5, 7.5), breaks = c(-5, 0, 5)) +
+  scale_colour_gradientn(colours = color_gradient(100)) +
+  scale_x_discrete(labels = c("SR" = "Species richness", "FE" = "Functional entities\nrichness",
+                                       "FDis" = "Functional dispersion")) +
   theme(legend.position = "none", axis.text = element_text(size = 12, color = "black"),
         axis.title = element_text(size = 12), legend.text = element_text(size = 12), 
         axis.line.x = element_line(), axis.ticks.x = element_line(), strip.text.x = element_text(size = 14),
         panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank())  
 
 Fig6sub2 = ggplot(Function_Change) + geom_hline(yintercept = 0) + 
-  facet_wrap(~Habitat, ncol = 4, labeller = labeller(Habitat = c("shallow_reef" = "Shallow Reef", "cave" = "Cave", 
-                                                                 "reef" = "Reef", "deep_reef" = "Deep Reef"))) +
+  facet_wrap(~Habitat, ncol = 4, labeller = labeller(Habitat = c("shallow_reef" = "", "cave" = "", 
+                                                                 "reef" = "", "deep_reef" = ""))) +
   geom_linerange(aes(x = Function, ymin = Cover - std.e, ymax = Cover + std.e, color = Cover), 
                  position = position_dodge(.7), size = 2, linetype = 1) + 
   geom_point(aes(x = Function, y = Cover, color = Cover), position = position_dodge(.7), size = 5, shape = 20) +
   coord_flip() + theme_bw() + labs(x = "", color = "") + scale_y_continuous(name = "Change in cover (%)") +
-  scale_color_distiller(palette = "RdBu", direction = 1) +
+  scale_colour_gradientn(colours = color_gradient(100)) +
   theme(legend.position = "none", axis.text = element_text(size = 12, color = "black"),
-        axis.title = element_text(size = 12), legend.text = element_text(size = 12),
+        axis.title = element_text(size = 12), legend.text = element_text(size = 12), strip.background = element_blank(),
         axis.line.x = element_line(), axis.ticks.x = element_line(), strip.text.x = element_text(size = 14),
         panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank())  
 
@@ -967,6 +971,8 @@ ggsave("Figure_3.png", plot = mdsv1v2, path = dir_plot, device = "png", height =
 ggsave("Figure_4.png", plot = boxplot, path = dir_plot, device = "png", height = 35, width = 35,              # 4
        units = "cm", dpi = 300)
 ggsave("Figure_5.png", plot = all4, path = dir_plot, device="png", height = 25, width = 20,                   # 5
+       units = "cm", dpi = 300)
+ggsave("Figure_6.png", plot = Figure_6, path = dir_plot, device="png", height = 15, width = 20,               # 6
        units = "cm", dpi = 300)
 
 # Supplementary figures
