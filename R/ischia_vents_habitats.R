@@ -834,38 +834,43 @@ Stat_Change = data.frame(Habitat = sub_data_change[[1]]$Habitat,
 # Vizualisation
 Stat_Change$Habitat = factor(Stat_Change$Habitat, levels = c('shallow_reef','cave','reef','deep_reef'))
 Function_Change$Habitat = factor(Function_Change$Habitat, levels = c('shallow_reef','cave','reef','deep_reef'))
-color_gradient <- colorRampPalette(c("red4", "brown3", "skyblue1", "royalblue3"))
+color_gradient <- colorRampPalette(c("red4", "brown3", "brown1", "skyblue1", "skyblue2", "royalblue3"))
 plot(rep(1,1000),col=color_gradient(1000),pch=19,cex=3) # Viz palette
 
 Fig6sub1 = ggplot(Stat_Change) + geom_hline(yintercept = 0) + 
   facet_wrap(~Habitat, ncol = 4, labeller = labeller(Habitat = c("shallow_reef" = "Shallow Reef", "cave" = "Cave", 
                                                                  "reef" = "Reef", "deep_reef" = "Deep Reef"))) +
-  geom_linerange(aes(x = Index_label, ymin = Index - std_err, ymax = Index + std_err, color = Index), 
-                 position = position_dodge(.7), size = 2, linetype = 1) + 
-  geom_point(aes(x = Index_label, y = Index, color = Index), position = position_dodge(.7), size = 5, shape = 20) +
+  geom_segment(aes(x = Index_label, xend = Index_label, y = 0, yend = Index, color = Index), 
+               position = position_dodge(.7), size = 2, linetype = 1) +
+  geom_point(aes(x = Index_label, y = Index, fill = Index), position = position_dodge(.7), 
+             size = 7, shape = 21, color = "black") +
   coord_flip() + theme_bw() + labs(x = "", color = "") + 
   scale_y_continuous(name = "Index Change", limits = c(-7.5, 7.5), breaks = c(-5, 0, 5)) +
-  scale_colour_gradientn(colours = color_gradient(10)) +
+  scale_fill_gradientn(colours = color_gradient(10)) + scale_color_gradientn(colours = color_gradient(10)) +
   scale_x_discrete(labels = c("SR" = "Species richness", "FE" = "Functional entities\nrichness",
                                        "FDis" = "Functional dispersion")) +
   theme(legend.position = "none", axis.text = element_text(size = 12, color = "black"),
         axis.title = element_text(size = 12), legend.text = element_text(size = 12), 
-        axis.line.x = element_line(), axis.ticks.x = element_line(), strip.text.x = element_text(size = 14),
-        panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank())  
+        axis.line.x = element_blank(), axis.ticks.x = element_line(), strip.text.x = element_text(size = 14),
+        panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(),
+        panel.grid.major.y = element_blank(), panel.grid.minor.y = element_blank())    
 
-color_gradient <- colorRampPalette(c("red4", "brown3", "skyblue1", "steelblue1", "royalblue3"))
+color_gradient <- colorRampPalette(c("red4", "brown3", "brown1", "skyblue1", "skyblue2", "steelblue1", "royalblue3"))
 Fig6sub2 = ggplot(Function_Change) + geom_hline(yintercept = 0) + 
   facet_wrap(~Habitat, ncol = 4, labeller = labeller(Habitat = c("shallow_reef" = "", "cave" = "", 
                                                                  "reef" = "", "deep_reef" = ""))) +
-  geom_linerange(aes(x = Function, ymin = Cover - std.e, ymax = Cover + std.e, color = Cover), 
-                 position = position_dodge(.7), size = 2, linetype = 1) + 
-  geom_point(aes(x = Function, y = Cover, color = Cover), position = position_dodge(.7), size = 5, shape = 20) +
-  coord_flip() + theme_bw() + labs(x = "", color = "") + scale_y_continuous(name = "Change in cover (%)") +
-  scale_colour_gradientn(colours = color_gradient(100)) +
+  geom_segment(aes(x = Function, xend = Function, y = 0, yend = Cover, color = Cover), 
+               position = position_dodge(.7), size = 2, linetype = 1) +
+  geom_point(aes(x = Function, y = Cover, fill = Cover), position = position_dodge(.7), 
+             size = 7, shape = 21, color = "black") +
+  coord_flip() + theme_bw() + labs(x = "", color = "") + 
+  scale_y_continuous(name = "Change in cover (%)", breaks = c(-30, 0, 30)) +
+  scale_fill_gradientn(colours = color_gradient(100)) + scale_color_gradientn(colours = color_gradient(100)) +
   theme(legend.position = "none", axis.text = element_text(size = 12, color = "black"),
         axis.title = element_text(size = 12), legend.text = element_text(size = 12), strip.background = element_blank(),
         axis.line.x = element_line(), axis.ticks.x = element_line(), strip.text.x = element_text(size = 14),
-        panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank())  
+        panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(),
+        panel.grid.major.y = element_blank(), panel.grid.minor.y = element_blank())  
 
 # Combine
 Figure_6 = Fig6sub1 / Fig6sub2 + plot_layout(heights = c(1,3))
