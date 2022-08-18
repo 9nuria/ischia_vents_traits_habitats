@@ -869,7 +869,6 @@ Fig6sub2 = ggplot(Function_Change) + geom_hline(yintercept = 0) +
 
 # Combine
 Figure_6 = Fig6sub1 / Fig6sub2 + plot_layout(heights = c(1,3))
-Figure_6
 
 # SCRIPT E ---------------------------------------------------------------------------------------------------------
 #### Making Supplementary Figure 6 ---------------------------------------------------------------------------------
