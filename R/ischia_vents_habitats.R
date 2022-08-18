@@ -835,7 +835,7 @@ Stat_Change = data.frame(Habitat = sub_data_change[[1]]$Habitat,
 Stat_Change$Habitat = factor(Stat_Change$Habitat, levels = c('shallow_reef','cave','reef','deep_reef'))
 Function_Change$Habitat = factor(Function_Change$Habitat, levels = c('shallow_reef','cave','reef','deep_reef'))
 color_gradient <- colorRampPalette(c("red4", "brown3", "skyblue1", "royalblue3"))
-plot(rep(1,100),col=color_gradient(100),pch=19,cex=3)                          # Viz palette
+plot(rep(1,1000),col=color_gradient(1000),pch=19,cex=3) # Viz palette
 
 Fig6sub1 = ggplot(Stat_Change) + geom_hline(yintercept = 0) + 
   facet_wrap(~Habitat, ncol = 4, labeller = labeller(Habitat = c("shallow_reef" = "Shallow Reef", "cave" = "Cave", 
@@ -845,7 +845,7 @@ Fig6sub1 = ggplot(Stat_Change) + geom_hline(yintercept = 0) +
   geom_point(aes(x = Index_label, y = Index, color = Index), position = position_dodge(.7), size = 5, shape = 20) +
   coord_flip() + theme_bw() + labs(x = "", color = "") + 
   scale_y_continuous(name = "Index Change", limits = c(-7.5, 7.5), breaks = c(-5, 0, 5)) +
-  scale_colour_gradientn(colours = color_gradient(100)) +
+  scale_colour_gradientn(colours = color_gradient(10)) +
   scale_x_discrete(labels = c("SR" = "Species richness", "FE" = "Functional entities\nrichness",
                                        "FDis" = "Functional dispersion")) +
   theme(legend.position = "none", axis.text = element_text(size = 12, color = "black"),
@@ -853,6 +853,7 @@ Fig6sub1 = ggplot(Stat_Change) + geom_hline(yintercept = 0) +
         axis.line.x = element_line(), axis.ticks.x = element_line(), strip.text.x = element_text(size = 14),
         panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank())  
 
+color_gradient <- colorRampPalette(c("red4", "brown3", "skyblue1", "steelblue1", "royalblue3"))
 Fig6sub2 = ggplot(Function_Change) + geom_hline(yintercept = 0) + 
   facet_wrap(~Habitat, ncol = 4, labeller = labeller(Habitat = c("shallow_reef" = "", "cave" = "", 
                                                                  "reef" = "", "deep_reef" = ""))) +
@@ -982,7 +983,7 @@ ggsave(FD_xy[[2]], filename = "Figure_S4.png", path = dir_plot, device = "png", 
        height = 12)              
 ggsave(mdsv3v4, filename = "Figure_S6.png", path = dir_plot, device = "png", height = 35,                     # S6
        width = 35, units = "cm", dpi = 300)
-ggsave(beta_cor_plot, filename = "Figure_S7.png", path = dir_plot, width = 4)                                 # S7
+ggsave(beta_cor_plot, filename = "Figure_S7.png", path = dir_plot, width = 4, height = 7.5)                   # S7
 ggsave(boxplot_beta, filename = "Figure_S8.png", path = dir_plot, width = 9, height = 5)                      # S8
 for (t in names(fe_tr)) {  
   ggsave(plot_t_mod_pcover[[t]], filename = paste0("Figure_Sx_", t, "_.png"), path = dir_plot_trait,          # Sx
