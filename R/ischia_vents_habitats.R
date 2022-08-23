@@ -845,9 +845,9 @@ Fig6sub1 = ggplot(Stat_Change) + geom_hline(yintercept = 0) +
   geom_point(aes(x = Index_label, y = Index, fill = Index), position = position_dodge(.7), 
              size = 7, shape = 21, color = "black") +
   coord_flip() + theme_bw() + labs(x = "", color = "") + 
-  scale_y_continuous(name = "Index Change", limits = c(-7.5, 7.5), breaks = c(-5, 0, 5)) +
+  scale_y_continuous(name = "Change in biodiversity", limits = c(-7.5, 7.5), breaks = c(-5, 0, 5)) +
   scale_fill_gradientn(colours = color_gradient(10)) + scale_color_gradientn(colours = color_gradient(10)) +
-  scale_x_discrete(labels = c("SR" = "Species richness", "FE" = "Functional entities\nrichness",
+  scale_x_discrete(labels = c("SR" = "Species richness", "FE" = "Functional entity\nrichness",
                                        "FDis" = "Functional dispersion")) +
   theme(legend.position = "none", axis.text = element_text(size = 12, color = "black"),
         axis.title = element_text(size = 12), legend.text = element_text(size = 12), 
