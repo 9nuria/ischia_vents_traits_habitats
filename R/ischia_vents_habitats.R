@@ -97,7 +97,7 @@ dim(quadrats_species_cover) # 294 quadrats and 225 species
 # Species in quadrats with no trait values 
 (species_notraits <- colnames(quadrats_species_cover)[!(colnames(quadrats_species_cover) %in% sp_tr$Species)])
 
-# Removing them from quadrat*species cover matrix
+# Removing them from quadrat*species cover matrix # 294 quadrats and 215 species
 quadrats_species_cover <- quadrats_species_cover[,colnames(quadrats_species_cover) %in% sp_tr$Species]
 
 # Names of species
@@ -125,8 +125,12 @@ sp_tr$chem             <- as.ordered(sp_tr$chem)
 # Clustering species into FE
 sp_to_fe <- mFD::sp.to.fe(sp_tr = sp_tr, tr_cat = traits_cat)
 
+# looking at number of species per FE
+summary(sp_to_fe$fe_nb_sp) # => from 1 to 14 (median= 2)
+
 # Names and number of FEs
 fe_nm <- unique(sp_to_fe$fe_nm)
+length(fe_nm) # 74 FE
 
 # List of species in each FE
 fe_sp <- list() ; for (k in fe_nm) {fe_sp[[k]]<-names( sp_to_fe$sp_fe[which(sp_to_fe$sp_fe==k)])}
@@ -154,6 +158,8 @@ for (k in habph) {
   habph_species_cover[k,] <- apply(quadrats_species_cover[quad_k,], 2, mean)
   habph_fe_cover[k,] <- apply(quadrats_fe_cover[quad_k,], 2, mean) }
 
+dim(habph_species_cover)
+
 ## Quick exploration and functionnal entities computation ----------------------------------------------------------
 # SCRIPT B ---------------------------------------------------------------------------------------------------------
 ###### Functional indices ------------------------------------------------------------------------------------------
@@ -163,15 +169,19 @@ quadrat_covertot <- apply(quadrats_species_cover, 1, sum)
 
 # Number of sp per quadrat
 quadrat_nbsp <- apply(quadrats_species_cover, 1, function(x) {length(which(x>0))})
+summary(quadrat_nbsp) # from 2 to 27
 
 # Number of FE per quadrat
 quadrat_nbFE <- apply(quadrats_fe_cover, 1, function(x) { length(which(x>0))})
+summary(quadrat_nbFE) # from 2 to 23
 
 # Quadrats with at least 5 Fes to be able to compute FRic
 quadrat_sup4FE <- names(which(quadrat_nbFE >= 5))
+length(quadrat_sup4FE) # 279 out of the 294 quadrats
 
 # computing Gower distance between FEs
 fe_fe_dist <- funct.dist(fe_tr, tr_cat = traits_cat, metric = "gower")
+range(fe_fe_dist)
 
 # Building functional spaces from PCoA
 fe_fspaces <- quality.fspaces(sp_dist = fe_fe_dist )
@@ -215,6 +225,9 @@ quadrats_beta_hill        <- list(taxo_q1= quadrats_beta_taxo_hill$q1, funct_q1 
 
 # SCRIPT E ---------------------------------------------------------------------------------------------------------
 ###### PERMANOVA Exploration ---------------------------------------------------------------------------------------
+# Script to plot MDS on beta taxonomic and functional diversity with the Hill number framework. 
+# Script to calculate multivariaye homogeneity of group variances for funct and taxonomic beta- diversity 
+
 
 info <- sites_quadrats_info %>% dplyr::select(Quadrats, condition, Description.condition, pH, habitat)
 
@@ -310,6 +323,7 @@ pH_hab_se <- tab %>% dplyr::select(-Quadrats) %>% group_by(pH_hab) %>%
 ## Analyze and Vizualisation ---------------------------------------------------------------------------------------
 # SCRIPT F ---------------------------------------------------------------------------------------------------------
 #### Making Figure 2 and Supplementary Figure 4 --------------------------------------------------------------------
+#Functional diversity changes across habitats and among pH zones
 
 # Computing mean cover of FEs in the 2 pH levels: Ambient and Low pH
 habph2_fe_cover <- rbind(
@@ -380,7 +394,8 @@ for (z in 1:length(pairs_axes)) {
     (ggplot_list[[5]] + ggplot_list[[6]]) / (ggplot_list[[7]] + ggplot_list[[8]])}
 
 # SCRIPT E ---------------------------------------------------------------------------------------------------------
-#### Making Figure 3 -----------------------------------------------------------------------------------------------
+#### Making Figure SM X -----------------------------------------------------------------------------------------------
+# MDS plot  on beta taxonomic and functional diversity with the Hill number framework 
 
 # PCOA functional and taxo
 pcoa_fun <- as.data.frame(cmdscale(quadrats_beta_hill$funct_q1, 4)) 
@@ -429,7 +444,8 @@ fig.tax.v1v2 <- ggplot(pcoa_taxo, aes(x = V1, y = V2, group = condition, fill = 
 mdsv1v2 <- (fig.tax.v1v2/fig.fun.v1v2)
 
 # SCRIPT G ---------------------------------------------------------------------------------------------------------
-#### Making Figure 4 -----------------------------------------------------------------------------------------------
+#### Making Figure 3 -----------------------------------------------------------------------------------------------
+#### Functional diversity indices based on Hill numbers across habitats and among pH zones (Low and Ambient pH)
 
 # setting parameters for plot
 quadrats_biodiv$condition <- factor(quadrats_biodiv$condition, 
@@ -480,7 +496,8 @@ fdisp_plot <- ggplot(data = quadrats_biodiv, aes(x = condition, y = fdis, color 
 boxplot <- nbsp_plot / fe_plot / fdisp_plot 
 
 # SCRIPT K ---------------------------------------------------------------------------------------------------------
-#### Making Figure 5 -----------------------------------------------------------------------------------------------
+#### Making Figure 4 -----------------------------------------------------------------------------------------------
+# Bayesian prediction probability of the likelihood of benthic cover 
 
 # species cover in quadrats in longer style
 quad_sp_long <- quadrats_species_cover %>% as.data.frame %>% rownames_to_column("Quadrats") %>%
@@ -676,7 +693,7 @@ data_predicted = vector("list", 7)
 data_predicted = data_predicted %>% bind_rows()
 
 # SCRIPT J ---------------------------------------------------------------------------------------------------------
-# Vizualisation
+# Vizualisation bayesian model
 data_predicted_viz = data_predicted %>% group_by(Habitat, pH, Condition, Trait) %>% summarise_all(mean) 
 data_predicted_viz$Habitat = factor(data_predicted_viz$Habitat, levels = c('shallow_reef','cave','reef','deep_reef'))
 
@@ -767,12 +784,13 @@ plot4 <- ggplot(cal_data_predicted_viz, aes(x = pH, y = Cover, color = Condition
 all4 <- (plot1/plot2/plot3/plot4)
 
 # SCRIPT L ---------------------------------------------------------------------------------------------------------
-#### Making Figure 6 -----------------------------------------------------------------------------------------------
+#### Making Figure 5 -----------------------------------------------------------------------------------------------
+# taxonomic and functional diversity and processes of ecosystem function across habitats and among pH zones
 
 data_trait     <- data_predicted %>% group_by(., Habitat, pH, Condition, Trait) %>% summarise_all(mean) %>% 
   data.frame()
 data_trait     <- data_trait %>% group_split(Trait)
-# Habitat function
+# Complexity
 Habitat        <- data_trait[[4]] %>% dplyr::filter(., Condition %in% c("c","d")) %>% 
   group_by(Habitat, pH, Trait) %>% 
   summarize(., Cover = sum(Cover), std.error = mean(std.error), Q2.5 = sum(Q2.5), Q97.5 = sum(Q97.5))
@@ -794,7 +812,7 @@ data_functions <- rbind(Habitat, Prim_Prod, Herbivory, Predation, Calcification)
                          rep("Calcification", 8))) %>% 
   dplyr::select(Function, Habitat, pH, Cover, std.error, Q2.5, Q97.5) 
 
-# Quantify the difference between OA and ambient
+# Quantify the difference between Low and ambient
 data_functions       = data_functions %>% group_split(pH) 
 change_dataset       = data.frame(Cover = seq(1, length(data_functions[[1]]$Q2.5), 1), Q2.5 = NA, Q97.5 = NA)
 change_dataset$Cover = data_functions[[2]]$Cover - data_functions[[1]]$Cover
@@ -807,7 +825,7 @@ Qmin_value = NA ; Qmax_value = NA ; for (i in 1:length(data_functions[[1]]$Q2.5)
 change_dataset$Q2.5  = Qmin_value ; change_dataset$Q97.5 = Qmax_value
 Function_Change      = cbind(data_functions[[1]][,c(1:2)], change_dataset) %>% data.frame()
 
-# Statistics from Figure 4
+# Statistics from Figure 3
 sub_data_change = quadrats_biodiv %>% group_by(condition) %>% 
   summarise(SR = mean(Nb_sp), SR_std = std_err(Nb_sp), FER = mean(FE_richness), FER_std = std_err(FE_richness),
             FDis = mean(fdis), FDis_std = std_err(fdis)) %>% data.frame() %>% 
@@ -815,7 +833,7 @@ sub_data_change = quadrats_biodiv %>% group_by(condition) %>%
          pH = rep(c("Ambient pH", "Low pH"),4)) %>% 
   dplyr::select(Habitat, pH, SR, FER, FDis, SR_std, FER_std, FDis_std) %>% group_split(pH)
 
-# Quantify the change for indexes
+# Quantify the change for diversity indexes
 change_subdataset          = data.frame(SR = rep(NA, 4), FER = rep(NA, 4), FDis = rep(NA, 4),
                                         SR_std = rep(NA, 4), FER_std = rep(NA, 4), FDis_std = rep(NA, 4))
 change_subdataset$SR       = sub_data_change[[2]]$SR - sub_data_change[[1]]$SR
@@ -837,7 +855,7 @@ Function_Change$Habitat = factor(Function_Change$Habitat, levels = c('shallow_re
 color_gradient <- colorRampPalette(c("red4", "brown3", "brown1", "skyblue1", "skyblue2", "royalblue3"))
 plot(rep(1,1000),col=color_gradient(1000),pch=19,cex=3) # Viz palette
 
-Fig6sub1 = ggplot(Stat_Change) + geom_hline(yintercept = 0) + 
+Fig5sub1 = ggplot(Stat_Change) + geom_hline(yintercept = 0) + 
   facet_wrap(~Habitat, ncol = 4, labeller = labeller(Habitat = c("shallow_reef" = "Shallow Reef", "cave" = "Cave", 
                                                                  "reef" = "Reef", "deep_reef" = "Deep Reef"))) +
   geom_segment(aes(x = Index_label, xend = Index_label, y = 0, yend = Index, color = Index), 
@@ -856,7 +874,7 @@ Fig6sub1 = ggplot(Stat_Change) + geom_hline(yintercept = 0) +
         panel.grid.major.y = element_blank(), panel.grid.minor.y = element_blank())    
 
 color_gradient <- colorRampPalette(c("red4", "brown3", "brown1", "skyblue1", "skyblue2", "steelblue1", "royalblue3"))
-Fig6sub2 = ggplot(Function_Change) + geom_hline(yintercept = 0) + 
+Fig5sub2 = ggplot(Function_Change) + geom_hline(yintercept = 0) + 
   facet_wrap(~Habitat, ncol = 4, labeller = labeller(Habitat = c("shallow_reef" = "", "cave" = "", 
                                                                  "reef" = "", "deep_reef" = ""))) +
   geom_segment(aes(x = Function, xend = Function, y = 0, yend = Cover, color = Cover), 
@@ -873,7 +891,7 @@ Fig6sub2 = ggplot(Function_Change) + geom_hline(yintercept = 0) +
         panel.grid.major.y = element_blank(), panel.grid.minor.y = element_blank())  
 
 # Combine
-Figure_6 = Fig6sub1 / Fig6sub2 + plot_layout(heights = c(1,3))
+Figure_5 = Fig5sub1 / Fig5sub2 + plot_layout(heights = c(1,3))
 
 # SCRIPT E ---------------------------------------------------------------------------------------------------------
 #### Making Supplementary Figure 6 ---------------------------------------------------------------------------------
@@ -897,6 +915,9 @@ mdsv3v4 <- (fig.tax.v3v4/fig.fun.v3v4)
 
 # SCRIPT C ---------------------------------------------------------------------------------------------------------
 #### Making Supplementary Figures S7 and S8 ------------------------------------------------------------------------
+# mean of taxo and functional beta within / between sites & conditions
+# Correlation of beta-diversity values between taxonomic and functional facets as boxplot and scatter plot. Figures for SM 
+
 
 # From distance matrices to dataframe
 beta_df <- mFD::dist.to.df(quadrats_beta_hill)
@@ -934,6 +955,7 @@ boxplot_beta <- beta_taxo_plot / beta_funct_plot
 
 # SCRIPT D ---------------------------------------------------------------------------------------------------------
 #### Making Supplementary Figures X --------------------------------------------------------------------------------
+#
 
 # Color palette
 hab_ph  <- c("shallow_reef_ambient1", "shallow_reef_ambient2", "shallow_reef_low", "cave_ambient1", "cave_ambient2",
@@ -973,13 +995,13 @@ habph_tr_moddom <- list() ; plot_t_mod_pcover = list () ; for (t in names(fe_tr)
 # Main Figures  
 ggsave(FD_xy[[1]], filename = "Figure_2.png", path = dir_plot, device = "png", width = 6, height = 12,        # 2
        dpi = 300)              
-ggsave("Figure_3.png", plot = mdsv1v2, path = dir_plot, device = "png", height = 35, width = 35,              # 3
+ggsave("Figure_mds.png", plot = mdsv1v2, path = dir_plot, device = "png", height = 35, width = 35,              # 3
        units = "cm", dpi = 300)
-ggsave("Figure_4.png", plot = boxplot, path = dir_plot, device = "png", height = 35, width = 35,              # 4
+ggsave("Figure_3.png", plot = boxplot, path = dir_plot, device = "png", height = 35, width = 35,              # 4
        units = "cm", dpi = 300)
-ggsave("Figure_5.png", plot = all4, path = dir_plot, device="png", height = 25, width = 20,                   # 5
+ggsave("Figure_4.png", plot = all4, path = dir_plot, device="png", height = 25, width = 20,                   # 5
        units = "cm", dpi = 300)
-ggsave("Figure_6.png", plot = Figure_6, path = dir_plot, device="png", height = 15, width = 20,               # 6
+ggsave("Figure_5.png", plot = Figure_5, path = dir_plot, device="png", height = 15, width = 20,               # 6
        units = "cm", dpi = 300)
 
 # Supplementary figures
