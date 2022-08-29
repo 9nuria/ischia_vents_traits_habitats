@@ -307,6 +307,122 @@ pH_hab_mean <- tab %>% dplyr::select(-Quadrats) %>% group_by(pH_hab) %>%
 pH_hab_se <- tab %>% dplyr::select(-Quadrats) %>% group_by(pH_hab) %>%
   summarise(across(.cols = everything(), .fns = std_err, .names=NULL))
 
+## Functional entities within the overall habitat regarding the pH condition ---------------------------------------
+# SCRIPT M ---------------------------------------------------------------------------------------------------------
+
+Infos_FEs = sites_quadrats_info %>% dplyr::select(., Quadrats, pH, habitat)
+Infos_FEs$pH[which(Infos_FEs$pH == "ambient1")] = "ambient" ; Infos_FEs$pH[which(Infos_FEs$pH == "ambient2")] = "ambient"
+table(Infos_FEs$pH, Infos_FEs$habitat) # 24 vs 12, 102 vs 48, 24 vs 12, 48 vs 24
+Infos_FEs_split = Infos_FEs %>% mutate(., condition = paste(habitat, pH, sep = "_")) %>% group_split(condition)
+
+# Cave
+n = 100 ; Sample_low_cave = vector("list", length = n) ; Sample_amb_cave = vector("list", length = n) 
+cave_sp_FEs_Low = vector("list", length = n) ; cave_sp_FEs_Amb = vector("list", length = n)
+sp_tr_FEs_Low = vector("list", length = n) ; sp_tr_FEs_Amb = vector("list", length = n)
+cave_FEs = vector("list", length = n) ; FE_C_low = rep(NA, n) ; FE_C_amb = rep(NA, n)
+sp_tr_FEs = sp_tr %>% mutate(., species = rownames(sp_tr)) 
+for (i in 1:n) {
+  # Ambient pH
+  Sample_amb_cave[[i]] = sample(Infos_FEs_split[[1]]$Quadrats, size = 12, replace = F) %>% data.frame()
+  colnames(Sample_amb_cave[[i]]) = "Quadrats" 
+  cave_FEs[[i]] = merge(dat_cave, Sample_amb_cave[[i]], by.x = "X", by.y = "Quadrats", all.y = T)
+  cave_sp_FEs_Amb[[i]] = cave_FEs[[i]] %>% dplyr::filter(., cover > 0) %>% dplyr::select(., species)
+  sp_tr_FEs_Amb[[i]] = merge(sp_tr_FEs, cave_sp_FEs_Amb[[i]], by = "species", all.y = T) %>% distinct() %>% 
+    remove_rownames() %>% column_to_rownames(var="species") %>% na.omit()
+  FE_C_amb[i] <- length(mFD::sp.to.fe(sp_tr = sp_tr_FEs_Amb[[i]], tr_cat = traits_cat)$fe_nm)}
+for (i in 1:n) {
+  # Low pH
+  Sample_low_cave[[i]] = sample(Infos_FEs_split[[2]]$Quadrats, size = 12, replace = F) %>% data.frame() 
+  colnames(Sample_low_cave[[i]]) = "Quadrats"
+  cave_FEs[[i]] = merge(dat_cave, Sample_low_cave[[i]], by.x = "X", by.y = "Quadrats", all.y = T)
+  cave_sp_FEs_Low[[i]] = cave_FEs[[i]] %>% dplyr::filter(., cover > 0) %>% dplyr::select(species)
+  sp_tr_FEs_Low[[i]] = merge(sp_tr_FEs, cave_sp_FEs_Low[[i]], by = "species", all.y = T) %>% distinct() %>% 
+    remove_rownames %>% column_to_rownames(var="species") %>% na.omit()
+  FE_C_low[i] <- length(mFD::sp.to.fe(sp_tr = sp_tr_FEs_Low[[i]], tr_cat = traits_cat)$fe_nm)}
+
+# Deep reefs
+Sample_low_deep = vector("list", length = n) ; Sample_amb_deep = vector("list", length = n) 
+deep_reef_sp_FEs_Low = vector("list", length = n) ; deep_reef_sp_FEs_Amb = vector("list", length = n)
+sp_tr_FEs_Low = vector("list", length = n) ; sp_tr_FEs_Amb = vector("list", length = n)
+deep_reef_FEs = vector("list", length = n) ; FE_DR_low = rep(NA, n) ; FE_DR_amb = rep(NA, n)
+sp_tr_FEs = sp_tr %>% mutate(., species = rownames(sp_tr)) 
+for (i in 1:n) {
+  # Ambient pH
+  Sample_amb_deep[[i]] = sample(Infos_FEs_split[[3]]$Quadrats, size = 12, replace = F) %>% data.frame()
+  colnames(Sample_amb_deep[[i]]) = "Quadrats" 
+  deep_reef_FEs[[i]] = merge(dat_cora, Sample_amb_deep[[i]], by.x = "X", by.y = "Quadrats", all.y = T)
+  deep_reef_sp_FEs_Amb[[i]] = deep_reef_FEs[[i]] %>% dplyr::filter(., cover > 0) %>% dplyr::select(., species)
+  sp_tr_FEs_Amb[[i]] = merge(sp_tr_FEs, deep_reef_sp_FEs_Amb[[i]], by = "species", all.y = T) %>% distinct() %>% 
+    remove_rownames() %>% column_to_rownames(var="species") %>% na.omit()
+  FE_DR_amb[i] <- length(mFD::sp.to.fe(sp_tr = sp_tr_FEs_Amb[[i]], tr_cat = traits_cat)$fe_nm)}
+for (i in 1:n) {
+  # Low pH
+  Sample_low_deep[[i]] = sample(Infos_FEs_split[[4]]$Quadrats, size = 12, replace = F) %>% data.frame() 
+  colnames(Sample_low_deep[[i]]) = "Quadrats"
+  deep_reef_FEs[[i]] = merge(dat_cora, Sample_low_deep[[i]], by.x = "X", by.y = "Quadrats", all.y = T)
+  deep_reef_sp_FEs_Low[[i]] = deep_reef_FEs[[i]] %>% dplyr::filter(., cover > 0) %>% dplyr::select(species)
+  sp_tr_FEs_Low[[i]] = merge(sp_tr_FEs, deep_reef_sp_FEs_Low[[i]], by = "species", all.y = T) %>% distinct() %>% 
+    remove_rownames %>% column_to_rownames(var="species") %>% na.omit()
+  FE_DR_low[i] <- length(mFD::sp.to.fe(sp_tr = sp_tr_FEs_Low[[i]], tr_cat = traits_cat)$fe_nm)}
+
+# Reefs
+Sample_low_reef = vector("list", length = n) ; Sample_amb_reef = vector("list", length = n) 
+reef_sp_FEs_Low = vector("list", length = n) ; reef_sp_FEs_Amb = vector("list", length = n)
+sp_tr_FEs_Low = vector("list", length = n) ; sp_tr_FEs_Amb = vector("list", length = n)
+reef_FEs = vector("list", length = n) ; FE_R_low = rep(NA, n) ; FE_R_amb = rep(NA, n)
+sp_tr_FEs = sp_tr %>% mutate(., species = rownames(sp_tr)) 
+for (i in 1:n) {
+  # Ambient pH
+  Sample_amb_reef[[i]] = sample(Infos_FEs_split[[5]]$Quadrats, size = 12, replace = F) %>% data.frame()
+  colnames(Sample_amb_reef[[i]]) = "Quadrats" 
+  reef_FEs[[i]] = merge(dat_chia, Sample_amb_reef[[i]], by.x = "X", by.y = "Quadrats", all.y = T)
+  reef_sp_FEs_Amb[[i]] = reef_FEs[[i]] %>% dplyr::filter(., cover > 0) %>% dplyr::select(., species)
+  sp_tr_FEs_Amb[[i]] = merge(sp_tr_FEs, reef_sp_FEs_Amb[[i]], by = "species", all.y = T) %>% distinct() %>% 
+    remove_rownames() %>% column_to_rownames(var="species") %>% na.omit()
+  FE_R_amb[i] <- length(mFD::sp.to.fe(sp_tr = sp_tr_FEs_Amb[[i]], tr_cat = traits_cat)$fe_nm)}
+for (i in 1:n) {
+  # Low pH
+  Sample_low_reef[[i]] = sample(Infos_FEs_split[[6]]$Quadrats, size = 12, replace = F) %>% data.frame() 
+  colnames(Sample_low_reef[[i]]) = "Quadrats"
+  reef_FEs[[i]] = merge(dat_chia, Sample_low_reef[[i]], by.x = "X", by.y = "Quadrats", all.y = T)
+  reef_sp_FEs_Low[[i]] = reef_FEs[[i]] %>% dplyr::filter(., cover > 0) %>% dplyr::select(species)
+  sp_tr_FEs_Low[[i]] = merge(sp_tr_FEs, reef_sp_FEs_Low[[i]], by = "species", all.y = T) %>% distinct() %>% 
+    remove_rownames %>% column_to_rownames(var="species") %>% na.omit()
+  FE_R_low[i] <- length(mFD::sp.to.fe(sp_tr = sp_tr_FEs_Low[[i]], tr_cat = traits_cat)$fe_nm)}
+
+# Shallow reefs
+Sample_low_shallow = vector("list", length = n) ; Sample_amb_shallow = vector("list", length = n) 
+shallow_reef_sp_FEs_Low = vector("list", length = n) ; shallow_reef_sp_FEs_Amb = vector("list", length = n)
+sp_tr_FEs_Low = vector("list", length = n) ; sp_tr_FEs_Amb = vector("list", length = n)
+shallow_reef_FEs = vector("list", length = n) ; FE_SR_low = rep(NA, n) ; FE_SR_amb = rep(NA, n)
+sp_tr_FEs = sp_tr %>% mutate(., species = rownames(sp_tr)) 
+for (i in 1:n) {
+  # Ambient pH
+  Sample_amb_shallow[[i]] = sample(Infos_FEs_split[[7]]$Quadrats, size = 12, replace = F) %>% data.frame()
+  colnames(Sample_amb_shallow[[i]]) = "Quadrats"
+  shallow_reef_FEs[[i]] = merge(dat_cast, Sample_amb_shallow[[i]], by.x = "X", by.y = "Quadrats", all.y = T)
+  shallow_reef_sp_FEs_Amb[[i]] = shallow_reef_FEs[[i]] %>% dplyr::filter(., cover > 0) %>% dplyr::select(., species)
+  sp_tr_FEs_Amb[[i]] = merge(sp_tr_FEs, shallow_reef_sp_FEs_Amb[[i]], by = "species", all.y = T) %>% distinct() %>% 
+    remove_rownames() %>% column_to_rownames(var="species") %>% na.omit()
+  FE_SR_amb[i] <- length(mFD::sp.to.fe(sp_tr = sp_tr_FEs_Amb[[i]], tr_cat = traits_cat)$fe_nm)}
+for (i in 1:n) {
+  # Low pH
+  Sample_low_shallow[[i]] = sample(Infos_FEs_split[[8]]$Quadrats, size = 12, replace = F) %>% data.frame() 
+  colnames(Sample_low_shallow[[i]]) = "Quadrats"
+  shallow_reef_FEs[[i]] = merge(dat_cast, Sample_low_shallow[[i]], by.x = "X", by.y = "Quadrats", all.y = T)
+  shallow_reef_sp_FEs_Low[[i]] = shallow_reef_FEs[[i]] %>% dplyr::filter(., cover > 0) %>% dplyr::select(species)
+  sp_tr_FEs_Low[[i]] = merge(sp_tr_FEs, shallow_reef_sp_FEs_Low[[i]], by = "species", all.y = T) %>% distinct() %>% 
+    remove_rownames %>% column_to_rownames(var="species") %>% na.omit()
+  FE_SR_low[i] <- length(mFD::sp.to.fe(sp_tr = sp_tr_FEs_Low[[i]], tr_cat = traits_cat)$fe_nm)}
+
+# FEs summary
+data_summary_FEs_std = data.frame(Habitat = rep(c("Shallow Reefs", "Cave", "Reefs", "Deep Reefs"), each = 2),
+                                  pH = rep(c("Ambient", "Low"), 4),
+                                  FEs = c(round(mean(FE_SR_amb), 0), round(mean(FE_SR_low), 0), 
+                                          round(mean(FE_C_amb),  0), round(mean(FE_C_low),  0), 
+                                          round(mean(FE_R_amb),  0), round(mean(FE_R_low),  0), 
+                                          round(mean(FE_DR_amb), 0), round(mean(FE_DR_low), 0)))
+
 ## Analyze and Vizualisation ---------------------------------------------------------------------------------------
 # SCRIPT F ---------------------------------------------------------------------------------------------------------
 #### Making Figure 2 and Supplementary Figure 4 --------------------------------------------------------------------
