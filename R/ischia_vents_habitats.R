@@ -133,7 +133,7 @@ fe_nm <- unique(sp_to_fe$fe_nm)
 length(fe_nm) # 74 FE
 
 # List of species in each FE
-fe_sp <- list() ; for (k in fe_nm) {fe_sp[[k]]<-names( sp_to_fe$sp_fe[which(sp_to_fe$sp_fe==k)])}
+fe_sp <- list() ; for (k in fe_nm) {fe_sp[[k]]<-names(sp_to_fe$sp_fe[which(sp_to_fe$sp_fe==k)])}
 
 # Trait values of FE
 fe_tr <- sp_to_fe$fe_tr
@@ -160,7 +160,7 @@ for (k in habph) {
 
 dim(habph_species_cover)
 
-## Quick exploration and functionnal entities computation ----------------------------------------------------------
+## Quick exploration and functional entities computation -----------------------------------------------------------
 # SCRIPT B ---------------------------------------------------------------------------------------------------------
 ###### Functional indices ------------------------------------------------------------------------------------------
 
@@ -227,7 +227,6 @@ quadrats_beta_hill        <- list(taxo_q1= quadrats_beta_taxo_hill$q1, funct_q1 
 ###### PERMANOVA Exploration ---------------------------------------------------------------------------------------
 # Script to plot MDS on beta taxonomic and functional diversity with the Hill number framework. 
 # Script to calculate multivariaye homogeneity of group variances for funct and taxonomic beta- diversity 
-
 
 info <- sites_quadrats_info %>% dplyr::select(Quadrats, condition, Description.condition, pH, habitat)
 
