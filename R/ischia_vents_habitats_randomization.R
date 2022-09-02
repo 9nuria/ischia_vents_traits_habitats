@@ -3,7 +3,7 @@
 ## Kroeker, Fiorenza Micheli, Alice Mirasole, Sebastien Villéger, Cinzia De Vittor, Valeriano Parravacini 
 ## *corresponding author. Email: nuria.teixido@imev-mer.fr; nuria.teixido@szn.it 
 
-rm(list=ls()) ; options(mc.cores = parallel::detectCores()) ; setwd("..")
+rm(list=ls()) ; options(mc.cores = parallel::detectCores(), warn = - 1) ; setwd("..")
 
 ## Loading packages and data ---------------------------------------------------------------------------------------
 
@@ -63,7 +63,7 @@ load(file.path(dir_data, "Predicted_values.RData"))
 load(file.path(dir_model,"mn.RData"))
 
 # Number of iterations you desire
-n = 100
+n = 5
 
 ## Data preparation ------------------------------------------------------------------------------------------------
 # SCRIPT A ---------------------------------------------------------------------------------------------------------
@@ -233,21 +233,93 @@ quadrats_fe_cover[[Q]] <- matrix(0, nrow = nrow(quadrats_species_cover[[Q]]), nc
 
 # Average cover of species and FE in each habitat – pH
 habph_species_cover <- vector("list", length = n) ; habph_fe_cover <- vector("list", length = n)
-for (k in habph) {
-  quad_k <- sites_quadrats_info[which(sites_quadrats_info$habitat_ph == k), "Quadrats"] }
-
+for (k in habph) { quad_k <- sites_quadrats_info[which(sites_quadrats_info$habitat_ph == k), "Quadrats"] }
 for (Q in 1:n) {
-  habph_species_cover[[Q]]   <- matrix(0, nrow  = length(habph), ncol = ncol(quadrats_species_cover[[Q]]),
-                                       dimnames = list(habph, colnames(quadrats_species_cover[[Q]])))
-  habph_fe_cover[[Q]]        <- matrix(0, nrow  = length(habph), ncol = ncol(quadrats_fe_cover[[Q]]),
-                                       dimnames = list(habph, colnames(quadrats_fe_cover[[Q]]))) 
+  habph_species_cover[[Q]]       <- matrix(0, nrow  = length(habph), ncol = ncol(quadrats_species_cover[[Q]]),
+                                           dimnames = list(habph, colnames(quadrats_species_cover[[Q]])))
+  habph_fe_cover[[Q]]            <- matrix(0, nrow  = length(habph), ncol = ncol(quadrats_fe_cover[[Q]]),
+                                           dimnames = list(habph, colnames(quadrats_fe_cover[[Q]]))) 
   for (k in habph) {
     habph_species_cover[[Q]][k,] <- apply(quadrats_species_cover[[Q]][quad_k,], 2, mean)
-    habph_fe_cover[[Q]][k,] <- apply(quadrats_fe_cover[[Q]][quad_k,], 2, mean) 
+    habph_fe_cover[[Q]][k,]      <- apply(quadrats_fe_cover[[Q]][quad_k,], 2, mean) 
     }
   }
   
 ## Quick exploration and functional entities computation -----------------------------------------------------------
 # SCRIPT B ---------------------------------------------------------------------------------------------------------
 ###### Functional indices ------------------------------------------------------------------------------------------
+
+# Basic statistics
+quadrat_covertot <- vector("list", length = n) ; quadrat_nbsp   <- vector("list", length = n)
+quadrat_nbFE     <- vector("list", length = n) ; quadrat_sup4FE <- vector("list", length = n)
+
+for (Q in 1:n) { 
+  # Total cover
+  quadrat_covertot[[Q]] <- apply(quadrats_species_cover[[Q]], 1, sum) 
+  # Number of sp per quadrat
+  quadrat_nbsp[[Q]]     <- apply(quadrats_species_cover[[Q]], 1, function(x) {length(which(x>0))})
+  # print(summary(quadrat_nbsp[[Q]]))                 # from 2 to 27
+  # Number of FE per quadrat
+  quadrat_nbFE[[Q]]     <- apply(quadrats_fe_cover[[Q]], 1, function(x) {length(which(x>0))})
+  # print(summary(quadrat_nbFE[[Q]]))                 # from 2 to 23
+  # Quadrats with at least 5 Fes to be able to compute FRic
+  quadrat_sup4FE[[Q]]   <- names(which(quadrat_nbFE[[Q]] >= 5))
+  # print(length(quadrat_sup4FE[[Q]]))                # 89-95 out of the 96 quadrats 
+  }
+
+# Functional statistics
+fe_fe_dist          <- vector("list", length = n) ; fe_fspaces          <- vector("list", length = n)
+fe_4D_coord         <- vector("list", length = n) ; quadrats_multidimFD <- vector("list", length = n)
+habph_multidimFD    <- vector("list", length = n) ; quadrats_taxo_hill  <- vector("list", length = n)
+quadrats_funct_hill <- vector("list", length = n) ; quadrats_biodiv     <- vector("list", length = n)
+quadrats_betax_hill <- vector("list", length = n) ; quadrats_befun_hill <- vector("list", length = n)
+quadrats_beta_hill  <- vector("list", length = n)
+
+for (Q in 1:n) { 
+  # computing Gower distance between FEs
+  fe_fe_dist[[Q]]          <- funct.dist(fe_tr[[Q]], tr_cat = traits_cat, metric = "gower")
+  # Building functional spaces from PCoA
+  fe_fspaces[[Q]]          <- quality.fspaces(sp_dist = fe_fe_dist[[Q]])
+  # Comparing their quality with mean absolute deviation
+  # print(round(fe_fspaces[[Q]]$quality_fspaces,3))   #  lowest mad is 4D
+  # FE coordinates in the 4D funct space
+  fe_4D_coord[[Q]]         <- fe_fspaces[[Q]]$details_fspaces$sp_pc_coord[,1:4]
+  # Compute FDis and FIde for all quadrats
+  quadrats_multidimFD[[Q]] <- alpha.fd.multidim(sp_faxes_coord = fe_4D_coord[[Q]], asb_sp_w = quadrats_fe_cover[[Q]], 
+                                                ind_vect = c("fdis", "fide", "fspe", "fori"), 
+                                                scaling = TRUE, details_returned = FALSE)
+  # Compute FRic, FDis and FIde for all habitats_pH
+  habph_multidimFD[[Q]]    <- alpha.fd.multidim(sp_faxes_coord = fe_4D_coord[[Q]], asb_sp_w = habph_fe_cover[[Q]],
+                                                ind_vect = c("fric", "fdis", "fide", "fdiv"), 
+                                                scaling = TRUE, details_returned = FALSE)
+  # Compute taxonomic Hill numbers on FEs (q=0 for number, q= 1 for Shannon
+  quadrats_taxo_hill[[Q]]  <- alpha.fd.hill(asb_sp_w = quadrats_fe_cover[[Q]], sp_dist = fe_fe_dist[[Q]], 
+                                            q = c(0,1), tau = "min", details_returned = FALSE)
+  colnames(quadrats_taxo_hill[[Q]]) <- c("FE_richness", "FE_shannon")
+  # Compute functional Hill numbers on FEs (q=1, Shannon-like)
+  quadrats_funct_hill[[Q]] <- alpha.fd.hill(asb_sp_w = quadrats_fe_cover[[Q]], sp_dist = fe_fe_dist[[Q]], 
+                                            q = 1, tau = "mean", details_returned = FALSE)
+  # Merging all diversity indices with quadrats info
+  quadrats_biodiv[[Q]]     <- data.frame(Total_cover = quadrat_covertot[[Q]], Nb_sp = quadrat_nbsp[[Q]], 
+                                         quadrats_taxo_hill[[Q]], quadrats_funct_hill[[Q]], 
+                                         quadrats_multidimFD[[Q]]$functional_diversity_indices[,-1]) 
+  quadrats_biodiv[[Q]]     <- merge(sites_quadrats_info, quadrats_biodiv[[Q]], by = "row.names", all.y = TRUE) %>% 
+    remove_rownames %>% column_to_rownames(var = "Row.names")
+  # Compute taxonomic and functional beta with Hill numbers on FEs (q=1)
+  quadrats_betax_hill[[Q]] <- beta.fd.hill(asb_sp_w = quadrats_fe_cover[[Q]], sp_dist = fe_fe_dist[[Q]], 
+                                           q = 1, tau = "min", details_returned = FALSE)
+  quadrats_befun_hill[[Q]] <- beta.fd.hill(asb_sp_w = quadrats_fe_cover[[Q]], sp_dist = fe_fe_dist[[Q]], 
+                                           q = 1, tau = "mean", details_returned = FALSE )
+  quadrats_beta_hill[[Q]]  <- list(taxo_q1= quadrats_betax_hill[[Q]]$q1, funct_q1 = quadrats_befun_hill[[Q]]$q1)
+  } 
+  
+# SCRIPT E ---------------------------------------------------------------------------------------------------------
+###### PERMANOVA Exploration ---------------------------------------------------------------------------------------
+# Script to plot MDS on beta taxonomic and functional diversity with the Hill number framework. 
+# Script to calculate multivariate homogeneity of group variances for funct and taxonomic beta-diversity 
+
+info <- sites_quadrats_info %>% dplyr::select(Quadrats, condition, Description.condition, pH, habitat)
+
+# Shallow reefs, functional
+
 

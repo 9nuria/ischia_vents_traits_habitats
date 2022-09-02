@@ -226,7 +226,7 @@ quadrats_beta_hill        <- list(taxo_q1= quadrats_beta_taxo_hill$q1, funct_q1 
 # SCRIPT E ---------------------------------------------------------------------------------------------------------
 ###### PERMANOVA Exploration ---------------------------------------------------------------------------------------
 # Script to plot MDS on beta taxonomic and functional diversity with the Hill number framework. 
-# Script to calculate multivariaye homogeneity of group variances for funct and taxonomic beta- diversity 
+# Script to calculate multivariate homogeneity of group variances for funct and taxonomic beta-diversity 
 
 info <- sites_quadrats_info %>% dplyr::select(Quadrats, condition, Description.condition, pH, habitat)
 
