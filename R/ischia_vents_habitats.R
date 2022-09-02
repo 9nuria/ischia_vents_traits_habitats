@@ -319,7 +319,7 @@ pH_hab_mean <- tab %>% dplyr::select(-Quadrats) %>% group_by(pH_hab) %>%
 pH_hab_se <- tab %>% dplyr::select(-Quadrats) %>% group_by(pH_hab) %>%
   summarise(across(.cols = everything(), .fns = std_err, .names=NULL))
 
-## Functional entities within the overall habitat regarding the pH condition ---------------------------------------
+## Functional entities for each habitat regarding  pH conditions ---------------------------------------
 # SCRIPT M ---------------------------------------------------------------------------------------------------------
 
 Infos_FEs = sites_quadrats_info %>% dplyr::select(., Quadrats, pH, habitat)
