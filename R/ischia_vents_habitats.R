@@ -455,9 +455,6 @@ habph2_fe_cover <- rbind(
 habph2_multidimFD  <- alpha.fd.multidim(sp_faxes_coord = fe_4D_coord, asb_sp_w = habph2_fe_cover, ind_vect = 
                                           c("fric", "fdis", "fide", "fdiv"), scaling = T, details_returned = T)
 
-#computing Functional Entity richness (# unique entities)
-
-
 ## Plotting parameters
 # Color palette
 hab_ph2            <- c("shallow_reef_amb", "shallow_reef_low", "cave_amb", "cave_low", "reef_amb", "reef_low", 
