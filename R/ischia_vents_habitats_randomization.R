@@ -417,3 +417,20 @@ groupt[[Q]]         <- sapply(labels(beta_long_taxo[[Q]]), function(x) {info[inf
 modtaxo[[Q]]        <- betadisper(beta_long_taxo[[Q]], groupt[[Q]], bias.adjust = TRUE)
 anova(modtaxo[[Q]]) ; permutest(modtaxo[[Q]], permutations = 999) # ; plot(modtaxo[[Q]]) ; boxplot(modtaxo[[Q]])
 }
+
+# SCRIPT I ---------------------------------------------------------------------------------------------------------
+###### Functional statistics ---------------------------------------------------------------------------------------
+
+tab <- vector("list", length = n)       ; pH_hab_mean <- vector("list", length = n) 
+pH_hab_se <- vector("list", length = n)
+for (Q in 1:n) { 
+tab[[Q]]         <- quadrats_fe_cover[[Q]] %>% as.data.frame %>% rownames_to_column("Quadrats") %>%
+  left_join(dplyr::select(sites_quadrats_info, Quadrats, pH, habitat)) %>%
+  mutate(pH_hab = paste(substr(pH,1,3), habitat ,sep = "_"), .after = Quadrats ) %>% dplyr::select(- pH, -habitat)
+# average and standard error
+pH_hab_mean[[Q]] <- tab[[Q]] %>% dplyr::select(-Quadrats) %>% group_by(pH_hab) %>%
+  summarise(across(.cols = everything(), .fns = mean, .names = NULL))
+pH_hab_se[[Q]]   <- tab[[Q]] %>% dplyr::select(-Quadrats) %>% group_by(pH_hab) %>%
+  summarise(across(.cols = everything(), .fns = std_err, .names=NULL))
+}
+
