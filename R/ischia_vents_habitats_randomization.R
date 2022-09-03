@@ -321,5 +321,99 @@ for (Q in 1:n) {
 info <- sites_quadrats_info %>% dplyr::select(Quadrats, condition, Description.condition, pH, habitat)
 
 # Shallow reefs, functional
+beta_df <- vector("list", length = n) ; beta_df.fun   <- vector("list", length = n)
+divf    <- vector("list", length = n) ; beta_long_fun <- vector("list", length = n)
+groupf  <- vector("list", length = n) ; modf          <- vector("list", length = n)
+for (Q in 1:n) { 
+beta_df[[Q]]        <- mFD::dist.to.df(quadrats_beta_hill[[Q]])
+beta_df.fun[[Q]]    <- beta_df[[Q]] %>% dplyr::select(-taxo_q1)
+habitat             <- c("SRA",  "SRL")
+quad                <- info[info$condition %in% habitat,]$Quadrats                # select quadrat–habitat (i.e. 1s1)
+divf[[Q]]           <- beta_df.fun[[Q]][beta_df.fun[[Q]]$x1 %in% quad,]           # select quadrat SR for asb.1
+divf[[Q]]           <- divf[[Q]][divf[[Q]]$x2 %in% quad,]                         # select quadrat SR for asb.2
+beta_long_fun[[Q]]  <- long_to_wide_distance(divf[[Q]])
+groupf[[Q]]         <- sapply(labels(beta_long_fun[[Q]]), function(x) {info[info$Quadrats == x,]$condition})
+modf[[Q]]           <- betadisper(beta_long_fun[[Q]], groupf[[Q]], bias.adjust = T)
+anova(modf[[Q]])                                                                  # To test if Var1 != Var2
+permutest(modf[[Q]], permutations = 999) # ; plot(modf[[Q]]) ; boxplot(modf[[Q]]) # Permutation test for F
+}
 
+# Shallow reefs, taxonomic
+beta_df.taxo   <- vector("list", length = n) ; divtaxo <- vector("list", length = n)
+beta_long_taxo <- vector("list", length = n) ; groupt  <- vector("list", length = n) 
+modtaxo        <- vector("list", length = n)
+for (Q in 1:n) { 
+beta_df.taxo[[Q]]   <- beta_df[[Q]] %>% dplyr::select(-funct_q1)
+divtaxo[[Q]]        <- beta_df.taxo[[Q]][beta_df.taxo[[Q]]$x1 %in% quad,]         # select quadrat–habitat (i.e. 1s1)
+divtaxo[[Q]]        <- divtaxo[[Q]][divtaxo[[Q]]$x2 %in% quad,]
+beta_long_taxo[[Q]] <- long_to_wide_distance(divtaxo[[Q]])
+groupt[[Q]]         <- sapply(labels(beta_long_taxo[[Q]]), function(x) {info[info$Quadrats == x,]$condition})
+modtaxo[[Q]]        <- betadisper(beta_long_taxo[[Q]], groupt[[Q]], bias.adjust = TRUE)
+anova(modtaxo[[Q]]) ; permutest(modtaxo[[Q]], permutations = 999) # ; plot(modtaxo[[Q]]) ; boxplot(modtaxo[[Q]])
+}
 
+# Caves, functional
+for (Q in 1:n) { 
+habitat             <- c("CA",  "CL")
+quad                <- info[info$condition %in% habitat,]$Quadrats 
+divf[[Q]]           <- beta_df.fun[[Q]][beta_df.fun[[Q]]$x1 %in% quad,] 
+divf[[Q]]           <- divf[[Q]][divf[[Q]]$x2 %in% quad,]
+beta_long_fun[[Q]]  <- long_to_wide_distance(divf[[Q]])
+groupf[[Q]]         <- sapply(labels(beta_long_fun[[Q]]), function(x) {info[info$Quadrats == x,]$condition})
+modf[[Q]]           <- betadisper(beta_long_fun[[Q]], groupf[[Q]], bias.adjust = TRUE)
+anova(modf[[Q]]) ; permutest(modf[[Q]], permutations = 999, pairwise = T) # ; plot(modf[[Q]]) ; boxplot(modf[[Q]])
+}
+
+# Caves, taxonomic
+for (Q in 1:n) { 
+divtaxo[[Q]]        <- beta_df.taxo[[Q]][beta_df.taxo[[Q]]$x1 %in% quad,]
+divtaxo[[Q]]        <- divtaxo[[Q]][divtaxo[[Q]]$x2 %in% quad,]
+beta_long_taxo[[Q]] <- long_to_wide_distance(divtaxo[[Q]])
+groupt[[Q]]         <- sapply(labels(beta_long_taxo[[Q]]), function(x) {info[info$Quadrats == x,]$condition})
+modtaxo[[Q]]        <- betadisper(beta_long_taxo[[Q]], groupt[[Q]], bias.adjust = TRUE)
+anova(modtaxo[[Q]]) ; permutest(modtaxo[[Q]], permutations = 999) # ; plot(modtaxo[[Q]]) ; boxplot(modtaxo[[Q]])
+}
+
+# Reefs, functional
+for (Q in 1:n) { 
+habitat             <- c("RA",  "RL")
+quad                <- info[info$condition %in% habitat,]$Quadrats 
+divf[[Q]]           <- beta_df.fun[[Q]][beta_df.fun[[Q]]$x1 %in% quad,] 
+divf[[Q]]           <- divf[[Q]][divf[[Q]]$x2 %in% quad,]
+beta_long_fun[[Q]]  <- long_to_wide_distance(divf[[Q]])
+groupf[[Q]]         <- sapply(labels(beta_long_fun[[Q]]), function(x) {info[info$Quadrats == x,]$condition})
+modf[[Q]]           <- betadisper(beta_long_fun[[Q]], groupf[[Q]], bias.adjust = TRUE)
+anova(modf[[Q]]) ; permutest(modf[[Q]], permutations = 999, pairwise = T) # ; plot(modf[[Q]]) ; boxplot(modf[[Q]])
+}
+
+# Reefs, taxonomic
+for (Q in 1:n) { 
+divtaxo[[Q]]        <- beta_df.taxo[[Q]][beta_df.taxo[[Q]]$x1 %in% quad,] 
+divtaxo[[Q]]        <- divtaxo[[Q]][divtaxo[[Q]]$x2 %in% quad,]
+beta_long_taxo[[Q]] <- long_to_wide_distance(divtaxo[[Q]])
+groupt[[Q]]         <- sapply(labels(beta_long_taxo[[Q]]), function(x) {info[info$Quadrats == x,]$condition})
+modtaxo[[Q]]        <- betadisper(beta_long_taxo[[Q]], groupt[[Q]], bias.adjust = TRUE)
+anova(modtaxo[[Q]]) ; permutest(modtaxo[[Q]], permutations = 999) # ; plot(modtaxo[[Q]]) ; boxplot(modtaxo[[Q]])
+}
+
+# Deep reefs, functional
+for (Q in 1:n) { 
+habitat             <- c("CoA",  "CoL")
+quad                <- info[info$condition %in% habitat,]$Quadrats 
+divf[[Q]]           <- beta_df.fun[[Q]][beta_df.fun[[Q]]$x1 %in% quad,] 
+divf[[Q]]           <- divf[[Q]][divf[[Q]]$x2 %in% quad,]
+beta_long_fun[[Q]]  <- long_to_wide_distance(divf[[Q]])
+groupf[[Q]]         <- sapply(labels(beta_long_fun[[Q]]), function(x) {info[info$Quadrats == x,]$condition})
+modf[[Q]]           <- betadisper(beta_long_fun[[Q]], groupf[[Q]], bias.adjust = TRUE)
+anova(modf[[Q]]) ; permutest(modf[[Q]], permutations = 999, pairwise = T) # ; plot(modf[[Q]]) ; boxplot(modf[[Q]])
+}
+
+# Deep reefs, taxonomic 
+for (Q in 1:n) { 
+divtaxo[[Q]]        <- beta_df.taxo[[Q]][beta_df.taxo[[Q]]$x1 %in% quad,] 
+divtaxo[[Q]]        <- divtaxo[[Q]][divtaxo[[Q]]$x2 %in% quad,]
+beta_long_taxo[[Q]] <- long_to_wide_distance(divtaxo[[Q]])
+groupt[[Q]]         <- sapply(labels(beta_long_taxo[[Q]]), function(x) {info[info$Quadrats == x,]$condition})
+modtaxo[[Q]]        <- betadisper(beta_long_taxo[[Q]], groupt[[Q]], bias.adjust = TRUE)
+anova(modtaxo[[Q]]) ; permutest(modtaxo[[Q]], permutations = 999) # ; plot(modtaxo[[Q]]) ; boxplot(modtaxo[[Q]])
+}
