@@ -438,21 +438,21 @@ for (Q in 1:n) {
 # SCRIPT M ---------------------------------------------------------------------------------------------------------
 
 # Cave
-cave_sp_FEs_Low = vector("list", length = n) ; cave_sp_FEs_Amb = vector("list", length = n)
-sp_tr_FEs_Low = vector("list", length = n) ; sp_tr_FEs_Amb = vector("list", length = n)
-FE_C_low = rep(NA, n) ; FE_C_amb = rep(NA, n)
-for (i in 1:n) {
-  sp_tr_FEs = sp_tr[[Q]] %>% mutate(., species = rownames(sp_tr[[Q]])) 
+cave_sp_FEs_Low <- vector("list", length = n)  ; cave_sp_FEs_Amb <- vector("list", length = n)
+sp_tr_FEs_Low   <- vector("list", length = n)  ; sp_tr_FEs_Amb   <- vector("list", length = n)
+FE_C_low <- rep(NA, n) ; FE_C_amb = rep(NA, n) ; sp_tr_FEs       <- vector("list", length = n)
+for (Q in 1:n) {
+  sp_tr_FEs[[Q]] = sp_tr[[Q]] %>% mutate(., species = rownames(sp_tr[[Q]])) 
   # Ambient pH
-  cave_sp_FEs_Amb[[i]] = cave_FEs[[i]] %>% dplyr::filter(., cover > 0) %>% dplyr::select(., species)
-  sp_tr_FEs_Amb[[i]] = merge(sp_tr_FEs[[Q]], cave_sp_FEs_Amb[[i]], by = "species", all.y = T) %>% distinct() %>% 
+  cave_sp_FEs_Amb[[Q]] = cave_FEs_amb[[Q]] %>% dplyr::filter(., cover > 0) %>% dplyr::select(., species)
+  sp_tr_FEs_Amb[[Q]] = merge(sp_tr_FEs[[Q]], cave_sp_FEs_Amb[[Q]], by = "species", all.y = T) %>% distinct() %>% 
     remove_rownames() %>% column_to_rownames(var="species") %>% na.omit()
-  FE_C_amb[i] <- length(mFD::sp.to.fe(sp_tr = sp_tr_FEs_Amb[[i]], tr_cat = traits_cat)$fe_nm)
+  FE_C_amb[Q] <- length(mFD::sp.to.fe(sp_tr = sp_tr_FEs_Amb[[Q]], tr_cat = traits_cat)$fe_nm)
   # Low pH
-  cave_sp_FEs_Low[[i]] = cave_FEs[[i]] %>% dplyr::filter(., cover > 0) %>% dplyr::select(species)
-  sp_tr_FEs_Low[[i]] = merge(sp_tr_FEs, cave_sp_FEs_Low[[i]], by = "species", all.y = T) %>% distinct() %>% 
+  cave_sp_FEs_Low[[Q]] = cave_FEs_low[[Q]] %>% dplyr::filter(., cover > 0) %>% dplyr::select(species)
+  sp_tr_FEs_Low[[Q]] = merge(sp_tr_FEs[[Q]], cave_sp_FEs_Low[[Q]], by = "species", all.y = T) %>% distinct() %>% 
     remove_rownames %>% column_to_rownames(var="species") %>% na.omit()
-  FE_C_low[i] <- length(mFD::sp.to.fe(sp_tr = sp_tr_FEs_Low[[i]], tr_cat = traits_cat)$fe_nm)
+  FE_C_low[Q] <- length(mFD::sp.to.fe(sp_tr = sp_tr_FEs_Low[[Q]], tr_cat = traits_cat)$fe_nm)
   }
 
 # Deep reefs
