@@ -28,6 +28,7 @@ dir_data       <- "./data/2 – data generated"        # folder to save ready to
 dir_plot       <- "./outputs/plot"                   # folder with plot 
 dir_plot_trait <- "./outputs/plot/traits"            # folder to save plot as png
 dir_model      <- "./data/3 – model"                 # folder to save models
+dir_scripts    <- "./R"                               # folder to load scripts
 
 # Generic functions
 std_err <- function(x) {sd(x)/sqrt(length(x))}       # function to compute standard error
@@ -63,7 +64,7 @@ load(file.path(dir_data, "Predicted_values.RData"))
 load(file.path(dir_model,"mn.RData"))
 
 # Number of iterations you desire
-n = 5
+n = 5 ; source(file.path(dir_scripts,"Lists_and_vectors.R"))
 
 ## Data preparation ------------------------------------------------------------------------------------------------
 # SCRIPT A ---------------------------------------------------------------------------------------------------------
@@ -88,19 +89,6 @@ Infos_FEs$pH[which(Infos_FEs$pH == "ambient2")] = "ambient"
 Infos_FEs_split = Infos_FEs %>% mutate(., condition = paste(habitat, pH, sep = "_")) %>% group_split(condition)
 
 ## Starting the randomization process
-# Empty vectors of random sampling selection for each condition
-Sample_low_cave      <- vector("list", length = n) ; Sample_amb_cave      <- vector("list", length = n) 
-Sample_low_deep      <- vector("list", length = n) ; Sample_amb_deep      <- vector("list", length = n) 
-Sample_low_reef      <- vector("list", length = n) ; Sample_amb_reef      <- vector("list", length = n) 
-Sample_low_shallow   <- vector("list", length = n) ; Sample_amb_shallow   <- vector("list", length = n) 
-# Empty vectors of output for each condition
-cave_FEs_low         <- vector("list", length = n) ; cave_FEs_amb         <- vector("list", length = n)
-deep_reef_FEs_low    <- vector("list", length = n) ; deep_reef_FEs_amb    <- vector("list", length = n)
-reef_FEs_low         <- vector("list", length = n) ; reef_FEs_amb         <- vector("list", length = n)
-shallow_reef_FEs_low <- vector("list", length = n) ; shallow_reef_FEs_amb <- vector("list", length = n)
-# Datasets randomized
-data_random          <- vector("list", length = n)
-
 # Randomization process in order to get 12 quadrats per condition
 for (Q in 1:n) {
   # Cave
@@ -137,7 +125,6 @@ for (Q in 1:n) {
                                      shallow_reef_FEs_amb[[Q]], shallow_reef_FEs_low[[Q]]) %>% data.frame() }
 
 # Row binding tables and going back to wide table then matrix and replacing NA with 0
-quadrats_species_cover0 <- vector("list", length = n) ; quadrats_species_cover <- vector("list", length = n)
 for (Q in 1:n) {
   quadrats_species_cover0[[Q]] <- data_random[[Q]] %>% pivot_wider(names_from = species, values_from = cover) 
   quadrats_species_cover[[Q]]  <- as.matrix(dplyr::select(quadrats_species_cover0[[Q]], !X))
@@ -148,7 +135,6 @@ for (Q in 1:n) {
   }
 
 # Checking all species present at least once, remove those absent and reoder quadrats as in sites_quadrats
-species_sumcover <- vector("list", length = n) 
 for (Q in 1:n) {
   species_sumcover[[Q]] <- apply(quadrats_species_cover[[Q]], 2, sum)
   range(species_sumcover[[Q]])
@@ -160,7 +146,6 @@ for (Q in 1:n) {
   }
 
 # Identify Species in quadrats with no trait values and remove them
-species_notraits <- vector("list", length = n) 
 for (Q in 1:n) {
   species_notraits[[Q]] <- colnames(quadrats_species_cover[[Q]])[!(colnames(quadrats_species_cover[[Q]]) %in% 
                                                                sp_tr$Species)] 
@@ -171,7 +156,6 @@ for (Q in 1:n) {
   }
 
 # Names of species and Filtering absent species from trait dataframe
-sp_nm <- vector("list", length = n) ; sp_tr_2 <- vector("list", length = n) 
 for (Q in 1:n) {
   sp_nm[[Q]] <- colnames(quadrats_species_cover[[Q]]) 
   sp_tr_2[[Q]] <- sp_tr[sp_tr$Species %in% sp_nm[[Q]],]
@@ -196,7 +180,6 @@ for (Q in 1:n) {
   }
 
 # Clustering species into FE
-sp_to_fe <- vector("list", length = n) ; fe_nm <- vector("list", length = n)
 for (Q in 1:n) {
   sp_to_fe[[Q]] <- mFD::sp.to.fe(sp_tr = sp_tr[[Q]], tr_cat = traits_cat) 
   # looking at number of species per FE
@@ -207,7 +190,6 @@ for (Q in 1:n) {
   }
 
 # List of species in each FE
-fe_sp <- vector("list", length = n) ; fe_tr <- vector("list", length = n)
 for (Q in 1:n) {
   fe_sp[[Q]] <- vector("list", length = n)
   for (k in fe_nm[[Q]]) {
@@ -218,7 +200,6 @@ for (Q in 1:n) {
   }
 
 # FE trait values and cover in quadrats 
-quadrats_fe_cover <- vector("list", length = n) ; sp_k <- vector("list", length = n)
 for (Q in 1:n) {
 quadrats_fe_cover[[Q]] <- matrix(0, nrow = nrow(quadrats_species_cover[[Q]]), ncol = length(fe_nm[[Q]]),
                             dimnames = list(row.names(quadrats_species_cover[[Q]]), fe_nm[[Q]]))
@@ -227,32 +208,30 @@ quadrats_fe_cover[[Q]] <- matrix(0, nrow = nrow(quadrats_species_cover[[Q]]), nc
     quadrats_fe_cover[[Q]][,k] <- quadrats_species_cover[[Q]][, fe_sp[[Q]][[k]]]
   } else {
     quadrats_fe_cover[[Q]][,k] <- apply(quadrats_species_cover[[Q]][, fe_sp[[Q]][[k]]], 1, sum) 
-    } 
+      } 
     } 
   }
 
 # Average cover of species and FE in each habitat – pH
-habph_species_cover <- vector("list", length = n) ; habph_fe_cover <- vector("list", length = n)
-for (k in habph) { quad_k <- sites_quadrats_info[which(sites_quadrats_info$habitat_ph == k), "Quadrats"] }
 for (Q in 1:n) {
-  habph_species_cover[[Q]]       <- matrix(0, nrow  = length(habph), ncol = ncol(quadrats_species_cover[[Q]]),
-                                           dimnames = list(habph, colnames(quadrats_species_cover[[Q]])))
-  habph_fe_cover[[Q]]            <- matrix(0, nrow  = length(habph), ncol = ncol(quadrats_fe_cover[[Q]]),
-                                           dimnames = list(habph, colnames(quadrats_fe_cover[[Q]]))) 
+  habph_species_cover[[Q]]   <- matrix(0, nrow  = length(habph), ncol = ncol(quadrats_species_cover[[Q]]),
+                                dimnames = list(habph, colnames(quadrats_species_cover[[Q]])))
+  habph_fe_cover[[Q]]        <- matrix(0, nrow  = length(habph), ncol = ncol(quadrats_fe_cover[[Q]]),
+                                dimnames = list(habph, colnames(quadrats_fe_cover[[Q]]))) 
   for (k in habph) {
-    habph_species_cover[[Q]][k,] <- apply(quadrats_species_cover[[Q]][quad_k,], 2, mean)
-    habph_fe_cover[[Q]][k,]      <- apply(quadrats_fe_cover[[Q]][quad_k,], 2, mean) 
-    }
+    quad_k <- sites_quadrats_info[which(sites_quadrats_info$habitat_ph == k), "Quadrats"]
+    quad_k <- quad_k[quad_k %in% row.names(quadrats_species_cover[[Q]])]
+    habph_species_cover[[Q]][k,] <- apply(quadrats_species_cover[[Q]][which(quadrats_species_cover[[Q]] %in% 
+                                                                              quad_k),], 2, mean)
+    habph_fe_cover[[Q]][k,] <- apply(quadrats_fe_cover[[Q]][quad_k,], 2, mean) 
+    } 
   }
-  
+
 ## Quick exploration and functional entities computation -----------------------------------------------------------
 # SCRIPT B ---------------------------------------------------------------------------------------------------------
 ###### Functional indices ------------------------------------------------------------------------------------------
 
 # Basic statistics
-quadrat_covertot <- vector("list", length = n) ; quadrat_nbsp   <- vector("list", length = n)
-quadrat_nbFE     <- vector("list", length = n) ; quadrat_sup4FE <- vector("list", length = n)
-
 for (Q in 1:n) { 
   # Total cover
   quadrat_covertot[[Q]] <- apply(quadrats_species_cover[[Q]], 1, sum) 
@@ -268,13 +247,6 @@ for (Q in 1:n) {
   }
 
 # Functional statistics
-fe_fe_dist          <- vector("list", length = n) ; fe_fspaces          <- vector("list", length = n)
-fe_4D_coord         <- vector("list", length = n) ; quadrats_multidimFD <- vector("list", length = n)
-habph_multidimFD    <- vector("list", length = n) ; quadrats_taxo_hill  <- vector("list", length = n)
-quadrats_funct_hill <- vector("list", length = n) ; quadrats_biodiv     <- vector("list", length = n)
-quadrats_betax_hill <- vector("list", length = n) ; quadrats_befun_hill <- vector("list", length = n)
-quadrats_beta_hill  <- vector("list", length = n)
-
 for (Q in 1:n) { 
   # computing Gower distance between FEs
   fe_fe_dist[[Q]]          <- funct.dist(fe_tr[[Q]], tr_cat = traits_cat, metric = "gower")
@@ -321,9 +293,6 @@ for (Q in 1:n) {
 info <- sites_quadrats_info %>% dplyr::select(Quadrats, condition, Description.condition, pH, habitat)
 
 # Shallow reefs, functional
-beta_df <- vector("list", length = n) ; beta_df.fun   <- vector("list", length = n)
-divf    <- vector("list", length = n) ; beta_long_fun <- vector("list", length = n)
-groupf  <- vector("list", length = n) ; modf          <- vector("list", length = n)
 for (Q in 1:n) { 
 beta_df[[Q]]        <- mFD::dist.to.df(quadrats_beta_hill[[Q]])
 beta_df.fun[[Q]]    <- beta_df[[Q]] %>% dplyr::select(-taxo_q1)
@@ -339,9 +308,6 @@ permutest(modf[[Q]], permutations = 999) # ; plot(modf[[Q]]) ; boxplot(modf[[Q]]
 }
 
 # Shallow reefs, taxonomic
-beta_df.taxo   <- vector("list", length = n) ; divtaxo <- vector("list", length = n)
-beta_long_taxo <- vector("list", length = n) ; groupt  <- vector("list", length = n) 
-modtaxo        <- vector("list", length = n)
 for (Q in 1:n) { 
 beta_df.taxo[[Q]]   <- beta_df[[Q]] %>% dplyr::select(-funct_q1)
 divtaxo[[Q]]        <- beta_df.taxo[[Q]][beta_df.taxo[[Q]]$x1 %in% quad,]         # select quadrat–habitat (i.e. 1s1)
@@ -421,8 +387,6 @@ anova(modtaxo[[Q]]) ; permutest(modtaxo[[Q]], permutations = 999) # ; plot(modta
 # SCRIPT I ---------------------------------------------------------------------------------------------------------
 ###### Functional statistics ---------------------------------------------------------------------------------------
 
-tab <- vector("list", length = n)       ; pH_hab_mean <- vector("list", length = n) 
-pH_hab_se <- vector("list", length = n)
 for (Q in 1:n) { 
   tab[[Q]]         <- quadrats_fe_cover[[Q]] %>% as.data.frame %>% rownames_to_column("Quadrats") %>%
   left_join(dplyr::select(sites_quadrats_info, Quadrats, pH, habitat)) %>%
@@ -438,9 +402,6 @@ for (Q in 1:n) {
 # SCRIPT M ---------------------------------------------------------------------------------------------------------
 
 # Cave
-cave_sp_FEs_Low <- vector("list", length = n)  ; cave_sp_FEs_Amb <- vector("list", length = n)
-sp_tr_FEs_Low   <- vector("list", length = n)  ; sp_tr_FEs_Amb   <- vector("list", length = n)
-FE_C_low <- rep(NA, n) ; FE_C_amb = rep(NA, n) ; sp_tr_FEs       <- vector("list", length = n)
 for (Q in 1:n) {
   sp_tr_FEs[[Q]] = sp_tr[[Q]] %>% mutate(., species = rownames(sp_tr[[Q]])) 
   # Ambient pH
@@ -452,13 +413,9 @@ for (Q in 1:n) {
   cave_sp_FEs_Low[[Q]] = cave_FEs_low[[Q]] %>% dplyr::filter(., cover > 0) %>% dplyr::select(species)
   sp_tr_FEs_Low[[Q]] = merge(sp_tr_FEs[[Q]], cave_sp_FEs_Low[[Q]], by = "species", all.y = T) %>% distinct() %>% 
     remove_rownames %>% column_to_rownames(var="species") %>% na.omit()
-  FE_C_low[Q] <- length(mFD::sp.to.fe(sp_tr = sp_tr_FEs_Low[[Q]], tr_cat = traits_cat)$fe_nm)
-  }
+  FE_C_low[Q] <- length(mFD::sp.to.fe(sp_tr = sp_tr_FEs_Low[[Q]], tr_cat = traits_cat)$fe_nm) }
 
 # Deep reefs
-deep_reef_sp_FEs_Low <- vector("list", length = n) ; deep_reef_sp_FEs_Amb <- vector("list", length = n)
-sp_tr_FEs_Low        <- vector("list", length = n) ; sp_tr_FEs_Amb        <- vector("list", length = n)
-FE_DR_low = rep(NA, n) ; FE_DR_amb = rep(NA, n)
 for (Q in 1:n) {
   # Ambient pH
   deep_reef_sp_FEs_Amb[[Q]] = deep_reef_FEs_amb[[Q]] %>% dplyr::filter(., cover > 0) %>% dplyr::select(., species)
@@ -469,13 +426,9 @@ for (Q in 1:n) {
   deep_reef_sp_FEs_Low[[Q]] = deep_reef_FEs_low[[Q]] %>% dplyr::filter(., cover > 0) %>% dplyr::select(species)
   sp_tr_FEs_Low[[Q]] = merge(sp_tr_FEs[[Q]], deep_reef_sp_FEs_Low[[Q]], by = "species", all.y = T) %>% distinct() %>% 
     remove_rownames %>% column_to_rownames(var="species") %>% na.omit()
-  FE_DR_low[Q] <- length(mFD::sp.to.fe(sp_tr = sp_tr_FEs_Low[[Q]], tr_cat = traits_cat)$fe_nm)
-  }
+  FE_DR_low[Q] <- length(mFD::sp.to.fe(sp_tr = sp_tr_FEs_Low[[Q]], tr_cat = traits_cat)$fe_nm) }
 
 # Reefs
-reef_sp_FEs_Low <- vector("list", length = n)  ; reef_sp_FEs_Amb <- vector("list", length = n)
-sp_tr_FEs_Low   <- vector("list", length = n)  ; sp_tr_FEs_Amb   <- vector("list", length = n)
-FE_R_low = rep(NA, n) ; FE_R_amb = rep(NA, n)
 for (Q in 1:n) {
   # Ambient pH
   reef_sp_FEs_Amb[[Q]] = reef_FEs_amb[[Q]] %>% dplyr::filter(., cover > 0) %>% dplyr::select(., species) 
@@ -486,12 +439,9 @@ for (Q in 1:n) {
   reef_sp_FEs_Low[[Q]] = reef_FEs_low[[Q]] %>% dplyr::filter(., cover > 0) %>% dplyr::select(species)
   sp_tr_FEs_Low[[Q]] = merge(sp_tr_FEs[[Q]], reef_sp_FEs_Low[[Q]], by = "species", all.y = T) %>% distinct() %>% 
     remove_rownames %>% column_to_rownames(var="species") %>% na.omit()
-  FE_R_low[Q] <- length(mFD::sp.to.fe(sp_tr = sp_tr_FEs_Low[[Q]], tr_cat = traits_cat)$fe_nm)}
+  FE_R_low[Q] <- length(mFD::sp.to.fe(sp_tr = sp_tr_FEs_Low[[Q]], tr_cat = traits_cat)$fe_nm) }
 
 # Shallow reefs
-shallow_reef_sp_FEs_Low <- vector("list", length = n) ; shallow_reef_sp_FEs_Amb <- vector("list", length = n)
-sp_tr_FEs_Low           <- vector("list", length = n) ; sp_tr_FEs_Amb           <- vector("list", length = n)
-FE_SR_low = rep(NA, n) ; FE_SR_amb = rep(NA, n)
 for (Q in 1:n) {
   # Ambient pH
   shallow_reef_sp_FEs_Amb[[Q]] = shallow_reef_FEs_amb[[Q]] %>% dplyr::filter(., cover > 0) %>% dplyr::select(., species)
@@ -502,7 +452,7 @@ for (Q in 1:n) {
   shallow_reef_sp_FEs_Low[[Q]] = shallow_reef_FEs_low[[Q]] %>% dplyr::filter(., cover > 0) %>% dplyr::select(species)
   sp_tr_FEs_Low[[Q]] = merge(sp_tr_FEs[[Q]], shallow_reef_sp_FEs_Low[[Q]], by = "species", all.y = T) %>% distinct() %>% 
     remove_rownames %>% column_to_rownames(var="species") %>% na.omit()
-  FE_SR_low[Q] <- length(mFD::sp.to.fe(sp_tr = sp_tr_FEs_Low[[Q]], tr_cat = traits_cat)$fe_nm)}
+  FE_SR_low[Q] <- length(mFD::sp.to.fe(sp_tr = sp_tr_FEs_Low[[Q]], tr_cat = traits_cat)$fe_nm) }
 
 # FEs summary
 data_summary_FEs_std = data.frame(Habitat = rep(c("Shallow Reefs", "Cave", "Reefs", "Deep Reefs"), each = 2),
@@ -511,3 +461,37 @@ data_summary_FEs_std = data.frame(Habitat = rep(c("Shallow Reefs", "Cave", "Reef
                                           round(mean(FE_C_amb),  0), round(mean(FE_C_low),  0), 
                                           round(mean(FE_R_amb),  0), round(mean(FE_R_low),  0), 
                                           round(mean(FE_DR_amb), 0), round(mean(FE_DR_low), 0)))
+
+## Analyze and Vizualisation ---------------------------------------------------------------------------------------
+# SCRIPT F ---------------------------------------------------------------------------------------------------------
+#### Making Figure 2 and Supplementary Figure 4 --------------------------------------------------------------------
+#Functional diversity changes across habitats and among pH zones
+
+# Computing mean cover of FEs in the 2 pH levels: Ambient and Low pH
+for (Q in 1:n) {
+  habph2_fe_cover[[Q]]    <- rbind(
+    cave_amb         = apply(habph_fe_cover[[Q]][c("cave_ambient1", "cave_ambient2"),], 2, mean),
+    cave_low         = habph_fe_cover[[Q]]["cave_low",],
+    deep_reef_amb    = apply(habph_fe_cover[[Q]][c("deep_reef_ambient1", "deep_reef_ambient2"),], 2, mean),
+    deep_reef_low    = habph_fe_cover[[Q]]["deep_reef_low",],
+    reef_amb         = apply(habph_fe_cover[[Q]][c("reef_ambient1", "reef_ambient2"),], 2, mean),
+    reef_low         = habph_fe_cover[[Q]]["reef_low",],
+    shallow_reef_amb = apply(habph_fe_cover[[Q]][c("shallow_reef_ambient1", "shallow_reef_ambient2"),], 2, mean),
+    shallow_reef_low = habph_fe_cover[[Q]]["shallow_reef_low",]) 
+  # Computing FRic, FDis and FIde for all habitats * 2 levels of pH
+  habph2_multidimFD[[Q]]  <- alpha.fd.multidim(sp_faxes_coord = fe_4D_coord[[Q]], asb_sp_w = habph2_fe_cover[[Q]], 
+                                               ind_vect = c("fric", "fdis", "fide", "fdiv"), scaling = T, 
+                                               details_returned = T)
+  # Computing Specific richness
+  RS[[Q]] <- merge(data_random[[Q]], Infos_FEs, by.x = "X", by.y = "Quadrats") %>% dplyr::filter(cover > 0) %>% 
+    group_by(pH, habitat) %>% summarise(RS = round(length(unique(species)))) %>% arrange(habitat) %>% ungroup() %>% 
+    select(RS) %>% mutate(Zone = seq(1,8,1))
+  # Summary
+  habph2_label <- rownames(habph2_fe_cover[[Q]])
+  data_stat_FEs[[Q]] <- habph2_multidimFD[[Q]]$functional_diversity_indices}
+
+RS = round(bind_rows(RS) %>% group_by(Zone) %>% summarise(RS = mean(RS))) %>% dplyr::select(-Zone)
+data_stat_FEs  <- data_stat_FEs %>% bind_rows() %>% mutate(., Zone = rep(seq(1,8,1), n)) %>% 
+  group_by(Zone) %>% summarise_all(mean) %>% mutate(., FE = round(sp_richn)) %>% 
+  mutate(RS = RS$RS) %>% data.frame() %>% mutate(row = habph2_label) %>% column_to_rownames(var = "row") %>% 
+  dplyr::select(RS, FE, fric, fdis, fdiv, fide_PC1, fide_PC2, fide_PC3, fide_PC4)
