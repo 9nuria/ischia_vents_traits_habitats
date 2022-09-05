@@ -461,11 +461,10 @@ data_summary_FEs_std = data.frame(Habitat = rep(c("Shallow Reefs", "Cave", "Reef
                                           round(mean(FE_C_amb),  0), round(mean(FE_C_low),  0), 
                                           round(mean(FE_R_amb),  0), round(mean(FE_R_low),  0), 
                                           round(mean(FE_DR_amb), 0), round(mean(FE_DR_low), 0)))
+rm(FE_SR_amb, FE_SR_low, FE_C_amb, FE_C_low, FE_R_amb, FE_R_low, FE_DR_amb, FE_DR_low)
 
 ## Analyze and Vizualisation ---------------------------------------------------------------------------------------
 # SCRIPT F ---------------------------------------------------------------------------------------------------------
-#### Making Figure 2 and Supplementary Figure 4 --------------------------------------------------------------------
-#Functional diversity changes across habitats and among pH zones
 
 # Computing mean cover of FEs in the 2 pH levels: Ambient and Low pH
 for (Q in 1:n) {
@@ -495,3 +494,72 @@ data_stat_FEs  <- data_stat_FEs %>% bind_rows() %>% mutate(., Zone = rep(seq(1,8
   group_by(Zone) %>% summarise_all(mean) %>% mutate(., FE = round(sp_richn)) %>% 
   mutate(RS = RS$RS) %>% data.frame() %>% mutate(row = habph2_label) %>% column_to_rownames(var = "row") %>% 
   dplyr::select(RS, FE, fric, fdis, fdiv, fide_PC1, fide_PC2, fide_PC3, fide_PC4)
+
+#### Making Figure 2 and Supplementary Figure 4 --------------------------------------------------------------------
+
+## Plotting parameters
+# Color palette
+hab_ph2            <- c("shallow_reef_amb", "shallow_reef_low", "cave_amb", "cave_low", "reef_amb", "reef_low", 
+                        "deep_reef_amb", "deep_reef_low")
+vcolors            <- c("#93a1fa", "#f7d305", "#6478f5", "#f5a511", "#3953f7", "#f78e0c", "#0219ad", "#f7560c")
+names(vcolors)     <- hab_ph2
+
+# Coordinates of all species
+for (Q in 1:n) { pool_coord[[Q]] <- habph2_multidimFD[[Q]]$details$sp_faxes_coord %>% data.frame() %>% 
+  rownames_to_column(var = "FE") } ; pool_coord <- pool_coord %>% bind_rows() %>% group_by(FE) %>% 
+  summarise_all(mean) %>% column_to_rownames(var = "FE") %>% as.matrix()
+
+# vertices of all FEs in 4D
+pool_vert_nm       <- rownames(pool_coord)
+# range of axes
+range_faxes_coord  <- range(pool_coord[,1:4])
+range_axes         <- range_faxes_coord + c(-1, 1) * (range_faxes_coord[2] - range_faxes_coord[1]) * 0.1
+
+# indices values
+habph2_fd          <- data_stat_FEs
+
+# habph2_multidimFD informations
+for (Q in 1:n) { 
+  species_avg_pst[[Q]] <- habph2_multidimFD[[Q]]$details$asb_sp_occ %>% data.frame() %>% 
+    rownames_to_column(var = "FE") 
+  asb_sp_relatw[[Q]] <- habph2_multidimFD[[Q]]$details$asb_sp_relatw %>% data.frame() %>% 
+    rownames_to_column(var = "FE") } 
+species_avg_pst <- species_avg_pst %>% bind_rows() %>% group_by(FE) %>% mutate_all(., ~replace_na(.,0)) %>% 
+  summarise_all(mean) %>% column_to_rownames(var = "FE") 
+asb_sp_relatw <- asb_sp_relatw %>% bind_rows() %>% group_by(FE) %>% mutate_all(., ~replace_na(.,0)) %>% 
+  summarise_all(mean) %>% column_to_rownames(var = "FE") %>% as.matrix()
+
+# Building the figure
+pairs_axes         <- list(c(1,2), c(3,4)) ; FD_xy = list()
+labels = c("Shallow Reef Ambient pH", "Shallow Reef Low pH", "Cave Ambient pH", "Cave Low pH",
+           "Reef Ambient pH", "Reef Low pH", "Deep Reef Ambient pH", "Deep Reef Low pH") %>% data.frame()
+rownames(labels) = hab_ph2
+for (z in 1:length(pairs_axes)) {
+  xy <- pairs_axes[[z]]                                                      # names of axes 
+  ggplot_list <- list()                                                      # list to store ggplot
+  for (v in hab_ph2) {
+    col_v <- as.character(vcolors[v])                                        # color for habitat*pH levels
+    sp_v  <- colnames(species_avg_pst)[(which(species_avg_pst[v,] >= 0.5))]  # species present in v
+    # background with axes range set + title
+    ggplot_v <- background.plot(range_faxes = range_axes, faxes_nm = paste0("PC", xy), color_bg = "grey95")
+    ggplot_v <- ggplot_v + labs(subtitle=labels[v,])
+    # convex hull of species pool
+    ggplot_v <- pool.plot(ggplot_bg = ggplot_v, sp_coord2D = pool_coord[,xy], vertices_nD = pool_vert_nm, 
+                          plot_pool = F, color_ch = NA, fill_ch = "white", alpha_ch = 1)
+    # plot convex hull of assemblage but not species
+    ggplot_v <- fric.plot(ggplot_bg = ggplot_v, asb_sp_coord2D = list(vv = pool_coord[sp_v,xy]),
+                          asb_vertices_nD = list(vv = sp_v), plot_sp = F,
+                          color_ch = c(vv = col_v), fill_ch = c(vv = col_v), alpha_ch = c(vv = 0.1))
+    # plot species weights using plot.fide without showing mean value
+    ggplot_v <- fide.plot(ggplot_bg = ggplot_v, asb_sp_coord2D = list(vv = pool_coord[sp_v,xy]),
+                          asb_sp_relatw = list(vv = asb_sp_relatw[v,sp_v]),
+                          asb_fide_coord2D = list(vv = habph2_fd[v, paste0("fide_PC", xy)]),
+                          plot_sp = T, shape_sp = c(vv = 21), color_sp = c(vv = col_v), 
+                          fill_sp = c(vv =paste0(col_v, "70")), shape_fide = c(vv = 23), size_fide = c(vv = 1),
+                          color_fide = c(vv = col_v), fill_fide = c(vv = col_v), color_segment = c(vv = col_v),
+                          width_segment = c(vv = 0.5), linetype_segment = c(vv = 1))
+    ggplot_list[[v]] <- ggplot_v}                                             # ggplot_v storing in list
+  
+  # patchwork of plots : 4 habitats (rows) * 2 columns (pH)
+  FD_xy[[z]] <- (ggplot_list[[1]] + ggplot_list[[2]]) / (ggplot_list[[3]] + ggplot_list[[4]]) / 
+    (ggplot_list[[5]] + ggplot_list[[6]]) / (ggplot_list[[7]] + ggplot_list[[8]])}

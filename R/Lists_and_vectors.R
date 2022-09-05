@@ -87,6 +87,10 @@ habph2_fe_cover         <- vector("list", length = n)
 habph2_multidimFD       <- vector("list", length = n)
 data_stat_FEs           <- vector("list", length = n)
 RS                      <- vector("list", length = n)
+pool_coord              <- vector("list", length = n)
+species_avg_pst         <- vector("list", length = n)
+asb_sp_relatw           <- vector("list", length = n)
+
 
 # Empty vectors
 FE_C_low   <- rep(NA, n)
