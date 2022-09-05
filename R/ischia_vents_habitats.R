@@ -1110,7 +1110,7 @@ habph_tr_moddom <- list() ; plot_t_mod_pcover = list () ; for (t in names(fe_tr)
 # Main Figures  
 ggsave(FD_xy[[1]], filename = "Figure_2.png", path = dir_plot, device = "png", width = 6, height = 12,        # 2
        dpi = 300)              
-ggsave("Figure_mds.png", plot = mdsv1v2, path = dir_plot, device = "png", height = 35, width = 35,              # 3
+ggsave("Figure_mds.png", plot = mdsv1v2, path = dir_plot, device = "png", height = 35, width = 35,            # 3
        units = "cm", dpi = 300)
 ggsave("Figure_3.png", plot = boxplot, path = dir_plot, device = "png", height = 35, width = 35,              # 4
        units = "cm", dpi = 300)
