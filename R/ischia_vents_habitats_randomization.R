@@ -1104,3 +1104,41 @@ fig.tax.v3v4 <- ggplot(pcoa_taxo, aes(x = V3, y = V4, group = condition, fill = 
   scale_y_continuous(limits  = c(-0.1, 0.1)) + theme(legend.position='none')
 mdsv3v4 <- (fig.tax.v3v4/fig.fun.v3v4)
 
+# SCRIPT C ---------------------------------------------------------------------------------------------------------
+#### Making Supplementary Figures S7 and S8 ------------------------------------------------------------------------
+# mean of taxo and functional beta within / between sites & conditions
+# Correlation of beta-diversity values between taxonomic and functional facets as boxplot and scatter plot S. Methods 
+
+# From distance matrices to dataframe
+beta_df = beta_df %>% bind_rows() %>% group_by(x1, x2) %>% summarise_all(mean) %>% data.frame()
+
+# Habitats and pH level of quadrats, recoding pH into ambient vs low
+quadrats_habph <- dplyr::select(sites_quadrats_info, Quadrats, pH, habitat) %>% mutate(ph=substr(pH,1,3)) %>%
+  dplyr::select(-pH)
+
+# Left_joining first time for quadrat x1 and renaming | # same with x2
+quadrats_beta_df <- left_join(beta_df, quadrats_habph,by = c("x1" = "Quadrats")) %>%
+  rename(id_x1 = x1, ph_x1 = ph, hab_x1 = habitat) %>% left_join(quadrats_habph, by = c("x2" = "Quadrats")) %>% 
+  rename(id_x2 = x2, ph_x2 = ph, hab_x2 = habitat)
+
+# Adding new variable with type of pair
+quadrats_beta_df <- mutate(quadrats_beta_df, pair_type = case_when(
+  hab_x1 == hab_x2 & ph_x1  == ph_x2 ~ "within_hab*ph",
+  hab_x1 == "cave" & hab_x2 == hab_x1 & ph_x1 != ph_x2 ~ "interpH_cave",
+  hab_x1 == "reef" & hab_x2 == hab_x1 & ph_x1 != ph_x2 ~ "interpH_reef",
+  hab_x1 == "shallow_reef" & hab_x2 == hab_x1 & ph_x1 != ph_x2 ~ "interpH_shallow",
+  hab_x1 == "deep_reef" & hab_x2 == hab_x1 & ph_x1 != ph_x2 ~ "interpH_deep",
+  ph_x1  == "low" & ph_x2 == "low" & hab_x1 != hab_x2 ~ "interhab_lowpH",
+  ph_x1  == "amb" & ph_x2 == "amb" & hab_x1 != hab_x2 ~ "interhab_ambpH",
+  TRUE   ~ "_interhab_interpH"))
+
+# plot of taxo vs functional beta within each type of pair
+beta_cor_plot <- ggplot(data = quadrats_beta_df, aes(x = taxo_q1, y = funct_q1) ) + geom_point(size=0.05) +
+  facet_wrap(vars(pair_type))
+
+# Boxplot for taxo and functional beta across type of pairs (Figure for SM)
+beta_taxo_plot  <- ggplot(data = quadrats_beta_df, aes(x = pair_type, y = taxo_q1) ) + geom_boxplot() +
+  xlab("Habitat and pH of pair of quadrats") + ylab("Taxo beta (q=1)")
+beta_funct_plot <- ggplot(data = quadrats_beta_df, aes(x = pair_type, y = funct_q1) ) + geom_boxplot() +
+  xlab("Habitat and pH of pair of quadrats") + ylab("Func beta (q=1)")
+boxplot_beta <- beta_taxo_plot / beta_funct_plot
