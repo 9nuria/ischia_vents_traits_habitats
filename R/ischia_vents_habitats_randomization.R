@@ -623,3 +623,58 @@ mdsv1v2 <- (fig.tax.v1v2/fig.fun.v1v2)
 # SCRIPT G ---------------------------------------------------------------------------------------------------------
 #### Making Figure 3 -----------------------------------------------------------------------------------------------
 #### Functional diversity indices based on Hill numbers across habitats and among pH zones (Low and Ambient pH)
+
+# setting parameters for plot
+for (Q in 1:n) {
+  quadrats_biodiv[[Q]]$condition <- factor(quadrats_biodiv[[Q]]$condition, 
+                                      levels = c("SRA", "SRL", "CL", "CA", "RL", "RA", "CoL", "CoA"))
+  quadrats_biodiv[[Q]]$condition <- recode_factor(quadrats_biodiv[[Q]]$condition, SRA = "Shallow Reef Ambient pH", 
+                                             SRL ="Shallow Reef Low pH", CA = "Cave Ambient pH", CL = "Cave Low pH", 
+                                             RA = "Reef Ambient pH", RL = "Reef Low pH", CoA = "Deep Reef Ambient pH", 
+                                             CoL = "Deep Reef Low pH")
+  }
+hab_ph2        <- c("Shallow Reef Ambient pH", "Shallow Reef Low pH", "Cave Ambient pH", "Cave Low pH",
+                    "Reef Ambient pH", "Reef Low pH", "Deep Reef Ambient pH", "Deep Reef Low pH")
+hab_ph3        <- c("Shallow Reef\nAmbient pH", "Shallow Reef\nLow pH", "Cave\nAmbient pH", "Cave\nLow pH",
+                    "Reef\nAmbient pH", "Reef\nLow pH", "Deep Reef\nAmbient pH", "Deep Reef\nLow pH")
+names(vcolors) <- hab_ph2
+quadrats_biodiv_avg = quadrats_biodiv %>% bind_rows() %>% group_by(Quadrats, site, condition, X) %>% 
+  summarise(Total_cover = mean(Total_cover), Nb_sp = mean(Nb_sp), FE_richness = mean(FE_richness), 
+            FE_shannon = mean(FE_shannon), FD_q1 = mean(FD_q1), fdis = mean(fdis), fspe = mean(fspe), fori = mean(fori), 
+            fide_PC1 = mean(fide_PC1), fide_PC2 = mean(fide_PC2), fide_PC3 = mean(fide_PC3), fide_PC4 = mean(fide_PC4)) %>% 
+  ungroup() %>% data.frame()
+
+# Species richness
+nbsp_plot <- ggplot(data = quadrats_biodiv_avg, aes(x = condition, y = Nb_sp, color = condition)) +
+  geom_boxplot(color = "black", outlier.shape = NA, alpha = 0.2, fill = vcolors) +
+  geom_jitter(aes(color = condition), size = 2, shape = 16, alpha = 0.5, position = position_jitter(0.3)) +
+  scale_color_manual(values = vcolors) + ylab("Species richness") + ggtitle("A) Species richness") + 
+  scale_y_continuous(limits = c(0, 30), breaks = c(0, 10, 20, 30)) + theme_bw() +
+  theme(plot.title = element_text(size = 14, face = "bold"), axis.text.x = element_blank(),
+        axis.text.y = element_text(face ="plain", size = 14), 
+        axis.title.y = element_text(face ="bold", size = 14),
+        legend.position = "none", axis.title.x = element_blank())
+
+# FE richness
+fe_plot <- ggplot(data = quadrats_biodiv_avg, aes(x = condition, y = FE_richness, color = condition)) +
+  geom_boxplot(color = "black", outlier.shape = NA, alpha = 0.2, fill = vcolors) +
+  geom_jitter(aes(color = condition), size = 2, shape = 16, alpha = 0.5, position = position_jitter(0.3)) +
+  scale_color_manual(values = vcolors) + ylab("FE richness\n(# groups)") + ggtitle("B) Functional richness") +
+  scale_y_continuous(limits = c(0, 30), breaks=c(0, 10, 20, 30)) + theme_bw() +
+  theme(plot.title = element_text(size = 14, face = "bold"), axis.text.x = element_blank(),
+        axis.text.y = element_text(face = "plain", size = 14),
+        axis.title.y = element_text(face = "bold", size = 14),
+        legend.position = "none", axis.title.x = element_blank())
+
+# Functional dispersion
+fdisp_plot <- ggplot(data = quadrats_biodiv_avg, aes(x = condition, y = fdis, color = condition)) +
+  geom_boxplot(color = "black", outlier.shape = NA, alpha = 0.2, fill = vcolors) +
+  geom_jitter(aes(color = condition), size = 2, shape = 16, alpha = 0.5, position = position_jitter(0.3)) +
+  scale_color_manual(values = vcolors) + ylab("FDis") + ggtitle("C) Functional dispersion") + theme_bw() +
+  scale_y_continuous(limits= c(0, 0.8), breaks=c(0, 0.2, 0.4, 0.6, 0.8)) + scale_x_discrete(labels = hab_ph3) +
+  theme(plot.title = element_text(size = 14, face = "bold"), legend.position = "none",
+        axis.text.x = element_text(size = 14,  vjust = 0.5, face = "bold"), axis.title.x = element_blank(), 
+        axis.text.y = element_text (face="plain", size=14), axis.title.y = element_text (face = "bold", size = 14))
+
+# Assembling 
+boxplot <- nbsp_plot / fe_plot / fdisp_plot 
