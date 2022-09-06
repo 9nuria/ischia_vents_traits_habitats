@@ -974,3 +974,112 @@ plot4 <- ggplot(cal_data_predicted_viz, aes(x = pH, y = Cover, color = Condition
 # Everything combined
 all4 <- (plot1/plot2/plot3/plot4)
 
+# SCRIPT L ---------------------------------------------------------------------------------------------------------
+#### Making Figure 5 -----------------------------------------------------------------------------------------------
+# taxonomic and functional diversity and processes of ecosystem function across habitats and among pH zones
+
+data_trait     <- data_predicted %>% group_by(., Habitat, pH, Condition, Trait) %>% summarise_all(mean) %>% 
+  data.frame()
+data_trait     <- data_trait %>% group_split(Trait)
+# Complexity
+Habitat        <- data_trait[[4]] %>% dplyr::filter(., Condition %in% c("c","d")) %>% 
+  group_by(Habitat, pH, Trait) %>% 
+  summarize(., Cover = sum(Cover), std.error = mean(std.error), Q2.5 = sum(Q2.5), Q97.5 = sum(Q97.5))
+# Primary production
+Prim_Prod      <- data_trait[[3]] %>% dplyr::filter(., Condition == "a") %>% group_by(Habitat, pH, Trait) %>% 
+  summarize(., Cover = sum(Cover), std.error = mean(std.error), Q2.5 = sum(Q2.5), Q97.5 = sum(Q97.5))
+# Herbivory
+Herbivory      <- data_trait[[3]] %>% dplyr::filter(., Condition == "c") %>% group_by(Habitat, pH, Trait) %>% 
+  summarize(., Cover = sum(Cover), std.error = mean(std.error), Q2.5 = sum(Q2.5), Q97.5 = sum(Q97.5))
+# Predation
+Predation      <- data_trait[[3]] %>% dplyr::filter(., Condition == "d") %>% group_by(Habitat, pH, Trait) %>% 
+  summarize(., Cover = sum(Cover), std.error = mean(std.error), Q2.5 = sum(Q2.5), Q97.5 = sum(Q97.5))
+# Calcification
+Calcification  <- data_trait[[1]] %>% dplyr::filter(., Condition == "b") %>% group_by(Habitat, pH, Trait) %>% 
+  summarize(., Cover = sum(Cover), std.error = mean(std.error), Q2.5 = sum(Q2.5), Q97.5 = sum(Q97.5))
+# Dataset functionning
+data_functions <- rbind(Habitat, Prim_Prod, Herbivory, Predation, Calcification) %>% data.frame() %>% 
+  mutate(., Function = c(rep("Complexity", 8), rep("Primary Production", 8), rep("Herbivory", 8), rep("Predation", 8), 
+                         rep("Calcification", 8))) %>% 
+  dplyr::select(Function, Habitat, pH, Cover, std.error, Q2.5, Q97.5) 
+
+# Quantify the difference between Low and ambient
+data_functions       = data_functions %>% group_split(pH) 
+change_dataset       = data.frame(Cover = seq(1, length(data_functions[[1]]$Q2.5), 1), Q2.5 = NA, Q97.5 = NA)
+change_dataset$Cover = data_functions[[2]]$Cover - data_functions[[1]]$Cover
+change_dataset$Q2.5  = data_functions[[2]]$Q2.5  - data_functions[[1]]$Q2.5
+change_dataset$Q97.5 = data_functions[[2]]$Q97.5 - data_functions[[1]]$Q97.5
+change_dataset$std.e = sqrt(data_functions[[2]]$std.error^2 + data_functions[[1]]$std.error^2)
+Qmin_value = NA ; Qmax_value = NA ; for (i in 1:length(data_functions[[1]]$Q2.5)) {
+  Qmin_value[i]      = min(change_dataset[i, c(2:3)])
+  Qmax_value[i]      = max(change_dataset[i, c(2:3)])}
+change_dataset$Q2.5  = Qmin_value ; change_dataset$Q97.5 = Qmax_value
+Function_Change      = cbind(data_functions[[1]][,c(1:2)], change_dataset) %>% data.frame()
+
+# Statistics from Figure 3
+sub_data_change = quadrats_biodiv_avg %>% group_by(condition) %>% 
+  summarise(SR = mean(Nb_sp), SR_std = std_err(Nb_sp), FER = mean(FE_richness), FER_std = std_err(FE_richness),
+            FDis = mean(fdis), FDis_std = std_err(fdis)) %>% data.frame() %>% 
+  mutate(Habitat = c(rep("shallow_reef",2), rep("cave",2), rep("reef",2), rep("deep_reef", 2)),
+         pH = rep(c("Ambient pH", "Low pH"),4)) %>% 
+  dplyr::select(Habitat, pH, SR, FER, FDis, SR_std, FER_std, FDis_std) %>% group_split(pH)
+
+# Quantify the change for diversity indexes
+change_subdataset          = data.frame(SR = rep(NA, 4), FER = rep(NA, 4), FDis = rep(NA, 4),
+                                        SR_std = rep(NA, 4), FER_std = rep(NA, 4), FDis_std = rep(NA, 4))
+change_subdataset$SR       = sub_data_change[[2]]$SR - sub_data_change[[1]]$SR
+change_subdataset$FER      = sub_data_change[[2]]$FER - sub_data_change[[1]]$FER
+change_subdataset$FDis     = sub_data_change[[2]]$FDis - sub_data_change[[1]]$FDis
+change_subdataset$SR_std   = sqrt(sub_data_change[[2]]$SR_std^2 + sub_data_change[[1]]$SR_std^2)
+change_subdataset$FER_std  = sqrt(sub_data_change[[2]]$FER_std^2 + sub_data_change[[1]]$FER_std^2)
+change_subdataset$FDis_std = sqrt(sub_data_change[[2]]$FDis_std^2 + sub_data_change[[1]]$FDis_std^2)
+
+# Build the statistics dataset
+Stat_Change = data.frame(Habitat = sub_data_change[[1]]$Habitat, 
+                         Index_label = c(rep("SR", 4), rep("FE", 4), rep("FDis", 4)),
+                         Index = c(change_subdataset$SR, change_subdataset$FER, change_subdataset$FDis),
+                         std_err = c(change_subdataset$SR_std, change_subdataset$FER_std, change_subdataset$FDis_std))
+
+# Vizualisation
+Stat_Change$Habitat = factor(Stat_Change$Habitat, levels = c('shallow_reef','cave','reef','deep_reef'))
+Function_Change$Habitat = factor(Function_Change$Habitat, levels = c('shallow_reef','cave','reef','deep_reef'))
+color_gradient <- colorRampPalette(c("red4", "brown3", "brown1", "skyblue1", "skyblue2", "royalblue3"))
+plot(rep(1,1000),col=color_gradient(1000),pch=19,cex=3) # Viz palette
+
+Fig5sub1 = ggplot(Stat_Change) + geom_hline(yintercept = 0) + 
+  facet_wrap(~Habitat, ncol = 4, labeller = labeller(Habitat = c("shallow_reef" = "Shallow Reef", "cave" = "Cave", 
+                                                                 "reef" = "Reef", "deep_reef" = "Deep Reef"))) +
+  geom_segment(aes(x = Index_label, xend = Index_label, y = 0, yend = Index, color = Index), 
+               position = position_dodge(.7), size = 2, linetype = 1) +
+  geom_point(aes(x = Index_label, y = Index, fill = Index), position = position_dodge(.7), 
+             size = 7, shape = 21, color = "black") +
+  coord_flip() + theme_bw() + labs(x = "", color = "") + 
+  scale_y_continuous(name = "Change in biodiversity", limits = c(-7.5, 7.5), breaks = c(-5, 0, 5)) +
+  scale_fill_gradientn(colours = color_gradient(10)) + scale_color_gradientn(colours = color_gradient(10)) +
+  scale_x_discrete(labels = c("SR" = "Species richness", "FE" = "Functional entity\nrichness",
+                              "FDis" = "Functional dispersion")) +
+  theme(legend.position = "none", axis.text = element_text(size = 12, color = "black"),
+        axis.title = element_text(size = 12), legend.text = element_text(size = 12), 
+        axis.line.x = element_blank(), axis.ticks.x = element_line(), strip.text.x = element_text(size = 14),
+        panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(),
+        panel.grid.major.y = element_blank(), panel.grid.minor.y = element_blank())    
+
+color_gradient <- colorRampPalette(c("red4", "brown3", "brown1", "skyblue1", "skyblue2", "steelblue1", "royalblue3"))
+Fig5sub2 = ggplot(Function_Change) + geom_hline(yintercept = 0) + 
+  facet_wrap(~Habitat, ncol = 4, labeller = labeller(Habitat = c("shallow_reef" = "", "cave" = "", 
+                                                                 "reef" = "", "deep_reef" = ""))) +
+  geom_segment(aes(x = Function, xend = Function, y = 0, yend = Cover, color = Cover), 
+               position = position_dodge(.7), size = 2, linetype = 1) +
+  geom_point(aes(x = Function, y = Cover, fill = Cover), position = position_dodge(.7), 
+             size = 7, shape = 21, color = "black") +
+  coord_flip() + theme_bw() + labs(x = "", color = "") + 
+  scale_y_continuous(name = "Change in cover (%)", limits = c(-43, 43), breaks = c(-25, 0, 25)) +
+  scale_fill_gradientn(colours = color_gradient(100)) + scale_color_gradientn(colours = color_gradient(100)) +
+  theme(legend.position = "none", axis.text = element_text(size = 12, color = "black"),
+        axis.title = element_text(size = 12), legend.text = element_text(size = 12), strip.background = element_blank(),
+        axis.line.x = element_line(), axis.ticks.x = element_line(), strip.text.x = element_text(size = 14),
+        panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(),
+        panel.grid.major.y = element_blank(), panel.grid.minor.y = element_blank())  
+
+# Combine
+Figure_5 = Fig5sub1 / Fig5sub2 + plot_layout(heights = c(1,3))
