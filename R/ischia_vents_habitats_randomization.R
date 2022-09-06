@@ -973,3 +973,4 @@ plot4 <- ggplot(cal_data_predicted_viz, aes(x = pH, y = Cover, color = Condition
 
 # Everything combined
 all4 <- (plot1/plot2/plot3/plot4)
+
