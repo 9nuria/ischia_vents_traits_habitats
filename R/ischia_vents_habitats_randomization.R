@@ -64,7 +64,7 @@ load(file.path(dir_data, "Predicted_values.RData"))
 load(file.path(dir_model,"mn.RData"))
 
 # Number of iterations you desire
-n = 3 ; source(file.path(dir_scripts,"Lists_and_vectors.R"))
+n = 100 ; source(file.path(dir_scripts,"Lists_and_vectors.R"))
 
 ## Data preparation ------------------------------------------------------------------------------------------------
 # SCRIPT A ---------------------------------------------------------------------------------------------------------
