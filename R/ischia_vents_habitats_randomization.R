@@ -540,7 +540,7 @@ for (z in 1:length(pairs_axes)) {
   ggplot_list <- list()                                                      # list to store ggplot
   for (v in hab_ph2) {
     col_v <- as.character(vcolors[v])                                        # color for habitat*pH levels
-    sp_v  <- colnames(species_avg_pst)[(which(species_avg_pst[v,] >= 0.6))]  # species present in v
+    sp_v  <- colnames(species_avg_pst)[(which(species_avg_pst[v,] > 0.5))]   # species present in v
     # background with axes range set + title
     ggplot_v <- background.plot(range_faxes = range_axes, faxes_nm = paste0("PC", xy), color_bg = "grey95")
     ggplot_v <- ggplot_v + labs(subtitle=labels[v,])
