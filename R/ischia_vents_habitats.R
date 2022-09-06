@@ -1033,7 +1033,6 @@ mdsv3v4 <- (fig.tax.v3v4/fig.fun.v3v4)
 # mean of taxo and functional beta within / between sites & conditions
 # Correlation of beta-diversity values between taxonomic and functional facets as boxplot and scatter plot. Figures for SM 
 
-
 # From distance matrices to dataframe
 beta_df <- mFD::dist.to.df(quadrats_beta_hill)
 

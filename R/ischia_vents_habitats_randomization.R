@@ -1083,3 +1083,24 @@ Fig5sub2 = ggplot(Function_Change) + geom_hline(yintercept = 0) +
 
 # Combine
 Figure_5 = Fig5sub1 / Fig5sub2 + plot_layout(heights = c(1,3))
+
+# SCRIPT E ---------------------------------------------------------------------------------------------------------
+#### Making Supplementary Figure 6 ---------------------------------------------------------------------------------
+
+# V3 and V4
+fig.fun.v3v4 <- ggplot(pcoa_fun, aes(x = V3, y = V4, group = condition, fill = condition, color = condition, 
+                                     shape = condition)) + theme_light(base_size = 20) + geom_point(size = 6) +
+  scale_colour_manual(values = c("#93a1fa","#f7d305","#f5a511","#6478f5","#f78e0c","#3953f7","#f7560c","#0219ad")) +
+  scale_fill_manual(values   = c("#93a1fa","#f7d305","#f5a511","#6478f5","#f78e0c","#3953f7","#f7560c","#0219ad")) +
+  scale_shape_manual(values  = c(rep(21, 2), rep(24, 2), rep(22, 2), rep(23, 2))) + 
+  labs(title = "B) Functional diversity", x = "V3", y = "V4") + scale_x_continuous(limits = c(-0.1, 0.1)) + 
+  scale_y_continuous(limits  = c(-0.1, 0.1)) + theme(legend.title = element_blank(), legend.position = "bottom")
+fig.tax.v3v4 <- ggplot(pcoa_taxo, aes(x = V3, y = V4, group = condition, fill = condition, color = condition, 
+                                      shape = condition)) + theme_light(base_size = 20) + geom_point(size = 6) +
+  scale_colour_manual(values = c("#93a1fa","#f7d305","#f5a511","#6478f5","#f78e0c","#3953f7","#f7560c","#0219ad")) +
+  scale_fill_manual(values   = c("#93a1fa","#f7d305","#f5a511","#6478f5","#f78e0c","#3953f7","#f7560c","#0219ad")) +
+  scale_shape_manual(values  = c(rep(21, 2), rep(24, 2), rep(22, 2), rep(23, 2))) + 
+  labs(title = "A) Taxonomic diversity", x = "V3", y = "V4") + scale_x_continuous(limits = c(-0.1, 0.1)) + 
+  scale_y_continuous(limits  = c(-0.1, 0.1)) + theme(legend.position='none')
+mdsv3v4 <- (fig.tax.v3v4/fig.fun.v3v4)
+
