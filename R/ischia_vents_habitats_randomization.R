@@ -678,3 +678,7 @@ fdisp_plot <- ggplot(data = quadrats_biodiv_avg, aes(x = condition, y = fdis, co
 
 # Assembling 
 boxplot <- nbsp_plot / fe_plot / fdisp_plot 
+
+# SCRIPT K ---------------------------------------------------------------------------------------------------------
+#### Making Figure 4 -----------------------------------------------------------------------------------------------
+# Bayesian prediction probability of the likelihood of benthic cover 
