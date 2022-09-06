@@ -539,7 +539,7 @@ for (z in 1:length(pairs_axes)) {
   ggplot_list <- list()                                                      # list to store ggplot
   for (v in hab_ph2) {
     col_v <- as.character(vcolors[v])                                        # color for habitat*pH levels
-    sp_v  <- colnames(species_avg_pst)[(which(species_avg_pst[v,] >= 0.5))]  # species present in v
+    sp_v  <- colnames(species_avg_pst)[(which(species_avg_pst[v,] >= 0.6))]  # species present in v
     # background with axes range set + title
     ggplot_v <- background.plot(range_faxes = range_axes, faxes_nm = paste0("PC", xy), color_bg = "grey95")
     ggplot_v <- ggplot_v + labs(subtitle=labels[v,])
@@ -563,3 +563,63 @@ for (z in 1:length(pairs_axes)) {
   # patchwork of plots : 4 habitats (rows) * 2 columns (pH)
   FD_xy[[z]] <- (ggplot_list[[1]] + ggplot_list[[2]]) / (ggplot_list[[3]] + ggplot_list[[4]]) / 
     (ggplot_list[[5]] + ggplot_list[[6]]) / (ggplot_list[[7]] + ggplot_list[[8]])}
+
+# SCRIPT E ---------------------------------------------------------------------------------------------------------
+#### Making Figure SM X --------------------------------------------------------------------------------------------
+# MDS plot  on beta taxonomic and functional diversity with the Hill number framework 
+
+# PCOA functional and taxo
+sites_info <- sites_quadrats_info %>% dplyr::select(Quadrats, condition, Description.condition, pH, habitat)
+for (Q in 1:n) {
+  pcoa_fun[[Q]] <- as.data.frame(cmdscale(quadrats_beta_hill[[Q]]$funct_q1, 4)) %>% data.frame() %>% 
+    rownames_to_column(var = "Quadrats") 
+  pcoa_taxo[[Q]] <- as.data.frame(cmdscale(quadrats_beta_hill[[Q]]$taxo_q1, 4)) %>% data.frame() %>% 
+    rownames_to_column(var = "Quadrats")}
+pcoa_fun <- pcoa_fun %>% bind_rows() %>% group_by(Quadrats) %>% mutate_all(., ~replace_na(.,0)) %>% 
+  summarise_all(mean) %>% ungroup() %>% left_join(sites_info)
+pcoa_taxo <- pcoa_taxo %>% bind_rows() %>% group_by(Quadrats) %>% mutate_all(., ~replace_na(.,0)) %>% 
+  summarise_all(mean) %>% ungroup() %>% left_join(sites_info)
+
+# Eigenvalues to get an overall idea
+for (Q in 1:n) { 
+  x.fun[[Q]] <- cmdscale(quadrats_beta_hill[[Q]]$funct_q1, eig=TRUE) 
+  x.tax[[Q]] <- cmdscale(quadrats_beta_hill[[Q]]$taxo_q1,eig=TRUE)
+  }
+cumsum(x.fun[[1]]$eig[x.fun[[1]]$eig>=0]) / sum(x.fun[[1]]$eig[x.fun[[1]]$eig>0])       # 0.62 0.72 0.78 0.81
+cumsum(x.tax[[1]]$eig[x.tax[[1]]$eig>=0]) / sum(x.tax[[1]]$eig[x.tax[[1]]$eig>0])       # 0.24 0.38 0.45 0.50
+
+# Rename Functional PCOA dataset
+pcoa_fun$condition  <- as.factor(pcoa_fun$condition)
+pcoa_fun$condition  <- factor(pcoa_fun$condition, levels = c("SRA", "SRL", "CL", "CA", "RL", "RA", "CoL", "CoA"))
+pcoa_fun$condition  <- recode_factor(pcoa_fun$condition, SRA = "Shallow Reef Ambient pH", 
+                                     SRL = "Shallow Reef Low pH", CL = "Cave Low pH", CA = "Cave Ambient pH", 
+                                     RL = "Reef Low pH", RA = "Reef Ambient pH", CoL = "Deep Reef Low pH", 
+                                     CoA = "Deep Reef Ambient pH")
+
+# Rename Taxonomic PCOA dataset
+pcoa_taxo$condition <- factor(pcoa_taxo$condition, levels = c("SRA", "SRL", "CL", "CA", "RL", "RA", "CoL", "CoA"))
+pcoa_taxo$condition <- recode_factor(pcoa_taxo$condition, SRA = "Shallow Reef Ambient pH", 
+                                     SRL = "Shallow Reef Low pH", CL = "Cave Low pH", CA = "Cave Ambient pH", 
+                                     RL = "Reef Low pH", RA = "Reef Ambient pH", CoL = "Deep Reef Low pH", 
+                                     CoA = "Deep Reef Ambient pH")
+
+# V1 and V2
+fig.fun.v1v2 <- ggplot(pcoa_fun, aes(x = V1, y = V2, group = condition, fill = condition, color = condition, 
+                                     shape = condition)) + theme_light(base_size = 20) + geom_point(size = 6) +
+  scale_colour_manual(values = c("#93a1fa","#f7d305","#f5a511","#6478f5","#f78e0c","#3953f7","#f7560c","#0219ad")) +
+  scale_fill_manual(values   = c("#93a1fa","#f7d305","#f5a511","#6478f5","#f78e0c","#3953f7","#f7560c","#0219ad")) +
+  scale_shape_manual(values  = c(rep(21, 2), rep(24, 2), rep(22, 2), rep(23, 2))) + 
+  labs(title = "B) Functional diversity", x = "V1", y = "V2") + scale_x_continuous(limits = c(-0.55, 0.6)) + 
+  scale_y_continuous(limits  = c(-0.5, 0.5)) + theme(legend.title = element_blank(), legend.position = "bottom")
+fig.tax.v1v2 <- ggplot(pcoa_taxo, aes(x = V1, y = V2, group = condition, fill = condition, color = condition, 
+                                      shape = condition)) + theme_light(base_size = 20) + geom_point(size = 6) +
+  scale_colour_manual(values = c("#93a1fa","#f7d305","#f5a511","#6478f5","#f78e0c","#3953f7","#f7560c","#0219ad")) +
+  scale_fill_manual(values   = c("#93a1fa","#f7d305","#f5a511","#6478f5","#f78e0c","#3953f7","#f7560c","#0219ad")) +
+  scale_shape_manual(values  = c(rep(21, 2), rep(24, 2), rep(22, 2), rep(23, 2))) + 
+  labs(title = "A) Taxonomic diversity", x = "V1", y = "V2") + scale_x_continuous(limits = c(-0.55, 0.6)) + 
+  scale_y_continuous(limits  = c(-0.5, 0.5)) + theme(legend.position='none')
+mdsv1v2 <- (fig.tax.v1v2/fig.fun.v1v2)
+
+# SCRIPT G ---------------------------------------------------------------------------------------------------------
+#### Making Figure 3 -----------------------------------------------------------------------------------------------
+#### Functional diversity indices based on Hill numbers across habitats and among pH zones (Low and Ambient pH)

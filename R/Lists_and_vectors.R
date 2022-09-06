@@ -90,7 +90,10 @@ RS                      <- vector("list", length = n)
 pool_coord              <- vector("list", length = n)
 species_avg_pst         <- vector("list", length = n)
 asb_sp_relatw           <- vector("list", length = n)
-
+pcoa_fun                <- vector("list", length = n) 
+pcoa_taxo               <- vector("list", length = n) 
+x.fun                   <- vector("list", length = n) 
+x.tax                   <- vector("list", length = n)
 
 # Empty vectors
 FE_C_low   <- rep(NA, n)
