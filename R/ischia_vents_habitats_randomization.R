@@ -64,7 +64,7 @@ load(file.path(dir_data, "Predicted_values.RData"))
 load(file.path(dir_model,"mn.RData"))
 
 # Number of iterations you desire
-n = 100 ; source(file.path(dir_scripts,"Lists_and_vectors.R"))
+n = 3 ; source(file.path(dir_scripts,"Lists_and_vectors.R"))
 
 ## Data preparation ------------------------------------------------------------------------------------------------
 # SCRIPT A ---------------------------------------------------------------------------------------------------------
@@ -709,9 +709,9 @@ pH_hab <- left_join(quad_sp_long, sp_tr_long, by = "Species") %>%
                                  "amb_shallow_reef" = "shallow_reef", "low_cave" = "cave", 
                                  "low_deep_reef" = "deep_reef", "low_reef" = "reef", 
                                  "low_shallow_reef" = "shallow_reef"))
+
 # Looking at ambient vs low pH
 info$pH[which(info$pH == "ambient1")] = "ambient" ; info$pH[which(info$pH == "ambient2")] = "ambient"
-
 
 # Organizing the dataset
 table(pH_hab$Trait, pH_hab$Modality) ; data_model <- vector("list", 7)
@@ -1142,3 +1142,84 @@ beta_taxo_plot  <- ggplot(data = quadrats_beta_df, aes(x = pair_type, y = taxo_q
 beta_funct_plot <- ggplot(data = quadrats_beta_df, aes(x = pair_type, y = funct_q1) ) + geom_boxplot() +
   xlab("Habitat and pH of pair of quadrats") + ylab("Func beta (q=1)")
 boxplot_beta <- beta_taxo_plot / beta_funct_plot
+
+# SCRIPT D ---------------------------------------------------------------------------------------------------------
+#### Making Supplementary Figures X --------------------------------------------------------------------------------
+
+# Color palette
+hab_ph  <- c("shallow_reef_ambient1", "shallow_reef_ambient2", "shallow_reef_low", "cave_ambient1", "cave_ambient2",
+             "cave_low", "reef_ambient1", "reef_ambient2", "reef_low", "deep_reef_ambient1", "deep_reef_ambient2", 
+             "deep_reef_low")
+vcolors <- c("#93a1fa", "#93a1fa", "#f7d305", "#6478f5", "#6478f5", "#f5a511", "#3953f7", "#3953f7", "#f78e0c", 
+             "#0219ad", "#0219ad", "#f7560c")
+names(vcolors) <- hab_ph
+
+# This figure is for pure illustration
+fe_tr = fe_tr[[1]] ; quadrats_fe_cover = quadrats_fe_cover[[1]]
+
+habph_tr_moddom <- list() ; plot_t_mod_pcover = list () ; for (t in names(fe_tr) ) {
+  # Modalities of trait t
+  t_mod <- levels(fe_tr[,t])
+  # Matrix to store results
+  t_mod_pcover <- matrix(NA, length(hab_ph) , length(t_mod), dimnames=list(hab_ph, t_mod))
+  # Percentage of cover of each modality through double loop
+  for (h in hab_ph) {
+    # Quadrats from h
+    q_h <- row.names(sites_quadrats_info)[which(sites_quadrats_info[,"habitat_ph"] == h)] 
+    q_h <- q_h[q_h %in% row.names(quadrats_fe_cover)]
+    for (m in all_of(t_mod)) {
+      # FEs with modality m
+      fe_m <- row.names(fe_tr)[which(fe_tr[,t] == m)]
+      # Average cover of m in h
+      if(length(fe_m) == 1) {  
+        t_mod_pcover[h,m] <- mean(quadrats_fe_cover[q_h,fe_m])
+      } else {
+        t_mod_pcover[h,m] <- mean(apply(quadrats_fe_cover[q_h,fe_m],1,sum))}}}
+  # storing
+  habph_tr_moddom[[t]] <- t_mod_pcover
+  # illustrating as stacked barplot after pivoting
+  plot_t_mod_pcover[[t]] <- t_mod_pcover %>% as_tibble(t_mod_pcover, rownames = "habitat_pH") %>%
+    pivot_longer(cols = t_mod, names_to = "modality", values_to = "cover") %>%
+    ggplot(aes(fill = modality, y = cover, x = habitat_pH)) + geom_bar(position = "stack", stat = "identity") +
+    theme(legend.position = "top") }
+
+## Savings figures -------------------------------------------------------------------------------------------------
+
+# Main Figures  
+ggsave(FD_xy[[1]], filename = "Figure_2.png", path = dir_plot, device = "png", width = 6, height = 12,        # 2
+       dpi = 300)              
+ggsave("Figure_mds.png", plot = mdsv1v2, path = dir_plot, device = "png", height = 35, width = 35,            # 3
+       units = "cm", dpi = 300)
+ggsave("Figure_3.png", plot = boxplot, path = dir_plot, device = "png", height = 35, width = 35,              # 4
+       units = "cm", dpi = 300)
+ggsave("Figure_4.png", plot = all4, path = dir_plot, device="png", height = 25, width = 20,                   # 5
+       units = "cm", dpi = 300)
+ggsave("Figure_5.png", plot = Figure_5, path = dir_plot, device="png", height = 15, width = 20,               # 6
+       units = "cm", dpi = 300)
+
+# Supplementary figures
+ggsave(FD_xy[[2]], filename = "Figure_S4.png", path = dir_plot, device = "png", width = 6,                    # S4
+       height = 12)              
+ggsave(mdsv3v4, filename = "Figure_S6.png", path = dir_plot, device = "png", height = 35,                     # S6
+       width = 35, units = "cm", dpi = 300)
+ggsave(beta_cor_plot, filename = "Figure_S7.png", path = dir_plot, width = 4, height = 7.5)                   # S7
+ggsave(boxplot_beta, filename = "Figure_S8.png", path = dir_plot, width = 9, height = 5)                      # S8
+for (t in names(fe_tr)) {  
+  ggsave(plot_t_mod_pcover[[t]], filename = paste0("Figure_Sx_", t, "_.png"), path = dir_plot_trait,          # Sx
+         width = 14, height = 5)}
+
+## Saving outputs --------------------------------------------------------------------------------------------------
+
+save(quadrats_species_cover, file = file.path(dir_data, "quadrats_species_cover.Rdata"))
+save(quadrats_multidimFD, file = file.path(dir_data, "quadrats_multidimFD.Rdata"))
+save(habph_species_cover, file = file.path(dir_data, "habph_species_cover.Rdata"))
+save(quadrats_beta_hill, file = file.path(dir_data, "quadrats_beta_hill.Rdata"))
+save(quadrats_fe_cover, file = file.path(dir_data, "quadrats_fe_cover.Rdata"))
+save(habph_multidimFD, file = file.path(dir_data, "habph_multidimFD.Rdata"))
+save(quadrats_biodiv, file = file.path(dir_data, "quadrats_biodiv.Rdata"))
+save(habph_fe_cover, file = file.path(dir_data, "habph_fe_cover.Rdata"))
+save(fe_4D_coord, file = file.path(dir_data, "fe_4D_coord.Rdata"))
+save(traits_cat, file = file.path(dir_data, "traits_cat.Rdata"))
+save(sp_to_fe, file = file.path(dir_data, "sp_to_fe.Rdata"))
+save(fe_tr, file = file.path(dir_data, "fe_tr.Rdata"))
+save(fe_sp, file = file.path(dir_data, "fe_sp.Rdata"))

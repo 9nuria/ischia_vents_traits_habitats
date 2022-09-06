@@ -1069,7 +1069,6 @@ boxplot_beta <- beta_taxo_plot / beta_funct_plot
 
 # SCRIPT D ---------------------------------------------------------------------------------------------------------
 #### Making Supplementary Figures X --------------------------------------------------------------------------------
-#
 
 # Color palette
 hab_ph  <- c("shallow_reef_ambient1", "shallow_reef_ambient2", "shallow_reef_low", "cave_ambient1", "cave_ambient2",
