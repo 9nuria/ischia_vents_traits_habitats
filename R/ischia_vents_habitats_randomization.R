@@ -3,7 +3,7 @@
 ## Kroeker, Fiorenza Micheli, Alice Mirasole, Sebastien Villéger, Cinzia De Vittor, Valeriano Parravacini 
 ## *corresponding author. Email: nuria.teixido@imev-mer.fr; nuria.teixido@szn.it 
 
-rm(list=ls()) ; options(mc.cores = parallel::detectCores(), warn = - 1) ; setwd("..")
+rm(list=ls()) ; options(mc.cores = parallel::detectCores(), warn = - 1) ; #setwd("..")
 
 ## Loading packages and data ---------------------------------------------------------------------------------------
 
@@ -64,7 +64,7 @@ load(file.path(dir_data, "Predicted_values.RData"))
 load(file.path(dir_model,"mn.RData"))
 
 # Number of iterations you desire
-n = 10 ; source(file.path(dir_scripts,"Lists_and_vectors.R"))
+n = 100 ; source(file.path(dir_scripts,"Lists_and_vectors.R"))
 
 ## Data preparation ------------------------------------------------------------------------------------------------
 # SCRIPT A ---------------------------------------------------------------------------------------------------------
@@ -79,6 +79,57 @@ habph <- unique(sites_quadrats_info$habitat_ph) # 12 levels
 
 # Number of quadrats per habitat_pH
 (habph_nbquadrats <- sites_quadrats_info %>% group_by(habitat_ph) %>% summarize(Ntot=n())) # highly variable (12–54)
+
+## Testing the difference between ambient sites --------------------------------------------------------------------
+# SCRIPT N ---------------------------------------------------------------------------------------------------------
+
+# shallow reefs
+data_permanova_cast <- vegdist(
+  merge(sites_quadrats_info, dat_cast, by.x = "Quadrats", by.y = "X") %>% dplyr::filter(., pH != "low") %>% 
+    dplyr::select(Quadrats, species, cover) %>% pivot_wider(., names_from = Quadrats, values_from = cover) %>% 
+    column_to_rownames(., var = "species") %>% as.matrix() %>% t(), "bray") %>% 
+  as.matrix() %>% melt(., varnames = c("row", "col")) %>% long_to_wide_distance()
+Gr <- sites_quadrats_info %>% dplyr::filter(habitat == "shallow_reef", pH %in% c("ambient1", "ambient2"))
+Gr <- sapply(labels(data_permanova_cast), function(x) {Gr[Gr$Quadrats == x,]$pH})
+Perma_cast <- betadisper(data_permanova_cast, Gr, bias.adjust = T) ; anova(Perma_cast)                                                                  # To test if Var1 != Var2
+permutest(Perma_cast, permutations = 999) # No difference
+par(mfrow = c(2,1)) ; plot(Perma_cast) ; boxplot(Perma_cast)
+
+# reefs
+data_permanova_reef <- vegdist(
+  merge(sites_quadrats_info, dat_chia, by.x = "Quadrats", by.y = "X") %>% dplyr::filter(., pH != "low") %>% 
+    dplyr::select(Quadrats, species, cover) %>% pivot_wider(., names_from = Quadrats, values_from = cover) %>% 
+    column_to_rownames(., var = "species") %>% as.matrix() %>% t(), "bray") %>% 
+  as.matrix() %>% melt(., varnames = c("row", "col")) %>% long_to_wide_distance()
+Gr <- sites_quadrats_info %>% dplyr::filter(habitat == "reef", pH %in% c("ambient1", "ambient2"))
+Gr <- sapply(labels(data_permanova_reef), function(x) {Gr[Gr$Quadrats == x,]$pH})
+Perma_reef <- betadisper(data_permanova_reef, Gr, bias.adjust = T) ; anova(Perma_reef)                                                                  # To test if Var1 != Var2
+permutest(Perma_reef, permutations = 999) # significant difference !
+par(mfrow = c(2,1)) ; plot(Perma_reef) ; boxplot(Perma_reef)
+
+# deep reefs
+data_permanova_deep <- vegdist(
+  merge(sites_quadrats_info, dat_cora, by.x = "Quadrats", by.y = "X") %>% dplyr::filter(., pH != "low") %>% 
+    dplyr::select(Quadrats, species, cover) %>% pivot_wider(., names_from = Quadrats, values_from = cover) %>% 
+    column_to_rownames(., var = "species") %>% as.matrix() %>% t(), "bray") %>% 
+  as.matrix() %>% melt(., varnames = c("row", "col")) %>% long_to_wide_distance()
+Gr <- sites_quadrats_info %>% dplyr::filter(habitat == "deep_reef", pH %in% c("ambient1", "ambient2"))
+Gr <- sapply(labels(data_permanova_deep), function(x) {Gr[Gr$Quadrats == x,]$pH})
+Perma_deep <- betadisper(data_permanova_deep, Gr, bias.adjust = T) ; anova(Perma_deep)                                                                  # To test if Var1 != Var2
+permutest(Perma_deep, permutations = 999) # No difference
+par(mfrow = c(2,1)) ; plot(Perma_deep) ; boxplot(Perma_deep)
+
+# cave
+data_permanova_cave <- vegdist(
+  merge(sites_quadrats_info, dat_cave, by.x = "Quadrats", by.y = "X") %>% dplyr::filter(., pH != "low") %>% 
+    dplyr::select(Quadrats, species, cover) %>% pivot_wider(., names_from = Quadrats, values_from = cover) %>% 
+    column_to_rownames(., var = "species") %>% as.matrix() %>% t(), "bray") %>% 
+  as.matrix() %>% melt(., varnames = c("row", "col")) %>% long_to_wide_distance()
+Gr <- sites_quadrats_info %>% dplyr::filter(habitat == "cave", pH %in% c("ambient1", "ambient2"))
+Gr <- sapply(labels(data_permanova_cave), function(x) {Gr[Gr$Quadrats == x,]$pH})
+Perma_cave <- betadisper(data_permanova_cave, Gr, bias.adjust = T) ; anova(Perma_cave)                                                                  # To test if Var1 != Var2
+permutest(Perma_cave, permutations = 999) # significant difference !
+par(mfrow = c(2,1)) ; plot(Perma_cave) ; boxplot(Perma_cave)
 
 ## Randomization ---------------------------------------------------------------------------------------------------
 # SCRIPT M ---------------------------------------------------------------------------------------------------------
@@ -631,8 +682,8 @@ for (Q in 1:n) {
                                       levels = c("SRA", "SRL", "CL", "CA", "RL", "RA", "CoL", "CoA"))
   quadrats_biodiv[[Q]]$condition <- recode_factor(quadrats_biodiv[[Q]]$condition, SRA = "Shallow Reef Ambient pH", 
                                              SRL ="Shallow Reef Low pH", CA = "Cave Ambient pH", CL = "Cave Low pH", 
-                                             RA = "Reef Ambient pH", RL = "Reef Low pH", CoA = "Deep Reef Ambient pH", 
-                                             CoL = "Deep Reef Low pH")
+                                             RA = "Reef Ambient pH", RL = "Reef Low pH", 
+                                             CoA = "Deep Reef Ambient pH", CoL = "Deep Reef Low pH")
   }
 hab_ph2        <- c("Shallow Reef Ambient pH", "Shallow Reef Low pH", "Cave Ambient pH", "Cave Low pH",
                     "Reef Ambient pH", "Reef Low pH", "Deep Reef Ambient pH", "Deep Reef Low pH")
@@ -641,9 +692,9 @@ hab_ph3        <- c("Shallow Reef\nAmbient pH", "Shallow Reef\nLow pH", "Cave\nA
 names(vcolors) <- hab_ph2
 quadrats_biodiv_avg = quadrats_biodiv %>% bind_rows() %>% group_by(Quadrats, site, condition, X) %>% 
   summarise(Total_cover = mean(Total_cover), Nb_sp = mean(Nb_sp), FE_richness = mean(FE_richness), 
-            FE_shannon = mean(FE_shannon), FD_q1 = mean(FD_q1), fdis = mean(fdis), fspe = mean(fspe), fori = mean(fori), 
-            fide_PC1 = mean(fide_PC1), fide_PC2 = mean(fide_PC2), fide_PC3 = mean(fide_PC3), fide_PC4 = mean(fide_PC4)) %>% 
-  ungroup() %>% data.frame()
+            FE_shannon = mean(FE_shannon), FD_q1 = mean(FD_q1), fdis = mean(fdis), fspe = mean(fspe), 
+            fori = mean(fori), fide_PC1 = mean(fide_PC1), fide_PC2 = mean(fide_PC2), fide_PC3 = mean(fide_PC3), 
+            fide_PC4 = mean(fide_PC4)) %>% ungroup() %>% data.frame()
 
 # Species richness
 nbsp_plot <- ggplot(data = quadrats_biodiv_avg, aes(x = condition, y = Nb_sp, color = condition)) +
@@ -1219,6 +1270,7 @@ save(habph_multidimFD, file = file.path(dir_data, "habph_multidimFD.Rdata"))
 save(quadrats_biodiv, file = file.path(dir_data, "quadrats_biodiv.Rdata"))
 save(habph_fe_cover, file = file.path(dir_data, "habph_fe_cover.Rdata"))
 save(fe_4D_coord, file = file.path(dir_data, "fe_4D_coord.Rdata"))
+save(data_random, file = file.path(dir_data, "data_random.Rdata"))
 save(traits_cat, file = file.path(dir_data, "traits_cat.Rdata"))
 save(sp_to_fe, file = file.path(dir_data, "sp_to_fe.Rdata"))
 save(fe_tr, file = file.path(dir_data, "fe_tr.Rdata"))
