@@ -89,11 +89,8 @@ data_permanova_cast <- vegdist(
     dplyr::select(Quadrats, species, cover) %>% pivot_wider(., names_from = Quadrats, values_from = cover) %>% 
     column_to_rownames(., var = "species") %>% as.matrix() %>% t(), "bray") %>% 
   as.matrix() %>% melt(., varnames = c("row", "col")) %>% long_to_wide_distance()
-Gr <- sites_quadrats_info %>% dplyr::filter(habitat == "shallow_reef", pH %in% c("ambient1", "ambient2"))
-Gr <- sapply(labels(data_permanova_cast), function(x) {Gr[Gr$Quadrats == x,]$pH})
-Perma_cast <- betadisper(data_permanova_cast, Gr, bias.adjust = T) ; anova(Perma_cast)                                                                  # To test if Var1 != Var2
-permutest(Perma_cast, permutations = 999) # No difference
-par(mfrow = c(2,1)) ; plot(Perma_cast) ; boxplot(Perma_cast)
+Gr  <- sites_quadrats_info %>% dplyr::filter(habitat == "shallow_reef", pH %in% c("ambient1", "ambient2"))
+(permanova_cast     <- adonis2(data_permanova_cast ~ pH, data = Gr, permutations = 999, method="bray")) # No diff.
 
 # reefs
 data_permanova_reef <- vegdist(
@@ -101,11 +98,23 @@ data_permanova_reef <- vegdist(
     dplyr::select(Quadrats, species, cover) %>% pivot_wider(., names_from = Quadrats, values_from = cover) %>% 
     column_to_rownames(., var = "species") %>% as.matrix() %>% t(), "bray") %>% 
   as.matrix() %>% melt(., varnames = c("row", "col")) %>% long_to_wide_distance()
-Gr <- sites_quadrats_info %>% dplyr::filter(habitat == "reef", pH %in% c("ambient1", "ambient2"))
-Gr <- sapply(labels(data_permanova_reef), function(x) {Gr[Gr$Quadrats == x,]$pH})
-Perma_reef <- betadisper(data_permanova_reef, Gr, bias.adjust = T) ; anova(Perma_reef)                                                                  # To test if Var1 != Var2
-permutest(Perma_reef, permutations = 999) # significant difference !
-par(mfrow = c(2,1)) ; plot(Perma_reef) ; boxplot(Perma_reef)
+Gr  <- sites_quadrats_info %>% dplyr::filter(habitat == "reef", pH %in% c("ambient1", "ambient2"))
+(permanova_reef     <- adonis2(data_permanova_reef ~ pH, data = Gr, permutations = 999, method="bray")) # No diff.
+
+# cave – Different sampling effort in the cave according to line 81
+cave_amb1           <- sites_quadrats_info %>% dplyr::filter(habitat == "cave", pH == "ambient1")
+cave_amb2           <- sites_quadrats_info %>% dplyr::filter(habitat == "cave", pH == "ambient2")
+cave_amb1           <- sample(unique(cave_amb1$Quadrats), length(unique(cave_amb2$Quadrats)), replace = F)
+cave_amb2           <- unique(cave_amb2$Quadrats)
+Quadrats_cave       <- c(cave_amb1, cave_amb2)
+data_permanova_cave <- vegdist(
+  merge(sites_quadrats_info, dat_cave, by.x = "Quadrats", by.y = "X") %>% 
+    dplyr::filter(., pH != "low", Quadrats %in% Quadrats_cave) %>% dplyr::select(Quadrats, species, cover) %>% 
+    pivot_wider(., names_from = Quadrats, values_from = cover) %>% 
+    column_to_rownames(., var = "species") %>% as.matrix() %>% t(), "bray") %>% 
+  as.matrix() %>% melt(., varnames = c("row", "col")) %>% long_to_wide_distance()
+Gr   <- sites_quadrats_info %>% dplyr::filter(Quadrats %in% Quadrats_cave)
+(permanova_cave     <- adonis2(data_permanova_cave ~ pH, data = Gr, permutations = 999, method="bray")) # No diff.
 
 # deep reefs
 data_permanova_deep <- vegdist(
@@ -113,23 +122,8 @@ data_permanova_deep <- vegdist(
     dplyr::select(Quadrats, species, cover) %>% pivot_wider(., names_from = Quadrats, values_from = cover) %>% 
     column_to_rownames(., var = "species") %>% as.matrix() %>% t(), "bray") %>% 
   as.matrix() %>% melt(., varnames = c("row", "col")) %>% long_to_wide_distance()
-Gr <- sites_quadrats_info %>% dplyr::filter(habitat == "deep_reef", pH %in% c("ambient1", "ambient2"))
-Gr <- sapply(labels(data_permanova_deep), function(x) {Gr[Gr$Quadrats == x,]$pH})
-Perma_deep <- betadisper(data_permanova_deep, Gr, bias.adjust = T) ; anova(Perma_deep)                                                                  # To test if Var1 != Var2
-permutest(Perma_deep, permutations = 999) # No difference
-par(mfrow = c(2,1)) ; plot(Perma_deep) ; boxplot(Perma_deep)
-
-# cave
-data_permanova_cave <- vegdist(
-  merge(sites_quadrats_info, dat_cave, by.x = "Quadrats", by.y = "X") %>% dplyr::filter(., pH != "low") %>% 
-    dplyr::select(Quadrats, species, cover) %>% pivot_wider(., names_from = Quadrats, values_from = cover) %>% 
-    column_to_rownames(., var = "species") %>% as.matrix() %>% t(), "bray") %>% 
-  as.matrix() %>% melt(., varnames = c("row", "col")) %>% long_to_wide_distance()
-Gr <- sites_quadrats_info %>% dplyr::filter(habitat == "cave", pH %in% c("ambient1", "ambient2"))
-Gr <- sapply(labels(data_permanova_cave), function(x) {Gr[Gr$Quadrats == x,]$pH})
-Perma_cave <- betadisper(data_permanova_cave, Gr, bias.adjust = T) ; anova(Perma_cave)                                                                  # To test if Var1 != Var2
-permutest(Perma_cave, permutations = 999) # significant difference !
-par(mfrow = c(2,1)) ; plot(Perma_cave) ; boxplot(Perma_cave)
+Gr   <- sites_quadrats_info %>% dplyr::filter(habitat == "deep_reef", pH %in% c("ambient1", "ambient2"))
+(permanova_deep     <- adonis2(data_permanova_deep ~ pH, data = Gr, permutations = 999, method="bray")) # No diff.
 
 ## Randomization ---------------------------------------------------------------------------------------------------
 # SCRIPT M ---------------------------------------------------------------------------------------------------------
