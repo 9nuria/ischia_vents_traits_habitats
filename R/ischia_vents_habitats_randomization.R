@@ -3,7 +3,7 @@
 ## Kroeker, Fiorenza Micheli, Alice Mirasole, Sebastien Villéger, Cinzia De Vittor, Valeriano Parravacini 
 ## *corresponding author. Email: nuria.teixido@imev-mer.fr; nuria.teixido@szn.it 
 
-rm(list=ls()) ; options(mc.cores = parallel::detectCores(), warn = - 1) ; #setwd("..")
+rm(list=ls()) ; options(mc.cores = parallel::detectCores(), warn = - 1) ; setwd("..")
 
 ## Loading packages and data ---------------------------------------------------------------------------------------
 
@@ -28,7 +28,7 @@ dir_data       <- "./data/2 – data generated"        # folder to save ready to
 dir_plot       <- "./outputs/plot"                   # folder with plot 
 dir_plot_trait <- "./outputs/plot/traits"            # folder to save plot as png
 dir_model      <- "./data/3 – model"                 # folder to save models
-dir_scripts    <- "./R"                               # folder to load scripts
+dir_scripts    <- "./R"                              # folder to load scripts
 
 # Generic functions
 std_err <- function(x) {sd(x)/sqrt(length(x))}       # function to compute standard error
