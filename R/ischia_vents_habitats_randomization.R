@@ -3,7 +3,7 @@
 ## Kroeker, Fiorenza Micheli, Alice Mirasole, Sebastien Villéger, Cinzia De Vittor, Valeriano Parravacini 
 ## *corresponding author. Email: nuria.teixido@imev-mer.fr; nuria.teixido@szn.it 
 
-rm(list=ls()) ; options(mc.cores = parallel::detectCores(), warn = - 1) ; #setwd("..")
+rm(list=ls()) ; options(mc.cores = parallel::detectCores(), warn = - 1) ; setwd("..")
 
 ## Loading packages and data ---------------------------------------------------------------------------------------
 
@@ -72,7 +72,7 @@ theme_box <- function (base_size = 11, base_family = "") {
           panel.grid.major = element_line(color = NA)) }
 
 # Number of iterations you desire
-n = 20 ; source(file.path(dir_scripts,"Lists_and_vectors.R"))
+n = 100 ; source(file.path(dir_scripts,"Lists_and_vectors.R"))
 
 ## Data preparation ------------------------------------------------------------------------------------------------
 # SCRIPT A ---------------------------------------------------------------------------------------------------------
@@ -594,7 +594,7 @@ for (z in 1:length(pairs_axes)) {
   ggplot_list <- list()                                                      # list to store ggplot
   for (v in hab_ph2) {
     col_v <- as.character(vcolors[v])                                        # color for habitat*pH levels
-    sp_v  <- colnames(species_avg_pst)[(which(species_avg_pst[v,] > 0))]     # species present in v
+    sp_v  <- colnames(species_avg_pst)[(which(species_avg_pst[v,] > 0.5))]     # species present in v
     # background with axes range set + title
     ggplot_v <- background.plot(range_faxes = range_axes, faxes_nm = paste0("PC", xy), color_bg = "grey95")
     ggplot_v <- ggplot_v + labs(subtitle=labels[v,])
@@ -1372,7 +1372,7 @@ agerepromaturity_Amb = ggplot(data_trait_occupancy_amb, aes(x = PC1, y = PC2)) +
   scale_fill_manual(values = unique(data_trait_occupancy_amb$col_matu)) +
   geom_point(aes(fill = agerepromaturity), color = "black", shape = 21, alpha = .5) +
   scale_x_continuous(name = "") + scale_y_continuous(name = "") + guides(size = "none") +
-  ggtitle("Agerepromaturity") + theme(legend.position = "none")
+  ggtitle("Age reproductive maturity") + theme(legend.position = "none")
 # Chem
 hull_chem_partial <- data_trait_occupancy_amb %>% group_by(chem) %>% slice(chull(PC1, PC2)) 
 Chem_Amb = ggplot(data_trait_occupancy_amb, aes(x = PC1, y = PC2)) + theme_box() +
@@ -1382,17 +1382,17 @@ Chem_Amb = ggplot(data_trait_occupancy_amb, aes(x = PC1, y = PC2)) + theme_box()
   scale_fill_manual(values = unique(data_trait_occupancy_amb$col_chem)) +
   geom_point(aes(fill = chem), color = "black", shape = 21, alpha = .5) +
   scale_x_continuous(name = "") + scale_y_continuous(name = "") + guides(size = "none") +
-  ggtitle("Chem") + theme(legend.position = "none")
+  ggtitle("Chemical defenses") + theme(legend.position = "none")
 
 # Final plot
 {Low_occupancy_trait = Form_Low + feeding_Low + growth_Low + calcification_Low + mobility_Low + agerepromaturity_Low + 
     Chem_Low + plot_layout(nrow = 1, widths = 8, heights = 1)
-  Low_occupancy_trait = wrap_elements(grid::textGrob('Low pH conditions',rot = 90, 
+  Low_occupancy_trait = wrap_elements(grid::textGrob('Low pH',rot = 90, 
                                                      gp = grid::gpar(fontsize = 12, fontface = 'bold'))) +
     Low_occupancy_trait + plot_layout(nrow = 1, widths = c(1,30), heights = 1)
   Amb_occupancy_trait = Form_Amb + feeding_Amb + growth_Amb + calcification_Amb + mobility_Amb + agerepromaturity_Amb + 
     Chem_Amb + plot_layout(ncol = 7, widths = 7, heights = 1)
-  Amb_occupancy_trait = wrap_elements(grid::textGrob('Ambient pH conditions',rot = 90, 
+  Amb_occupancy_trait = wrap_elements(grid::textGrob('Ambient pH',rot = 90, 
                                                      gp = grid::gpar(fontsize = 12, fontface = 'bold'))) + 
     Amb_occupancy_trait + plot_layout(nrow = 1, widths = c(1,30), heights = 1)
   (Fig_Trait_occupancy = Amb_occupancy_trait /Low_occupancy_trait)}
