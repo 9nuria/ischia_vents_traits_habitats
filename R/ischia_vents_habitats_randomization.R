@@ -3,7 +3,7 @@
 ## Kroeker, Fiorenza Micheli, Alice Mirasole, Sebastien Villéger, Cinzia De Vittor, Valeriano Parravacini 
 ## *corresponding author. Email: nuria.teixido@imev-mer.fr; nuria.teixido@szn.it 
 
-rm(list=ls()) ; options(mc.cores = parallel::detectCores(), warn = - 1) ; #setwd("..")
+rm(list=ls()) ; options(mc.cores = parallel::detectCores(), warn = - 1) ; setwd("..")
 
 ## Loading packages and data ---------------------------------------------------------------------------------------
 
@@ -72,7 +72,7 @@ theme_box <- function (base_size = 11, base_family = "") {
           panel.grid.major = element_line(color = NA)) }
 
 # Number of iterations you desire
-n = 1 ; source(file.path(dir_scripts,"Lists_and_vectors.R"))
+n = 100 ; source(file.path(dir_scripts,"Lists_and_vectors.R"))
 
 ## Data preparation ------------------------------------------------------------------------------------------------
 # SCRIPT A ---------------------------------------------------------------------------------------------------------
@@ -1443,7 +1443,7 @@ Fig5sub1 = ggplot(Stat_Change) + geom_hline(yintercept = 0) +
   scale_y_continuous(name = "Change in biodiversity", limits = c(-45, 45), breaks = seq(-40, 40, 20)) +
   scale_fill_gradientn(colours = color_gradient(10)) + scale_color_gradientn(colours = color_gradient(10)) +
   scale_x_discrete(labels = c("RS" = "Species richness", "FE" = "Functional entity\nrichness",
-                              "fdis" = "Functional dispersion\n(x 100)")) +
+                              "fdis" = "Functional dispersion")) +
   theme(legend.position = "none", axis.text = element_text(size = 12, color = "black"),
         axis.title = element_text(size = 12), legend.text = element_text(size = 12), 
         axis.line.x = element_blank(), axis.ticks.x = element_line(), strip.text.x = element_text(size = 14),
