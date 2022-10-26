@@ -96,6 +96,7 @@ x.fun                   <- vector("list", length = n)
 x.tax                   <- vector("list", length = n)
 data_trait_occupancy    <- vector("list", length = n)
 FE_tr_infos             <- vector("list", length = n)
+FE_within_iter          <- vector("list", length = n) 
 
 # Empty vectors
 FE_C_low        <- rep(NA, n)

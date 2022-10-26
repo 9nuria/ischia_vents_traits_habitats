@@ -3,7 +3,7 @@
 ## Kroeker, Fiorenza Micheli, Alice Mirasole, Sebastien Villéger, Cinzia De Vittor, Valeriano Parravacini 
 ## *corresponding author. Email: nuria.teixido@imev-mer.fr; nuria.teixido@szn.it 
 
-rm(list=ls()) ; options(mc.cores = parallel::detectCores(), warn = - 1) ; setwd("..")
+rm(list=ls()) ; options(mc.cores = parallel::detectCores(), warn = - 1) ; #setwd("..")
 
 ## Loading packages and data ---------------------------------------------------------------------------------------
 
@@ -72,7 +72,7 @@ theme_box <- function (base_size = 11, base_family = "") {
           panel.grid.major = element_line(color = NA)) }
 
 # Number of iterations you desire
-n = 100 ; source(file.path(dir_scripts,"Lists_and_vectors.R"))
+n = 1 ; source(file.path(dir_scripts,"Lists_and_vectors.R"))
 
 ## Data preparation ------------------------------------------------------------------------------------------------
 # SCRIPT A ---------------------------------------------------------------------------------------------------------
@@ -560,11 +560,25 @@ vcolors            <- c("#93a1fa", "#f7d305", "#6478f5", "#f5a511", "#3953f7", "
 names(vcolors)     <- hab_ph2
 
 # Coordinates of all species
-for (Q in 1:n) { pool_coord[[Q]] <- habph2_multidimFD[[Q]]$details$sp_faxes_coord %>% data.frame() %>% 
-  rownames_to_column(var = "FE") } ; pool_coord <- pool_coord %>% bind_rows() %>% group_by(FE) %>% 
-  summarise_all(mean) %>% column_to_rownames(var = "FE") %>% as.matrix()
+for (Q in 1:n) { 
+  pool_coord[[Q]] <- habph2_multidimFD[[Q]]$details$sp_faxes_coord %>% data.frame() %>% rownames_to_column("FE") %>% 
+    left_join(., sp_to_fe[[Q]]$fe_tr %>% rownames_to_column("FE"), by = "FE") }
+pool_coord <- pool_coord %>% bind_rows() %>% 
+  group_by(form, feeding, growth, calcification, mobility, agerepromaturity, chem) %>% summarise_all(mean) 
+pool_coord <- pool_coord %>% data.frame() %>% mutate(., FE = paste("fe_",seq(1, length(pool_coord$FE)), sep = "")) %>% 
+  column_to_rownames("FE")
+
+# Re-attribute the accurate FE for each iteration
+for (Q in 1:n) {
+  FE_within_iter[[Q]] <- merge(sp_to_fe[[Q]]$fe_tr, 
+                         pool_coord[,1:7] %>% rownames_to_column("True_FE"), 
+                         by = c("form", "feeding", "growth", "calcification", "mobility", "agerepromaturity", "chem"), 
+                         all.x = T) %>% dplyr::select(True_FE)
+  FE_within_iter[[Q]] <- FE_within_iter[[Q]]$True_FE %>% as.vector()}
 
 # vertices of all FEs in 4D
+pool_coord <- pool_coord %>% 
+  dplyr::select(., -c(form, feeding, growth, calcification, mobility, agerepromaturity, chem)) %>% as.matrix()
 pool_vert_nm       <- rownames(pool_coord)
 # range of axes
 range_faxes_coord  <- range(pool_coord[,1:4])
@@ -575,6 +589,8 @@ habph2_fd          <- data_stat_FEs
 
 # habph2_multidimFD informations
 for (Q in 1:n) { 
+  colnames(habph2_multidimFD[[Q]]$details$asb_sp_occ)    = FE_within_iter[[Q]]
+  colnames(habph2_multidimFD[[Q]]$details$asb_sp_relatw) = FE_within_iter[[Q]]
   species_avg_pst[[Q]] <- habph2_multidimFD[[Q]]$details$asb_sp_occ %>% data.frame() %>% 
     rownames_to_column(var = "FE") 
   asb_sp_relatw[[Q]] <- habph2_multidimFD[[Q]]$details$asb_sp_relatw %>% data.frame() %>% 
@@ -594,7 +610,7 @@ for (z in 1:length(pairs_axes)) {
   ggplot_list <- list()                                                      # list to store ggplot
   for (v in hab_ph2) {
     col_v <- as.character(vcolors[v])                                        # color for habitat*pH levels
-    sp_v  <- colnames(species_avg_pst)[(which(species_avg_pst[v,] > 0.5))]     # species present in v
+    sp_v  <- colnames(species_avg_pst)[(which(species_avg_pst[v,] > 0.5))]   # species present in v
     # background with axes range set + title
     ggplot_v <- background.plot(range_faxes = range_axes, faxes_nm = paste0("PC", xy), color_bg = "grey95")
     ggplot_v <- ggplot_v + labs(subtitle=labels[v,])
@@ -664,14 +680,14 @@ fig.fun.v1v2 <- ggplot(pcoa_fun, aes(x = V1, y = V2, group = condition, fill = c
   scale_colour_manual(values = c("#93a1fa","#f7d305","#f5a511","#6478f5","#f78e0c","#3953f7","#f7560c","#0219ad")) +
   scale_fill_manual(values   = c("#93a1fa","#f7d305","#f5a511","#6478f5","#f78e0c","#3953f7","#f7560c","#0219ad")) +
   scale_shape_manual(values  = c(rep(21, 2), rep(24, 2), rep(22, 2), rep(23, 2))) + 
-  labs(title = "B) Functional diversity", x = "V1", y = "V2") + scale_x_continuous(limits = c(-0.55, 0.6)) + 
-  scale_y_continuous(limits  = c(-0.5, 0.5)) + theme(legend.title = element_blank(), legend.position = "bottom")
+  labs(title = "B) Functional diversity", x = "V1", y = "V2") + scale_x_continuous(limits = c(-0.6, 0.6)) + 
+  scale_y_continuous(limits  = c(-0.4, 0.4)) + theme(legend.title = element_blank(), legend.position = "bottom")
 fig.tax.v1v2 <- ggplot(pcoa_taxo, aes(x = V1, y = V2, group = condition, fill = condition, color = condition, 
                                       shape = condition)) + theme_light(base_size = 20) + geom_point(size = 6) +
   scale_colour_manual(values = c("#93a1fa","#f7d305","#f5a511","#6478f5","#f78e0c","#3953f7","#f7560c","#0219ad")) +
   scale_fill_manual(values   = c("#93a1fa","#f7d305","#f5a511","#6478f5","#f78e0c","#3953f7","#f7560c","#0219ad")) +
   scale_shape_manual(values  = c(rep(21, 2), rep(24, 2), rep(22, 2), rep(23, 2))) + 
-  labs(title = "A) Taxonomic diversity", x = "V1", y = "V2") + scale_x_continuous(limits = c(-0.55, 0.6)) + 
+  labs(title = "A) Taxonomic diversity", x = "V1", y = "V2") + scale_x_continuous(limits = c(-0.6, 0.6)) + 
   scale_y_continuous(limits  = c(-0.5, 0.5)) + theme(legend.position='none')
 mdsv1v2 <- (fig.tax.v1v2/fig.fun.v1v2)
 
@@ -1147,15 +1163,15 @@ fig.fun.v3v4 <- ggplot(pcoa_fun, aes(x = V3, y = V4, group = condition, fill = c
   scale_colour_manual(values = c("#93a1fa","#f7d305","#f5a511","#6478f5","#f78e0c","#3953f7","#f7560c","#0219ad")) +
   scale_fill_manual(values   = c("#93a1fa","#f7d305","#f5a511","#6478f5","#f78e0c","#3953f7","#f7560c","#0219ad")) +
   scale_shape_manual(values  = c(rep(21, 2), rep(24, 2), rep(22, 2), rep(23, 2))) + 
-  labs(title = "B) Functional diversity", x = "V3", y = "V4") + scale_x_continuous(limits = c(-0.1, 0.1)) + 
-  scale_y_continuous(limits  = c(-0.1, 0.1)) + theme(legend.title = element_blank(), legend.position = "bottom")
+  labs(title = "B) Functional diversity", x = "V3", y = "V4") + scale_x_continuous(limits = c(-0.25, 0.25)) + 
+  scale_y_continuous(limits  = c(-0.25, 0.25)) + theme(legend.title = element_blank(), legend.position = "bottom")
 fig.tax.v3v4 <- ggplot(pcoa_taxo, aes(x = V3, y = V4, group = condition, fill = condition, color = condition, 
                                       shape = condition)) + theme_light(base_size = 20) + geom_point(size = 6) +
   scale_colour_manual(values = c("#93a1fa","#f7d305","#f5a511","#6478f5","#f78e0c","#3953f7","#f7560c","#0219ad")) +
   scale_fill_manual(values   = c("#93a1fa","#f7d305","#f5a511","#6478f5","#f78e0c","#3953f7","#f7560c","#0219ad")) +
   scale_shape_manual(values  = c(rep(21, 2), rep(24, 2), rep(22, 2), rep(23, 2))) + 
-  labs(title = "A) Taxonomic diversity", x = "V3", y = "V4") + scale_x_continuous(limits = c(-0.1, 0.1)) + 
-  scale_y_continuous(limits  = c(-0.1, 0.1)) + theme(legend.position='none')
+  labs(title = "A) Taxonomic diversity", x = "V3", y = "V4") + scale_x_continuous(limits = c(-0.5, 0.5)) + 
+  scale_y_continuous(limits  = c(-0.5, 0.5)) + theme(legend.position='none')
 mdsv3v4 <- (fig.tax.v3v4/fig.fun.v3v4)
 
 # SCRIPT C ---------------------------------------------------------------------------------------------------------
@@ -1549,24 +1565,26 @@ habph_tr_moddom <- list() ; plot_t_mod_pcover = list () ; for (t in names(fe_tr)
 # Main Figures  
 ggsave(FD_xy[[1]], filename = "Figure_2.png", path = dir_plot, device = "png", width = 6, height = 12,        # 2
        dpi = 300)              
-ggsave("Figure_mds.png", plot = mdsv1v2, path = dir_plot, device = "png", height = 35, width = 35,            # 3
+ggsave(Fig_Trait_occupancy, filename = "Figure_3.png", path = dir_plot, device = "png", width = 20,           # 3
+       height = 5, dpi = 300)   
+ggsave(all4, filename = "Figure_4.png", path = dir_plot, device="png", height = 25, width = 20,               # 4
        units = "cm", dpi = 300)
-ggsave("Figure_3.png", plot = boxplot, path = dir_plot, device = "png", height = 35, width = 35,              # 4
-       units = "cm", dpi = 300)
-ggsave("Figure_4.png", plot = all4, path = dir_plot, device="png", height = 25, width = 20,                   # 5
-       units = "cm", dpi = 300)
-ggsave("Figure_5.png", plot = Figure_5, path = dir_plot, device="png", height = 15, width = 20,               # 6
+ggsave(Figure_5, filename = "Figure_5.png",  path = dir_plot, device="png", height = 15, width = 20,          # 5
        units = "cm", dpi = 300)
 
 # Supplementary figures
 ggsave(FD_xy[[2]], filename = "Figure_S4.png", path = dir_plot, device = "png", width = 6,                    # S4
        height = 12)              
-ggsave(mdsv3v4, filename = "Figure_S6.png", path = dir_plot, device = "png", height = 35,                     # S6
+ggsave(mdsv1v2, filename = "Figure_S6A.png", path = dir_plot, device = "png", height = 35, width = 35,        # S6A
+       units = "cm", dpi = 300)
+ggsave(mdsv3v4, filename = "Figure_S6B.png", path = dir_plot, device = "png", height = 35,                    # S6B
        width = 35, units = "cm", dpi = 300)
 ggsave(beta_cor_plot, filename = "Figure_S7.png", path = dir_plot, width = 4, height = 7.5)                   # S7
 ggsave(boxplot_beta, filename = "Figure_S8.png", path = dir_plot, width = 9, height = 5)                      # S8
 ggsave(Fig_Trait_occupancy, filename = "Figure_S9.png", path = dir_plot, device = "png", height = 15,         # S9
        width = 50, units = "cm", dpi = 300)
+ggsave(boxplot, filename = "Figure_S11.png", path = dir_plot, device = "png", height = 35, width = 35,        # S10
+       units = "cm", dpi = 300)
 for (t in names(fe_tr)) {  
   ggsave(plot_t_mod_pcover[[t]], filename = paste0("Figure_Sx_", t, "_.png"), path = dir_plot_trait,          # Sx
          width = 14, height = 5)}
