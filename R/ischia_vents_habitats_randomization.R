@@ -1069,8 +1069,8 @@ Calcification  <- data_trait[[1]] %>% dplyr::filter(., Condition == "b") %>% gro
   summarize(., Cover = sum(Cover), std.error = mean(std.error), Q2.5 = sum(Q2.5), Q97.5 = sum(Q97.5))
 # Dataset functionning
 data_functions <- rbind(Habitat, Prim_Prod, Herbivory, Predation, Calcification) %>% data.frame() %>% 
-  mutate(., Function = c(rep("Complexity", 8), rep("Primary Production", 8), rep("Herbivory", 8), rep("Predation", 8), 
-                         rep("Calcification", 8))) %>% 
+  mutate(., Function = c(rep("Habitat Complexity", 8), rep("Primary Production", 8), rep("Herbivory", 8), 
+                         rep("Predation", 8), rep("Calcification", 8))) %>% 
   dplyr::select(Function, Habitat, pH, Cover, std.error, Q2.5, Q97.5) 
 
 # Quantify the difference between Low and ambient
@@ -1105,15 +1105,23 @@ change_subdataset$FER_std  = sqrt(sub_data_change[[2]]$FER_std^2 + sub_data_chan
 change_subdataset$FDis_std = sqrt(sub_data_change[[2]]$FDis_std^2 + sub_data_change[[1]]$FDis_std^2)
 
 # Build the statistics dataset
-Stat_Change = data.frame(Habitat = sub_data_change[[1]]$Habitat, 
-                         Index_label = c(rep("SR", 4), rep("FE", 4), rep("FDis", 4)),
-                         Index = c(change_subdataset$SR, change_subdataset$FER, change_subdataset$FDis),
-                         std_err = c(change_subdataset$SR_std, change_subdataset$FER_std, change_subdataset$FDis_std))
+Cave = t(data_stat_FEs[2,c(1:2,4)] - data_stat_FEs[1,c(1:2,4)]) %>% data.frame() %>% rownames_to_column("Index_label")
+colnames(Cave) = c("Index_label", "Index")
+Deep = t(data_stat_FEs[4,c(1:2,4)] - data_stat_FEs[3,c(1:2,4)]) %>% data.frame() %>% rownames_to_column("Index_label")
+colnames(Deep) = c("Index_label", "Index")
+Reef = t(data_stat_FEs[6,c(1:2,4)] - data_stat_FEs[5,c(1:2,4)]) %>% data.frame() %>% rownames_to_column("Index_label")
+colnames(Reef) = c("Index_label", "Index")
+Shal = t(data_stat_FEs[8,c(1:2,4)] - data_stat_FEs[7,c(1:2,4)]) %>% data.frame() %>% rownames_to_column("Index_label")
+colnames(Shal) = c("Index_label", "Index")
+Stat_Change = data.frame(Habitat = rep(c('shallow_reef','cave','reef','deep_reef'), each = 3), 
+                         rbind(Shal, Cave, Reef, Deep))
+Stat_Change$Index[which(Stat_Change$Index_label == "fdis")] = 
+  Stat_Change$Index[which(Stat_Change$Index_label == "fdis")] * 100
 
 # Vizualisation
 Stat_Change$Habitat = factor(Stat_Change$Habitat, levels = c('shallow_reef','cave','reef','deep_reef'))
 Function_Change$Habitat = factor(Function_Change$Habitat, levels = c('shallow_reef','cave','reef','deep_reef'))
-color_gradient <- colorRampPalette(c("red4", "brown3", "brown1", "skyblue1", "skyblue2", "royalblue3"))
+color_gradient <- colorRampPalette(c("red4", "brown3", "brown1", "skyblue2", "royalblue3"))
 plot(rep(1,1000),col=color_gradient(1000),pch=19,cex=3) # Viz palette
 
 Fig5sub1 = ggplot(Stat_Change) + geom_hline(yintercept = 0) + 
@@ -1124,10 +1132,10 @@ Fig5sub1 = ggplot(Stat_Change) + geom_hline(yintercept = 0) +
   geom_point(aes(x = Index_label, y = Index, fill = Index), position = position_dodge(.7), 
              size = 7, shape = 21, color = "black") +
   coord_flip() + theme_bw() + labs(x = "", color = "") + 
-  scale_y_continuous(name = "Change in biodiversity", limits = c(-7.5, 7.5), breaks = c(-5, 0, 5)) +
+  scale_y_continuous(name = "Change in biodiversity", limits = c(-45, 45), breaks = seq(-40, 40, 20)) +
   scale_fill_gradientn(colours = color_gradient(10)) + scale_color_gradientn(colours = color_gradient(10)) +
-  scale_x_discrete(labels = c("SR" = "Species richness", "FE" = "Functional entity\nrichness",
-                              "FDis" = "Functional dispersion")) +
+  scale_x_discrete(labels = c("RS" = "Species richness", "FE" = "Functional entity\nrichness",
+                              "fdis" = "Functional dispersion\n(x 100)")) +
   theme(legend.position = "none", axis.text = element_text(size = 12, color = "black"),
         axis.title = element_text(size = 12), legend.text = element_text(size = 12), 
         axis.line.x = element_blank(), axis.ticks.x = element_line(), strip.text.x = element_text(size = 14),
