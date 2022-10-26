@@ -1489,6 +1489,7 @@ VTot = cxhull::cxhull(data_trait_occupancy[,8:11] %>% as.matrix())$volume
     } else {volume_chem_amb[i] = ((cxhull::cxhull(df[[i]][,2:3] %>% as.matrix()))$volume)^2}}}
 
 # Table volume
+data_trait_occupancy <- data_trait_occupancy %>% drop_na()
 data_volume = data.frame(Traits = c(unique(data_trait_occupancy$form), 
                                     unique(data_trait_occupancy$feeding), 
                                     unique(data_trait_occupancy$growth), 
@@ -1583,7 +1584,7 @@ ggsave(beta_cor_plot, filename = "Figure_S7.png", path = dir_plot, width = 4, he
 ggsave(boxplot_beta, filename = "Figure_S8.png", path = dir_plot, width = 9, height = 5)                      # S8
 ggsave(Fig_Trait_occupancy, filename = "Figure_S9.png", path = dir_plot, device = "png", height = 15,         # S9
        width = 50, units = "cm", dpi = 300)
-ggsave(boxplot, filename = "Figure_S11.png", path = dir_plot, device = "png", height = 35, width = 35,        # S10
+ggsave(boxplot, filename = "Figure_S10.png", path = dir_plot, device = "png", height = 35, width = 35,        # S10
        units = "cm", dpi = 300)
 for (t in names(fe_tr)) {  
   ggsave(plot_t_mod_pcover[[t]], filename = paste0("Figure_Sx_", t, "_.png"), path = dir_plot_trait,          # Sx
