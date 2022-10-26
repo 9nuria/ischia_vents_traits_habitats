@@ -32,8 +32,9 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
- [1] vegan_2.6-4      lattice_0.20-45  permute_0.9-7    forcats_0.5.2    stringr_1.4.1    dplyr_1.0.10    
- [7] purrr_0.3.5      readr_2.1.3      tidyr_1.2.1      tibble_3.1.8     ggplot2_3.3.6    tidyverse_1.3.2 
-[13] reshape2_1.4.4   patchwork_1.1.2  mFD_1.0.1        MASS_7.3-58.1    lme4_1.1-30      Matrix_1.5-1    
-[19] geometry_0.4.6.1 devtools_2.4.5   usethis_2.1.6    brms_2.18.0      Rcpp_1.0.9       ape_5.6-2  
+ [1] vegan_2.6-4      lattice_0.20-45  permute_0.9-7    forcats_0.5.2    stringr_1.4.1   
+ [6] dplyr_1.0.10     purrr_0.3.5      readr_2.1.3      tidyr_1.2.1      tibble_3.1.8    
+[11] ggplot2_3.3.6    tidyverse_1.3.2  reshape2_1.4.4   patchwork_1.1.2  mFD_1.0.1       
+[16] MASS_7.3-58.1    lme4_1.1-30      Matrix_1.5-1     geometry_0.4.6.1 devtools_2.4.5  
+[21] usethis_2.1.6    brms_2.18.0      Rcpp_1.0.9       ape_5.6-2   
 ```
