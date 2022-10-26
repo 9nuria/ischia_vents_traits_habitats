@@ -3,7 +3,7 @@
 ## Kroeker, Fiorenza Micheli, Alice Mirasole, Sebastien Villéger, Cinzia De Vittor, Valeriano Parravacini 
 ## *corresponding author. Email: nuria.teixido@imev-mer.fr; nuria.teixido@szn.it 
 
-rm(list=ls()) ; options(mc.cores = parallel::detectCores(), warn = - 1) ; setwd("..")
+rm(list=ls()) ; options(mc.cores = parallel::detectCores(), warn = - 1) ; #setwd("..")
 
 ## Loading packages and data ---------------------------------------------------------------------------------------
 
@@ -72,7 +72,7 @@ theme_box <- function (base_size = 11, base_family = "") {
           panel.grid.major = element_line(color = NA)) }
 
 # Number of iterations you desire
-n = 100 ; source(file.path(dir_scripts,"Lists_and_vectors.R"))
+n = 1 ; source(file.path(dir_scripts,"Lists_and_vectors.R"))
 
 ## Data preparation ------------------------------------------------------------------------------------------------
 # SCRIPT A ---------------------------------------------------------------------------------------------------------
@@ -750,6 +750,314 @@ fdisp_plot <- ggplot(data = quadrats_biodiv_avg, aes(x = condition, y = fdis, co
 # Assembling 
 boxplot <- nbsp_plot / fe_plot / fdisp_plot 
 
+## Data trait occupancy  -------------------------------------------------------------------------------------------
+# SCRIPT O ---------------------------------------------------------------------------------------------------------
+
+# Setting up the dataset
+for (Q in 1:n) { 
+  FE_tr_infos[[Q]]          <- fe_tr[[Q]] %>% rownames_to_column(var = "FE")
+  FE_tr_infos[[Q]]          <- habph2_multidimFD[[Q]]$details$asb_sp_occ %>% t() %>% data.frame() %>% 
+    rownames_to_column(var = "FE") %>% left_join(FE_tr_infos[[Q]])
+  data_trait_occupancy[[Q]] <- habph2_multidimFD[[Q]]$details$sp_faxes_coord %>% data.frame() %>% 
+    rownames_to_column(var = "FE") %>% left_join(FE_tr_infos[[Q]])} 
+
+data_trait_occupancy <- data_trait_occupancy %>% bind_rows() %>% dplyr::select(., -FE) %>% 
+  group_by(form, feeding, growth, calcification, mobility, agerepromaturity, chem) %>% 
+  summarise_all(mean) %>% data.frame() %>% 
+  mutate(Low_presence = (cave_low + deep_reef_low + reef_low + shallow_reef_low)/4,
+         Amb_presence = (cave_amb + deep_reef_amb + reef_amb + shallow_reef_amb)/4) %>% 
+  dplyr::select(-cave_amb, -cave_low, -deep_reef_amb, -deep_reef_low, -reef_amb, -reef_low, 
+                -shallow_reef_amb, -shallow_reef_low) 
+
+# Colors
+col_form  <- data.frame(form             = levels(data_trait_occupancy$form), 
+                        col_form         = c("#6F38C5", "#937DC2", "#C689C6", "#FFABE1"))
+col_feed  <- data.frame(feeding          = levels(data_trait_occupancy$feeding), 
+                        col_feed         = c("#25316D", "#002B5B", "#2B4865", "#256D85", "#4CACBC", "#81CACF"))
+col_grow  <- data.frame(growth           = levels(data_trait_occupancy$growth), 
+                        col_grow         = c("#0096FF", "#00D7FF", "#72FFFF"))
+col_calc  <- data.frame(calcification    = levels(data_trait_occupancy$calcification), 
+                        col_calc         = c("#367E18", "#7DCE13"))
+col_mobi  <- data.frame(mobility         = levels(data_trait_occupancy$mobility), 
+                        col_mobi         = c("#FFDE00", "#FFE898"))
+col_matu  <- data.frame(agerepromaturity = levels(data_trait_occupancy$agerepromaturity), 
+                        col_matu         = c("#F57328", "#FFAE6D"))
+col_chem  <- data.frame(chem             = levels(data_trait_occupancy$chem), 
+                        col_chem          = c("#C21010", "#EB4747"))
+
+# Add new variables
+data_trait_occupancy <- data_trait_occupancy %>% left_join(col_form) %>% left_join(col_feed) %>% 
+  left_join(col_grow) %>% left_join(col_calc) %>% left_join(col_mobi) %>% left_join(col_matu) %>% 
+  left_join(col_chem)
+
+## Start Plotting
+## 1st row – Low pH Conditions
+{hull_total               <- data_trait_occupancy %>% slice(chull(PC1, PC2)) 
+  data_trait_occupancy_low <- data_trait_occupancy %>% dplyr::filter(Low_presence > 0.1)
+  # Form
+  hull_form_partial <- data_trait_occupancy_low %>% group_by(form) %>% slice(chull(PC1, PC2)) 
+  Form_Low = ggplot(data_trait_occupancy_low, aes(x = PC1, y = PC2)) + theme_box() +
+    geom_polygon(data = hull_total, col = "black", fill = NA) + 
+    geom_polygon(data = hull_form_partial, aes(fill = form, col = form), alpha = 0.75) +
+    scale_colour_manual(values = unique(data_trait_occupancy_low$col_form)) +
+    scale_fill_manual(values = unique(data_trait_occupancy_low$col_form)) +
+    geom_point(aes(fill = form), color = "black", shape = 21, alpha = .5) +
+    scale_x_continuous(name = "") + scale_y_continuous(name = "") + guides(size = "none") +
+    theme(legend.position = "none")
+  # Feeding
+  hull_feeding_partial <- data_trait_occupancy_low %>% group_by(feeding) %>% slice(chull(PC1, PC2)) 
+  feeding_Low = ggplot(data_trait_occupancy_low, aes(x = PC1, y = PC2)) + theme_box() +
+    geom_polygon(data = hull_total, col = "black", fill = NA) + 
+    geom_polygon(data = hull_feeding_partial, aes(fill = feeding, col = feeding), alpha = 0.75) +
+    scale_colour_manual(values = unique(data_trait_occupancy_low$col_feed)) +
+    scale_fill_manual(values = unique(data_trait_occupancy_low$col_feed)) +
+    geom_point(aes(fill = feeding), color = "black", shape = 21, alpha = .5) +
+    scale_x_continuous(name = "") + scale_y_continuous(name = "") + guides(size = "none") +
+    theme(legend.position = "none")
+  # Growth
+  hull_growth_partial <- data_trait_occupancy_low %>% group_by(growth) %>% slice(chull(PC1, PC2)) 
+  growth_Low = ggplot(data_trait_occupancy_low, aes(x = PC1, y = PC2)) + theme_box() +
+    geom_polygon(data = hull_total, col = "black", fill = NA) + 
+    geom_polygon(data = hull_growth_partial, aes(fill = growth, col = growth), alpha = 0.75) +
+    scale_colour_manual(values = unique(data_trait_occupancy_low$col_grow)) +
+    scale_fill_manual(values = unique(data_trait_occupancy_low$col_grow)) +
+    geom_point(aes(fill = growth), color = "black", shape = 21, alpha = .5) +
+    scale_x_continuous(name = "") + scale_y_continuous(name = "") + guides(size = "none") +
+    theme(legend.position = "none")
+  # Calcification
+  hull_calcification_partial <- data_trait_occupancy_low %>% group_by(calcification) %>% slice(chull(PC1, PC2)) 
+  calcification_Low = ggplot(data_trait_occupancy_low, aes(x = PC1, y = PC2)) + theme_box() +
+    geom_polygon(data = hull_total, col = "black", fill = NA) + 
+    geom_polygon(data = hull_calcification_partial, aes(fill = calcification, col = calcification), alpha = 0.75) +
+    scale_colour_manual(values = unique(data_trait_occupancy_low$col_calc)) +
+    scale_fill_manual(values = unique(data_trait_occupancy_low$col_calc)) +
+    geom_point(aes(fill = calcification), color = "black", shape = 21, alpha = .5) +
+    scale_x_continuous(name = "") + scale_y_continuous(name = "") + guides(size = "none") +
+    theme(legend.position = "none")
+  # Mobility
+  hull_mobility_partial <- data_trait_occupancy_low %>% group_by(mobility) %>% slice(chull(PC1, PC2)) 
+  mobility_Low = ggplot(data_trait_occupancy_low, aes(x = PC1, y = PC2)) + theme_box() +
+    geom_polygon(data = hull_total, col = "black", fill = NA) + 
+    geom_polygon(data = hull_mobility_partial, aes(fill = mobility, col = mobility), alpha = 0.75) +
+    scale_colour_manual(values = unique(data_trait_occupancy_low$col_mobi)) +
+    scale_fill_manual(values = unique(data_trait_occupancy_low$col_mobi)) +
+    geom_point(aes(fill = mobility), color = "black", shape = 21, alpha = .5) +
+    scale_x_continuous(name = "") + scale_y_continuous(name = "") + guides(size = "none") +
+    theme(legend.position = "none")
+  # Age Repro Maturity
+  hull_agerepromaturity_partial <- data_trait_occupancy_low %>% group_by(agerepromaturity) %>% slice(chull(PC1, PC2)) 
+  agerepromaturity_Low = ggplot(data_trait_occupancy_low, aes(x = PC1, y = PC2)) + theme_box() +
+    geom_polygon(data = hull_total, col = "black", fill = NA) + 
+    geom_polygon(data = hull_agerepromaturity_partial, aes(fill = agerepromaturity, 
+                                                           col = agerepromaturity), alpha = 0.75) +
+    scale_colour_manual(values = unique(data_trait_occupancy_low$col_matu)) +
+    scale_fill_manual(values = unique(data_trait_occupancy_low$col_matu)) +
+    geom_point(aes(fill = agerepromaturity), color = "black", shape = 21, alpha = .5) +
+    scale_x_continuous(name = "") + scale_y_continuous(name = "") + guides(size = "none") +
+    theme(legend.position = "none")
+  # Chem
+  hull_chem_partial <- data_trait_occupancy_low %>% group_by(chem) %>% slice(chull(PC1, PC2)) 
+  Chem_Low = ggplot(data_trait_occupancy_low, aes(x = PC1, y = PC2)) + theme_box() +
+    geom_polygon(data = hull_total, col = "black", fill = NA) + 
+    geom_polygon(data = hull_chem_partial, aes(fill = chem, col = chem), alpha = 0.75) +
+    scale_colour_manual(values = unique(data_trait_occupancy_low$col_chem)) +
+    scale_fill_manual(values = unique(data_trait_occupancy_low$col_chem)) +
+    geom_point(aes(fill = chem), color = "black", shape = 21, alpha = .5) +
+    scale_x_continuous(name = "") + scale_y_continuous(name = "") + guides(size = "none") +
+    theme(legend.position = "none")}
+# 2nd row – Ambient pH Conditions
+{hull_total               <- data_trait_occupancy %>% slice(chull(PC1, PC2)) 
+  data_trait_occupancy_amb <- data_trait_occupancy %>% dplyr::filter(Amb_presence > 0.1)
+  # Form
+  hull_form_partial <- data_trait_occupancy_amb %>% group_by(form) %>% slice(chull(PC1, PC2)) 
+  Form_Amb = ggplot(data_trait_occupancy_amb, aes(x = PC1, y = PC2)) + theme_box() +
+    geom_polygon(data = hull_total, col = "black", fill = NA) + 
+    geom_polygon(data = hull_form_partial, aes(fill = form, col = form), alpha = 0.75) +
+    scale_colour_manual(values = unique(data_trait_occupancy_amb$col_form)) +
+    scale_fill_manual(values = unique(data_trait_occupancy_amb$col_form)) +
+    geom_point(aes(fill = form), color = "black", shape = 21, alpha = .5) +
+    scale_x_continuous(name = "") + scale_y_continuous(name = "") + guides(size = "none") +
+    ggtitle("Form") + theme(legend.position = "none")
+  # Feeding
+  hull_feeding_partial <- data_trait_occupancy_amb %>% group_by(feeding) %>% slice(chull(PC1, PC2)) 
+  feeding_Amb = ggplot(data_trait_occupancy_amb, aes(x = PC1, y = PC2)) + theme_box() +
+    geom_polygon(data = hull_total, col = "black", fill = NA) + 
+    geom_polygon(data = hull_feeding_partial, aes(fill = feeding, col = feeding), alpha = 0.75) +
+    scale_colour_manual(values = unique(data_trait_occupancy_amb$col_feed)) +
+    scale_fill_manual(values = unique(data_trait_occupancy_amb$col_feed)) +
+    geom_point(aes(fill = feeding), color = "black", shape = 21, alpha = .5) +
+    scale_x_continuous(name = "") + scale_y_continuous(name = "") + guides(size = "none") +
+    ggtitle("Feeding") + theme(legend.position = "none")
+  # Growth
+  hull_growth_partial <- data_trait_occupancy_amb %>% group_by(growth) %>% slice(chull(PC1, PC2)) 
+  growth_Amb = ggplot(data_trait_occupancy_amb, aes(x = PC1, y = PC2)) + theme_box() +
+    geom_polygon(data = hull_total, col = "black", fill = NA) + 
+    geom_polygon(data = hull_growth_partial, aes(fill = growth, col = growth), alpha = 0.75) +
+    scale_colour_manual(values = unique(data_trait_occupancy_amb$col_grow)) +
+    scale_fill_manual(values = unique(data_trait_occupancy_amb$col_grow)) +
+    geom_point(aes(fill = growth), color = "black", shape = 21, alpha = .5) +
+    scale_x_continuous(name = "") + scale_y_continuous(name = "") + guides(size = "none") +
+    ggtitle("Growth") + theme(legend.position = "none")
+  # Calcification
+  hull_calcification_partial <- data_trait_occupancy_amb %>% group_by(calcification) %>% slice(chull(PC1, PC2)) 
+  calcification_Amb = ggplot(data_trait_occupancy_amb, aes(x = PC1, y = PC2)) + theme_box() +
+    geom_polygon(data = hull_total, col = "black", fill = NA) + 
+    geom_polygon(data = hull_calcification_partial, aes(fill = calcification, col = calcification), alpha = 0.75) +
+    scale_colour_manual(values = unique(data_trait_occupancy_amb$col_calc)) +
+    scale_fill_manual(values = unique(data_trait_occupancy_amb$col_calc)) +
+    geom_point(aes(fill = calcification), color = "black", shape = 21, alpha = .5) +
+    scale_x_continuous(name = "") + scale_y_continuous(name = "") + guides(size = "none") +
+    ggtitle("Calcification") + theme(legend.position = "none")
+  # Mobility
+  hull_mobility_partial <- data_trait_occupancy_amb %>% group_by(mobility) %>% slice(chull(PC1, PC2)) 
+  mobility_Amb = ggplot(data_trait_occupancy_amb, aes(x = PC1, y = PC2)) + theme_box() +
+    geom_polygon(data = hull_total, col = "black", fill = NA) + 
+    geom_polygon(data = hull_mobility_partial, aes(fill = mobility, col = mobility), alpha = 0.75) +
+    scale_colour_manual(values = unique(data_trait_occupancy_amb$col_mobi)) +
+    scale_fill_manual(values = unique(data_trait_occupancy_amb$col_mobi)) +
+    geom_point(aes(fill = mobility), color = "black", shape = 21, alpha = .5) +
+    scale_x_continuous(name = "") + scale_y_continuous(name = "") + guides(size = "none") +
+    ggtitle("Mobility") + theme(legend.position = "none")
+  # Age Repro Maturity
+  hull_agerepromaturity_partial <- data_trait_occupancy_amb %>% group_by(agerepromaturity) %>% slice(chull(PC1, PC2)) 
+  agerepromaturity_Amb = ggplot(data_trait_occupancy_amb, aes(x = PC1, y = PC2)) + theme_box() +
+    geom_polygon(data = hull_total, col = "black", fill = NA) + 
+    geom_polygon(data = hull_agerepromaturity_partial, aes(fill = agerepromaturity, 
+                                                           col = agerepromaturity), alpha = 0.75) +
+    scale_colour_manual(values = unique(data_trait_occupancy_amb$col_matu)) +
+    scale_fill_manual(values = unique(data_trait_occupancy_amb$col_matu)) +
+    geom_point(aes(fill = agerepromaturity), color = "black", shape = 21, alpha = .5) +
+    scale_x_continuous(name = "") + scale_y_continuous(name = "") + guides(size = "none") +
+    ggtitle("Age reproductive maturity") + theme(legend.position = "none")
+  # Chem
+  hull_chem_partial <- data_trait_occupancy_amb %>% group_by(chem) %>% slice(chull(PC1, PC2)) 
+  Chem_Amb = ggplot(data_trait_occupancy_amb, aes(x = PC1, y = PC2)) + theme_box() +
+    geom_polygon(data = hull_total, col = "black", fill = NA) + 
+    geom_polygon(data = hull_chem_partial, aes(fill = chem, col = chem), alpha = 0.75) +
+    scale_colour_manual(values = unique(data_trait_occupancy_amb$col_chem)) +
+    scale_fill_manual(values = unique(data_trait_occupancy_amb$col_chem)) +
+    geom_point(aes(fill = chem), color = "black", shape = 21, alpha = .5) +
+    scale_x_continuous(name = "") + scale_y_continuous(name = "") + guides(size = "none") +
+    ggtitle("Chemical defenses") + theme(legend.position = "none")}
+
+## Statistics
+VTot = cxhull::cxhull(data_trait_occupancy[,8:11] %>% as.matrix())$volume
+# Low pH Conditions
+{# Form
+  df = data_trait_occupancy_low %>% dplyr::select(form, PC1, PC2, PC3, PC4) %>% group_split(form)
+  for (i in 1:4) {
+    if (nrow(df[[i]]) > 4) {volume_form_low[i] = (cxhull::cxhull(df[[i]][,2:5] %>% as.matrix()))$volume
+    } else {volume_form_low[i] = ((cxhull::cxhull(df[[i]][,2:3] %>% as.matrix()))$volume)^2}}
+  # Feeding
+  df = data_trait_occupancy_low %>% dplyr::select(feeding, PC1, PC2, PC3, PC4) %>% group_split(feeding)
+  for (i in 1:4) {
+    if (nrow(df[[i]]) > 4) {volume_feed_low[i] = (cxhull::cxhull(df[[i]][,2:5] %>% as.matrix()))$volume
+    } else if (nrow(df[[i]]) >= 3) {
+      volume_feed_low[i] = ((cxhull::cxhull(df[[i]][,2:3] %>% as.matrix()))$volume)^2}
+    else {volume_feed_low[i] = 0 }}
+  # Growth
+  df = data_trait_occupancy_low %>% dplyr::select(growth, PC1, PC2, PC3, PC4) %>% group_split(growth)
+  for (i in 1:3) {
+    if (nrow(df[[i]]) > 4) {volume_grow_low[i] = (cxhull::cxhull(df[[i]][,2:5] %>% as.matrix()))$volume
+    } else {volume_grow_low[i] = ((cxhull::cxhull(df[[i]][,2:3] %>% as.matrix()))$volume)^2}}
+  # Calcification
+  df = data_trait_occupancy_low %>% dplyr::select(calcification, PC1, PC2, PC3, PC4) %>% 
+    group_split(calcification)
+  for (i in 1:2) {
+    if (nrow(df[[i]]) > 4) {volume_calc_low[i] = (cxhull::cxhull(df[[i]][,2:5] %>% as.matrix()))$volume
+    } else {volume_calc_low[i] = ((cxhull::cxhull(df[[i]][,2:3] %>% as.matrix()))$volume)^2}}
+  # Mobility
+  df = data_trait_occupancy_low %>% dplyr::select(mobility, PC1, PC2, PC3, PC4) %>% 
+    group_split(mobility)
+  for (i in 1:2) {
+    if (nrow(df[[i]]) > 4) {volume_mobi_low[i] = (cxhull::cxhull(df[[i]][,2:5] %>% as.matrix()))$volume
+    } else {volume_mobi_low[i] = ((cxhull::cxhull(df[[i]][,2:3] %>% as.matrix()))$volume)^2}}
+  # Age Repro Maturity
+  df = data_trait_occupancy_low %>% dplyr::select(agerepromaturity, PC1, PC2, PC3, PC4) %>% 
+    group_split(agerepromaturity)
+  for (i in 1:2) {
+    if (nrow(df[[i]]) > 4) {volume_matu_low[i] = (cxhull::cxhull(df[[i]][,2:5] %>% as.matrix()))$volume
+    } else {volume_matu_low[i] = ((cxhull::cxhull(df[[i]][,2:3] %>% as.matrix()))$volume)^2}}
+  # Chem
+  df = data_trait_occupancy_low %>% dplyr::select(chem, PC1, PC2, PC3, PC4) %>% group_split(chem)
+  for (i in 1:2) {
+    if (nrow(df[[i]]) > 4) {volume_chem_low[i] = (cxhull::cxhull(df[[i]][,2:5] %>% as.matrix()))$volume
+    } else {volume_chem_low[i] = ((cxhull::cxhull(df[[i]][,2:3] %>% as.matrix()))$volume)^2}}}
+# Ambient pH Conditions
+{# Form
+  df = data_trait_occupancy_amb %>% dplyr::select(form, PC1, PC2, PC3, PC4) %>% group_split(form)
+  for (i in 1:4) {
+    if (nrow(df[[i]]) > 4) {volume_form_amb[i] = (cxhull::cxhull(df[[i]][,2:5] %>% as.matrix()))$volume
+    } else {volume_form_amb[i] = ((cxhull::cxhull(df[[i]][,2:3] %>% as.matrix()))$volume)^2}}
+  # Feeding
+  df = data_trait_occupancy_amb %>% dplyr::select(feeding, PC1, PC2, PC3, PC4) %>% group_split(feeding)
+  for (i in 1:5) {
+    if (nrow(df[[i]]) > 4) {volume_feed_amb[i] = (cxhull::cxhull(df[[i]][,2:5] %>% as.matrix()))$volume
+    } else if (nrow(df[[i]]) >= 3) {
+      volume_feed_amb[i] = ((cxhull::cxhull(df[[i]][,2:3] %>% as.matrix()))$volume)^2}
+    else {volume_feed_amb[i] = 0 }}
+  # Growth
+  df = data_trait_occupancy_amb %>% dplyr::select(growth, PC1, PC2, PC3, PC4) %>% group_split(growth)
+  for (i in 1:3) {
+    if (nrow(df[[i]]) > 4) {volume_grow_amb[i] = (cxhull::cxhull(df[[i]][,2:5] %>% as.matrix()))$volume
+    } else {volume_grow_amb[i] = ((cxhull::cxhull(df[[i]][,2:3] %>% as.matrix()))$volume)^2}}
+  # Calcification
+  df = data_trait_occupancy_amb %>% dplyr::select(calcification, PC1, PC2, PC3, PC4) %>% 
+    group_split(calcification)
+  for (i in 1:2) {
+    if (nrow(df[[i]]) > 4) {volume_calc_amb[i] = (cxhull::cxhull(df[[i]][,2:5] %>% as.matrix()))$volume
+    } else {volume_calc_amb[i] = ((cxhull::cxhull(df[[i]][,2:3] %>% as.matrix()))$volume)^2}}
+  # Mobility
+  df = data_trait_occupancy_amb %>% dplyr::select(mobility, PC1, PC2, PC3, PC4) %>% 
+    group_split(mobility)
+  for (i in 1:2) {
+    if (nrow(df[[i]]) > 4) {volume_mobi_amb[i] = (cxhull::cxhull(df[[i]][,2:5] %>% as.matrix()))$volume
+    } else {volume_mobi_amb[i] = ((cxhull::cxhull(df[[i]][,2:3] %>% as.matrix()))$volume)^2}}
+  # Age Repro Maturity
+  df = data_trait_occupancy_amb %>% dplyr::select(agerepromaturity, PC1, PC2, PC3, PC4) %>% 
+    group_split(agerepromaturity)
+  for (i in 1:2) {
+    if (nrow(df[[i]]) > 4) {volume_matu_amb[i] = (cxhull::cxhull(df[[i]][,2:5] %>% as.matrix()))$volume
+    } else {volume_matu_amb[i] = ((cxhull::cxhull(df[[i]][,2:3] %>% as.matrix()))$volume)^2}}
+  # Chem
+  df = data_trait_occupancy_amb %>% dplyr::select(chem, PC1, PC2, PC3, PC4) %>% group_split(chem)
+  for (i in 1:2) {
+    if (nrow(df[[i]]) > 4) {volume_chem_amb[i] = (cxhull::cxhull(df[[i]][,2:5] %>% as.matrix()))$volume
+    } else {volume_chem_amb[i] = ((cxhull::cxhull(df[[i]][,2:3] %>% as.matrix()))$volume)^2}}}
+
+# Table volume
+data_trait_occupancy <- data_trait_occupancy %>% drop_na()
+data_volume = data.frame(Traits = c(unique(data_trait_occupancy$form), 
+                                    unique(data_trait_occupancy$feeding), 
+                                    unique(data_trait_occupancy$growth), 
+                                    unique(data_trait_occupancy$calcification), 
+                                    unique(data_trait_occupancy$mobility), 
+                                    unique(data_trait_occupancy$agerepromaturity), 
+                                    unique(data_trait_occupancy$chem)),
+                         VAmb   = (c(volume_form_amb, volume_feed_amb, NA, volume_grow_amb, 
+                                     volume_calc_amb, volume_mobi_amb, volume_matu_amb, 
+                                     volume_chem_amb)) / VTot * 100,
+                         VLow   = (c(volume_form_low, volume_feed_low[c(1,2)], NA, 
+                                     volume_feed_low[3], NA, volume_feed_low[4], volume_grow_low, 
+                                     volume_calc_low, volume_mobi_low, volume_matu_low, 
+                                     volume_chem_low)) / VTot * 100)
+
+# Final plot
+# Low pH
+Low_occupancy_trait = Form_Low + feeding_Low + growth_Low + calcification_Low + mobility_Low + 
+  agerepromaturity_Low + Chem_Low + plot_layout(nrow = 1, widths = 7, heights = 1)
+Low_occupancy_trait = 
+  wrap_elements(grid::textGrob('Low pH',rot = 90, gp = grid::gpar(fontsize = 12, fontface = 'bold'))) +
+  Low_occupancy_trait + plot_layout(nrow = 1, widths = c(1,30), heights = 1)
+# Ambient pH
+Amb_occupancy_trait = Form_Amb + feeding_Amb + growth_Amb + calcification_Amb + mobility_Amb + 
+  agerepromaturity_Amb + Chem_Amb + plot_layout(ncol = 7, widths = 7, heights = 1)
+Amb_occupancy_trait = 
+  wrap_elements(grid::textGrob('Ambient pH',rot = 90, gp = grid::gpar(fontsize = 12, fontface = 'bold'))) +
+  Amb_occupancy_trait + plot_layout(nrow = 1, widths = c(1,30), heights = 1)
+# Plot combined
+(Fig_Trait_occupancy = (Amb_occupancy_trait / Low_occupancy_trait))
+
 # SCRIPT K ---------------------------------------------------------------------------------------------------------
 #### Making Figure 4 -----------------------------------------------------------------------------------------------
 # Bayesian prediction probability of the likelihood of benthic cover 
@@ -1221,314 +1529,6 @@ beta_funct_plot <- ggplot(data = quadrats_beta_df, aes(x = pair_type, y = funct_
   xlab("Habitat and pH of pair of quadrats") + ylab("Func beta (q=1)")
 boxplot_beta <- beta_taxo_plot / beta_funct_plot
 
-## Data trait occupancy  -------------------------------------------------------------------------------------------
-# SCRIPT O ---------------------------------------------------------------------------------------------------------
-
-# Setting up the dataset
-for (Q in 1:n) { 
-  FE_tr_infos[[Q]]          <- fe_tr[[Q]] %>% rownames_to_column(var = "FE")
-  FE_tr_infos[[Q]]          <- habph2_multidimFD[[Q]]$details$asb_sp_occ %>% t() %>% data.frame() %>% 
-    rownames_to_column(var = "FE") %>% left_join(FE_tr_infos[[Q]])
-  data_trait_occupancy[[Q]] <- habph2_multidimFD[[Q]]$details$sp_faxes_coord %>% data.frame() %>% 
-    rownames_to_column(var = "FE") %>% left_join(FE_tr_infos[[Q]])} 
-
-data_trait_occupancy <- data_trait_occupancy %>% bind_rows() %>% dplyr::select(., -FE) %>% 
-  group_by(form, feeding, growth, calcification, mobility, agerepromaturity, chem) %>% 
-  summarise_all(mean) %>% data.frame() %>% 
-  mutate(Low_presence = (cave_low + deep_reef_low + reef_low + shallow_reef_low)/4,
-         Amb_presence = (cave_amb + deep_reef_amb + reef_amb + shallow_reef_amb)/4) %>% 
-  dplyr::select(-cave_amb, -cave_low, -deep_reef_amb, -deep_reef_low, -reef_amb, -reef_low, 
-                -shallow_reef_amb, -shallow_reef_low) 
-
-# Colors
-col_form  <- data.frame(form             = levels(data_trait_occupancy$form), 
-                        col_form         = c("#6F38C5", "#937DC2", "#C689C6", "#FFABE1"))
-col_feed  <- data.frame(feeding          = levels(data_trait_occupancy$feeding), 
-                        col_feed         = c("#25316D", "#002B5B", "#2B4865", "#256D85", "#4CACBC", "#81CACF"))
-col_grow  <- data.frame(growth           = levels(data_trait_occupancy$growth), 
-                        col_grow         = c("#0096FF", "#00D7FF", "#72FFFF"))
-col_calc  <- data.frame(calcification    = levels(data_trait_occupancy$calcification), 
-                        col_calc         = c("#367E18", "#7DCE13"))
-col_mobi  <- data.frame(mobility         = levels(data_trait_occupancy$mobility), 
-                        col_mobi         = c("#FFDE00", "#FFE898"))
-col_matu  <- data.frame(agerepromaturity = levels(data_trait_occupancy$agerepromaturity), 
-                        col_matu         = c("#F57328", "#FFAE6D"))
-col_chem  <- data.frame(chem             = levels(data_trait_occupancy$chem), 
-                        col_chem          = c("#C21010", "#EB4747"))
-
-# Add new variables
-data_trait_occupancy <- data_trait_occupancy %>% left_join(col_form) %>% left_join(col_feed) %>% 
-  left_join(col_grow) %>% left_join(col_calc) %>% left_join(col_mobi) %>% left_join(col_matu) %>% 
-  left_join(col_chem)
-
-## Start Plotting
-## 1st row – Low pH Conditions
-{hull_total               <- data_trait_occupancy %>% slice(chull(PC1, PC2)) 
-  data_trait_occupancy_low <- data_trait_occupancy %>% dplyr::filter(Low_presence > 0.1)
-  # Form
-  hull_form_partial <- data_trait_occupancy_low %>% group_by(form) %>% slice(chull(PC1, PC2)) 
-  Form_Low = ggplot(data_trait_occupancy_low, aes(x = PC1, y = PC2)) + theme_box() +
-    geom_polygon(data = hull_total, col = "black", fill = NA) + 
-    geom_polygon(data = hull_form_partial, aes(fill = form, col = form), alpha = 0.75) +
-    scale_colour_manual(values = unique(data_trait_occupancy_low$col_form)) +
-    scale_fill_manual(values = unique(data_trait_occupancy_low$col_form)) +
-    geom_point(aes(fill = form), color = "black", shape = 21, alpha = .5) +
-    scale_x_continuous(name = "") + scale_y_continuous(name = "") + guides(size = "none") +
-    theme(legend.position = "none")
-  # Feeding
-  hull_feeding_partial <- data_trait_occupancy_low %>% group_by(feeding) %>% slice(chull(PC1, PC2)) 
-  feeding_Low = ggplot(data_trait_occupancy_low, aes(x = PC1, y = PC2)) + theme_box() +
-    geom_polygon(data = hull_total, col = "black", fill = NA) + 
-    geom_polygon(data = hull_feeding_partial, aes(fill = feeding, col = feeding), alpha = 0.75) +
-    scale_colour_manual(values = unique(data_trait_occupancy_low$col_feed)) +
-    scale_fill_manual(values = unique(data_trait_occupancy_low$col_feed)) +
-    geom_point(aes(fill = feeding), color = "black", shape = 21, alpha = .5) +
-    scale_x_continuous(name = "") + scale_y_continuous(name = "") + guides(size = "none") +
-    theme(legend.position = "none")
-  # Growth
-  hull_growth_partial <- data_trait_occupancy_low %>% group_by(growth) %>% slice(chull(PC1, PC2)) 
-  growth_Low = ggplot(data_trait_occupancy_low, aes(x = PC1, y = PC2)) + theme_box() +
-    geom_polygon(data = hull_total, col = "black", fill = NA) + 
-    geom_polygon(data = hull_growth_partial, aes(fill = growth, col = growth), alpha = 0.75) +
-    scale_colour_manual(values = unique(data_trait_occupancy_low$col_grow)) +
-    scale_fill_manual(values = unique(data_trait_occupancy_low$col_grow)) +
-    geom_point(aes(fill = growth), color = "black", shape = 21, alpha = .5) +
-    scale_x_continuous(name = "") + scale_y_continuous(name = "") + guides(size = "none") +
-    theme(legend.position = "none")
-  # Calcification
-  hull_calcification_partial <- data_trait_occupancy_low %>% group_by(calcification) %>% slice(chull(PC1, PC2)) 
-  calcification_Low = ggplot(data_trait_occupancy_low, aes(x = PC1, y = PC2)) + theme_box() +
-    geom_polygon(data = hull_total, col = "black", fill = NA) + 
-    geom_polygon(data = hull_calcification_partial, aes(fill = calcification, col = calcification), alpha = 0.75) +
-    scale_colour_manual(values = unique(data_trait_occupancy_low$col_calc)) +
-    scale_fill_manual(values = unique(data_trait_occupancy_low$col_calc)) +
-    geom_point(aes(fill = calcification), color = "black", shape = 21, alpha = .5) +
-    scale_x_continuous(name = "") + scale_y_continuous(name = "") + guides(size = "none") +
-    theme(legend.position = "none")
-  # Mobility
-  hull_mobility_partial <- data_trait_occupancy_low %>% group_by(mobility) %>% slice(chull(PC1, PC2)) 
-  mobility_Low = ggplot(data_trait_occupancy_low, aes(x = PC1, y = PC2)) + theme_box() +
-    geom_polygon(data = hull_total, col = "black", fill = NA) + 
-    geom_polygon(data = hull_mobility_partial, aes(fill = mobility, col = mobility), alpha = 0.75) +
-    scale_colour_manual(values = unique(data_trait_occupancy_low$col_mobi)) +
-    scale_fill_manual(values = unique(data_trait_occupancy_low$col_mobi)) +
-    geom_point(aes(fill = mobility), color = "black", shape = 21, alpha = .5) +
-    scale_x_continuous(name = "") + scale_y_continuous(name = "") + guides(size = "none") +
-    theme(legend.position = "none")
-  # Age Repro Maturity
-  hull_agerepromaturity_partial <- data_trait_occupancy_low %>% group_by(agerepromaturity) %>% slice(chull(PC1, PC2)) 
-  agerepromaturity_Low = ggplot(data_trait_occupancy_low, aes(x = PC1, y = PC2)) + theme_box() +
-    geom_polygon(data = hull_total, col = "black", fill = NA) + 
-    geom_polygon(data = hull_agerepromaturity_partial, aes(fill = agerepromaturity, 
-                                                           col = agerepromaturity), alpha = 0.75) +
-    scale_colour_manual(values = unique(data_trait_occupancy_low$col_matu)) +
-    scale_fill_manual(values = unique(data_trait_occupancy_low$col_matu)) +
-    geom_point(aes(fill = agerepromaturity), color = "black", shape = 21, alpha = .5) +
-    scale_x_continuous(name = "") + scale_y_continuous(name = "") + guides(size = "none") +
-    theme(legend.position = "none")
-  # Chem
-  hull_chem_partial <- data_trait_occupancy_low %>% group_by(chem) %>% slice(chull(PC1, PC2)) 
-  Chem_Low = ggplot(data_trait_occupancy_low, aes(x = PC1, y = PC2)) + theme_box() +
-    geom_polygon(data = hull_total, col = "black", fill = NA) + 
-    geom_polygon(data = hull_chem_partial, aes(fill = chem, col = chem), alpha = 0.75) +
-    scale_colour_manual(values = unique(data_trait_occupancy_low$col_chem)) +
-    scale_fill_manual(values = unique(data_trait_occupancy_low$col_chem)) +
-    geom_point(aes(fill = chem), color = "black", shape = 21, alpha = .5) +
-    scale_x_continuous(name = "") + scale_y_continuous(name = "") + guides(size = "none") +
-    theme(legend.position = "none")}
-# 2nd row – Ambient pH Conditions
-{hull_total               <- data_trait_occupancy %>% slice(chull(PC1, PC2)) 
-  data_trait_occupancy_amb <- data_trait_occupancy %>% dplyr::filter(Amb_presence > 0.1)
-  # Form
-  hull_form_partial <- data_trait_occupancy_amb %>% group_by(form) %>% slice(chull(PC1, PC2)) 
-  Form_Amb = ggplot(data_trait_occupancy_amb, aes(x = PC1, y = PC2)) + theme_box() +
-    geom_polygon(data = hull_total, col = "black", fill = NA) + 
-    geom_polygon(data = hull_form_partial, aes(fill = form, col = form), alpha = 0.75) +
-    scale_colour_manual(values = unique(data_trait_occupancy_amb$col_form)) +
-    scale_fill_manual(values = unique(data_trait_occupancy_amb$col_form)) +
-    geom_point(aes(fill = form), color = "black", shape = 21, alpha = .5) +
-    scale_x_continuous(name = "") + scale_y_continuous(name = "") + guides(size = "none") +
-    ggtitle("Form") + theme(legend.position = "none")
-  # Feeding
-  hull_feeding_partial <- data_trait_occupancy_amb %>% group_by(feeding) %>% slice(chull(PC1, PC2)) 
-  feeding_Amb = ggplot(data_trait_occupancy_amb, aes(x = PC1, y = PC2)) + theme_box() +
-    geom_polygon(data = hull_total, col = "black", fill = NA) + 
-    geom_polygon(data = hull_feeding_partial, aes(fill = feeding, col = feeding), alpha = 0.75) +
-    scale_colour_manual(values = unique(data_trait_occupancy_amb$col_feed)) +
-    scale_fill_manual(values = unique(data_trait_occupancy_amb$col_feed)) +
-    geom_point(aes(fill = feeding), color = "black", shape = 21, alpha = .5) +
-    scale_x_continuous(name = "") + scale_y_continuous(name = "") + guides(size = "none") +
-    ggtitle("Feeding") + theme(legend.position = "none")
-  # Growth
-  hull_growth_partial <- data_trait_occupancy_amb %>% group_by(growth) %>% slice(chull(PC1, PC2)) 
-  growth_Amb = ggplot(data_trait_occupancy_amb, aes(x = PC1, y = PC2)) + theme_box() +
-    geom_polygon(data = hull_total, col = "black", fill = NA) + 
-    geom_polygon(data = hull_growth_partial, aes(fill = growth, col = growth), alpha = 0.75) +
-    scale_colour_manual(values = unique(data_trait_occupancy_amb$col_grow)) +
-    scale_fill_manual(values = unique(data_trait_occupancy_amb$col_grow)) +
-    geom_point(aes(fill = growth), color = "black", shape = 21, alpha = .5) +
-    scale_x_continuous(name = "") + scale_y_continuous(name = "") + guides(size = "none") +
-    ggtitle("Growth") + theme(legend.position = "none")
-  # Calcification
-  hull_calcification_partial <- data_trait_occupancy_amb %>% group_by(calcification) %>% slice(chull(PC1, PC2)) 
-  calcification_Amb = ggplot(data_trait_occupancy_amb, aes(x = PC1, y = PC2)) + theme_box() +
-    geom_polygon(data = hull_total, col = "black", fill = NA) + 
-    geom_polygon(data = hull_calcification_partial, aes(fill = calcification, col = calcification), alpha = 0.75) +
-    scale_colour_manual(values = unique(data_trait_occupancy_amb$col_calc)) +
-    scale_fill_manual(values = unique(data_trait_occupancy_amb$col_calc)) +
-    geom_point(aes(fill = calcification), color = "black", shape = 21, alpha = .5) +
-    scale_x_continuous(name = "") + scale_y_continuous(name = "") + guides(size = "none") +
-    ggtitle("Calcification") + theme(legend.position = "none")
-  # Mobility
-  hull_mobility_partial <- data_trait_occupancy_amb %>% group_by(mobility) %>% slice(chull(PC1, PC2)) 
-  mobility_Amb = ggplot(data_trait_occupancy_amb, aes(x = PC1, y = PC2)) + theme_box() +
-    geom_polygon(data = hull_total, col = "black", fill = NA) + 
-    geom_polygon(data = hull_mobility_partial, aes(fill = mobility, col = mobility), alpha = 0.75) +
-    scale_colour_manual(values = unique(data_trait_occupancy_amb$col_mobi)) +
-    scale_fill_manual(values = unique(data_trait_occupancy_amb$col_mobi)) +
-    geom_point(aes(fill = mobility), color = "black", shape = 21, alpha = .5) +
-    scale_x_continuous(name = "") + scale_y_continuous(name = "") + guides(size = "none") +
-    ggtitle("Mobility") + theme(legend.position = "none")
-  # Age Repro Maturity
-  hull_agerepromaturity_partial <- data_trait_occupancy_amb %>% group_by(agerepromaturity) %>% slice(chull(PC1, PC2)) 
-  agerepromaturity_Amb = ggplot(data_trait_occupancy_amb, aes(x = PC1, y = PC2)) + theme_box() +
-    geom_polygon(data = hull_total, col = "black", fill = NA) + 
-    geom_polygon(data = hull_agerepromaturity_partial, aes(fill = agerepromaturity, 
-                                                           col = agerepromaturity), alpha = 0.75) +
-    scale_colour_manual(values = unique(data_trait_occupancy_amb$col_matu)) +
-    scale_fill_manual(values = unique(data_trait_occupancy_amb$col_matu)) +
-    geom_point(aes(fill = agerepromaturity), color = "black", shape = 21, alpha = .5) +
-    scale_x_continuous(name = "") + scale_y_continuous(name = "") + guides(size = "none") +
-    ggtitle("Age reproductive maturity") + theme(legend.position = "none")
-  # Chem
-  hull_chem_partial <- data_trait_occupancy_amb %>% group_by(chem) %>% slice(chull(PC1, PC2)) 
-  Chem_Amb = ggplot(data_trait_occupancy_amb, aes(x = PC1, y = PC2)) + theme_box() +
-    geom_polygon(data = hull_total, col = "black", fill = NA) + 
-    geom_polygon(data = hull_chem_partial, aes(fill = chem, col = chem), alpha = 0.75) +
-    scale_colour_manual(values = unique(data_trait_occupancy_amb$col_chem)) +
-    scale_fill_manual(values = unique(data_trait_occupancy_amb$col_chem)) +
-    geom_point(aes(fill = chem), color = "black", shape = 21, alpha = .5) +
-    scale_x_continuous(name = "") + scale_y_continuous(name = "") + guides(size = "none") +
-    ggtitle("Chemical defenses") + theme(legend.position = "none")}
-
-## Statistics
-VTot = cxhull::cxhull(data_trait_occupancy[,8:11] %>% as.matrix())$volume
-# Low pH Conditions
-{# Form
-  df = data_trait_occupancy_low %>% dplyr::select(form, PC1, PC2, PC3, PC4) %>% group_split(form)
-  for (i in 1:4) {
-    if (nrow(df[[i]]) > 4) {volume_form_low[i] = (cxhull::cxhull(df[[i]][,2:5] %>% as.matrix()))$volume
-    } else {volume_form_low[i] = ((cxhull::cxhull(df[[i]][,2:3] %>% as.matrix()))$volume)^2}}
-  # Feeding
-  df = data_trait_occupancy_low %>% dplyr::select(feeding, PC1, PC2, PC3, PC4) %>% group_split(feeding)
-  for (i in 1:4) {
-    if (nrow(df[[i]]) > 4) {volume_feed_low[i] = (cxhull::cxhull(df[[i]][,2:5] %>% as.matrix()))$volume
-    } else if (nrow(df[[i]]) >= 3) {
-      volume_feed_low[i] = ((cxhull::cxhull(df[[i]][,2:3] %>% as.matrix()))$volume)^2}
-    else {volume_feed_low[i] = 0 }}
-  # Growth
-  df = data_trait_occupancy_low %>% dplyr::select(growth, PC1, PC2, PC3, PC4) %>% group_split(growth)
-  for (i in 1:3) {
-    if (nrow(df[[i]]) > 4) {volume_grow_low[i] = (cxhull::cxhull(df[[i]][,2:5] %>% as.matrix()))$volume
-    } else {volume_grow_low[i] = ((cxhull::cxhull(df[[i]][,2:3] %>% as.matrix()))$volume)^2}}
-  # Calcification
-  df = data_trait_occupancy_low %>% dplyr::select(calcification, PC1, PC2, PC3, PC4) %>% 
-    group_split(calcification)
-  for (i in 1:2) {
-    if (nrow(df[[i]]) > 4) {volume_calc_low[i] = (cxhull::cxhull(df[[i]][,2:5] %>% as.matrix()))$volume
-    } else {volume_calc_low[i] = ((cxhull::cxhull(df[[i]][,2:3] %>% as.matrix()))$volume)^2}}
-  # Mobility
-  df = data_trait_occupancy_low %>% dplyr::select(mobility, PC1, PC2, PC3, PC4) %>% 
-    group_split(mobility)
-  for (i in 1:2) {
-    if (nrow(df[[i]]) > 4) {volume_mobi_low[i] = (cxhull::cxhull(df[[i]][,2:5] %>% as.matrix()))$volume
-    } else {volume_mobi_low[i] = ((cxhull::cxhull(df[[i]][,2:3] %>% as.matrix()))$volume)^2}}
-  # Age Repro Maturity
-  df = data_trait_occupancy_low %>% dplyr::select(agerepromaturity, PC1, PC2, PC3, PC4) %>% 
-    group_split(agerepromaturity)
-  for (i in 1:2) {
-    if (nrow(df[[i]]) > 4) {volume_matu_low[i] = (cxhull::cxhull(df[[i]][,2:5] %>% as.matrix()))$volume
-    } else {volume_matu_low[i] = ((cxhull::cxhull(df[[i]][,2:3] %>% as.matrix()))$volume)^2}}
-  # Chem
-  df = data_trait_occupancy_low %>% dplyr::select(chem, PC1, PC2, PC3, PC4) %>% group_split(chem)
-  for (i in 1:2) {
-    if (nrow(df[[i]]) > 4) {volume_chem_low[i] = (cxhull::cxhull(df[[i]][,2:5] %>% as.matrix()))$volume
-    } else {volume_chem_low[i] = ((cxhull::cxhull(df[[i]][,2:3] %>% as.matrix()))$volume)^2}}}
-# Ambient pH Conditions
-{# Form
-  df = data_trait_occupancy_amb %>% dplyr::select(form, PC1, PC2, PC3, PC4) %>% group_split(form)
-  for (i in 1:4) {
-    if (nrow(df[[i]]) > 4) {volume_form_amb[i] = (cxhull::cxhull(df[[i]][,2:5] %>% as.matrix()))$volume
-    } else {volume_form_amb[i] = ((cxhull::cxhull(df[[i]][,2:3] %>% as.matrix()))$volume)^2}}
-  # Feeding
-  df = data_trait_occupancy_amb %>% dplyr::select(feeding, PC1, PC2, PC3, PC4) %>% group_split(feeding)
-  for (i in 1:5) {
-    if (nrow(df[[i]]) > 4) {volume_feed_amb[i] = (cxhull::cxhull(df[[i]][,2:5] %>% as.matrix()))$volume
-    } else if (nrow(df[[i]]) >= 3) {
-      volume_feed_amb[i] = ((cxhull::cxhull(df[[i]][,2:3] %>% as.matrix()))$volume)^2}
-    else {volume_feed_amb[i] = 0 }}
-  # Growth
-  df = data_trait_occupancy_amb %>% dplyr::select(growth, PC1, PC2, PC3, PC4) %>% group_split(growth)
-  for (i in 1:3) {
-    if (nrow(df[[i]]) > 4) {volume_grow_amb[i] = (cxhull::cxhull(df[[i]][,2:5] %>% as.matrix()))$volume
-    } else {volume_grow_amb[i] = ((cxhull::cxhull(df[[i]][,2:3] %>% as.matrix()))$volume)^2}}
-  # Calcification
-  df = data_trait_occupancy_amb %>% dplyr::select(calcification, PC1, PC2, PC3, PC4) %>% 
-    group_split(calcification)
-  for (i in 1:2) {
-    if (nrow(df[[i]]) > 4) {volume_calc_amb[i] = (cxhull::cxhull(df[[i]][,2:5] %>% as.matrix()))$volume
-    } else {volume_calc_amb[i] = ((cxhull::cxhull(df[[i]][,2:3] %>% as.matrix()))$volume)^2}}
-  # Mobility
-  df = data_trait_occupancy_amb %>% dplyr::select(mobility, PC1, PC2, PC3, PC4) %>% 
-    group_split(mobility)
-  for (i in 1:2) {
-    if (nrow(df[[i]]) > 4) {volume_mobi_amb[i] = (cxhull::cxhull(df[[i]][,2:5] %>% as.matrix()))$volume
-    } else {volume_mobi_amb[i] = ((cxhull::cxhull(df[[i]][,2:3] %>% as.matrix()))$volume)^2}}
-  # Age Repro Maturity
-  df = data_trait_occupancy_amb %>% dplyr::select(agerepromaturity, PC1, PC2, PC3, PC4) %>% 
-    group_split(agerepromaturity)
-  for (i in 1:2) {
-    if (nrow(df[[i]]) > 4) {volume_matu_amb[i] = (cxhull::cxhull(df[[i]][,2:5] %>% as.matrix()))$volume
-    } else {volume_matu_amb[i] = ((cxhull::cxhull(df[[i]][,2:3] %>% as.matrix()))$volume)^2}}
-  # Chem
-  df = data_trait_occupancy_amb %>% dplyr::select(chem, PC1, PC2, PC3, PC4) %>% group_split(chem)
-  for (i in 1:2) {
-    if (nrow(df[[i]]) > 4) {volume_chem_amb[i] = (cxhull::cxhull(df[[i]][,2:5] %>% as.matrix()))$volume
-    } else {volume_chem_amb[i] = ((cxhull::cxhull(df[[i]][,2:3] %>% as.matrix()))$volume)^2}}}
-
-# Table volume
-data_trait_occupancy <- data_trait_occupancy %>% drop_na()
-data_volume = data.frame(Traits = c(unique(data_trait_occupancy$form), 
-                                    unique(data_trait_occupancy$feeding), 
-                                    unique(data_trait_occupancy$growth), 
-                                    unique(data_trait_occupancy$calcification), 
-                                    unique(data_trait_occupancy$mobility), 
-                                    unique(data_trait_occupancy$agerepromaturity), 
-                                    unique(data_trait_occupancy$chem)),
-                         VAmb   = (c(volume_form_amb, volume_feed_amb, NA, volume_grow_amb, 
-                                     volume_calc_amb, volume_mobi_amb, volume_matu_amb, 
-                                     volume_chem_amb)) / VTot * 100,
-                         VLow   = (c(volume_form_low, volume_feed_low[c(1,2)], NA, 
-                                     volume_feed_low[3], NA, volume_feed_low[4], volume_grow_low, 
-                                     volume_calc_low, volume_mobi_low, volume_matu_low, 
-                                     volume_chem_low)) / VTot * 100)
-
-# Final plot
-# Low pH
-Low_occupancy_trait = Form_Low + feeding_Low + growth_Low + calcification_Low + mobility_Low + 
-  agerepromaturity_Low + Chem_Low + plot_layout(nrow = 1, widths = 7, heights = 1)
-Low_occupancy_trait = 
-  wrap_elements(grid::textGrob('Low pH',rot = 90, gp = grid::gpar(fontsize = 12, fontface = 'bold'))) +
-  Low_occupancy_trait + plot_layout(nrow = 1, widths = c(1,30), heights = 1)
-# Ambient pH
-Amb_occupancy_trait = Form_Amb + feeding_Amb + growth_Amb + calcification_Amb + mobility_Amb + 
-  agerepromaturity_Amb + Chem_Amb + plot_layout(ncol = 7, widths = 7, heights = 1)
-Amb_occupancy_trait = 
-  wrap_elements(grid::textGrob('Ambient pH',rot = 90, gp = grid::gpar(fontsize = 12, fontface = 'bold'))) +
-  Amb_occupancy_trait + plot_layout(nrow = 1, widths = c(1,30), heights = 1)
-# Plot combined
-(Fig_Trait_occupancy = (Amb_occupancy_trait / Low_occupancy_trait))
-
 # SCRIPT D ---------------------------------------------------------------------------------------------------------
 #### Making Supplementary Figures X --------------------------------------------------------------------------------
 
@@ -1590,9 +1590,7 @@ ggsave(mdsv3v4, filename = "Figure_S6B.png", path = dir_plot, device = "png", he
        width = 35, units = "cm", dpi = 300)
 ggsave(beta_cor_plot, filename = "Figure_S7.png", path = dir_plot, width = 4, height = 7.5)                   # S7
 ggsave(boxplot_beta, filename = "Figure_S8.png", path = dir_plot, width = 9, height = 5)                      # S8
-ggsave(Fig_Trait_occupancy, filename = "Figure_S9.png", path = dir_plot, device = "png", height = 15,         # S9
-       width = 50, units = "cm", dpi = 300)
-ggsave(boxplot, filename = "Figure_S10.png", path = dir_plot, device = "png", height = 35, width = 35,        # S10
+ggsave(boxplot, filename = "Figure_S9.png", path = dir_plot, device = "png", height = 35, width = 35,         # S9
        units = "cm", dpi = 300)
 for (t in names(fe_tr)) {  
   ggsave(plot_t_mod_pcover[[t]], filename = paste0("Figure_Sx_", t, "_.png"), path = dir_plot_trait,          # Sx
