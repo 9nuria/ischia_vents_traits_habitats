@@ -3,7 +3,7 @@
 ## Kroeker, Fiorenza Micheli, Alice Mirasole, Sebastien Villéger, Cinzia De Vittor, Valeriano Parravacini 
 ## *corresponding author. Email: nuria.teixido@imev-mer.fr; nuria.teixido@szn.it 
 
-rm(list=ls()) ; options(mc.cores = parallel::detectCores(), warn = - 1) ; #setwd("..")
+rm(list=ls()) ; options(mc.cores = parallel::detectCores(), warn = - 1) ; setwd("..")
 
 ## Loading packages and data ---------------------------------------------------------------------------------------
 
@@ -72,7 +72,7 @@ theme_box <- function (base_size = 11, base_family = "") {
           panel.grid.major = element_line(color = NA)) }
 
 # Number of iterations you desire
-n = 1 ; source(file.path(dir_scripts,"Lists_and_vectors.R"))
+n = 100 ; source(file.path(dir_scripts,"Lists_and_vectors.R"))
 
 ## Data preparation ------------------------------------------------------------------------------------------------
 # SCRIPT A ---------------------------------------------------------------------------------------------------------
