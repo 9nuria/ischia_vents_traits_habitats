@@ -3,7 +3,7 @@
 ## Kroeker, Fiorenza Micheli, Alice Mirasole, Sebastien Villéger, Cinzia De Vittor, Valeriano Parravacini 
 ## *corresponding author. Email: nuria.teixido@imev-mer.fr; nuria.teixido@szn.it 
 
-rm(list=ls()) ; options(mc.cores = parallel::detectCores(), warn = - 1) ; setwd("..")
+rm(list=ls()) ; options(mc.cores = parallel::detectCores(), warn = - 1) ; #setwd("..")
 
 ## Loading packages and data ---------------------------------------------------------------------------------------
 
@@ -72,7 +72,7 @@ theme_box <- function (base_size = 11, base_family = "") {
           panel.grid.major = element_line(color = NA)) }
 
 # Number of iterations you desire
-n = 100 ; source(file.path(dir_scripts,"Lists_and_vectors.R"))
+n = 1 ; source(file.path(dir_scripts,"Lists_and_vectors.R"))
 
 ## Data preparation ------------------------------------------------------------------------------------------------
 # SCRIPT A ---------------------------------------------------------------------------------------------------------
@@ -771,19 +771,19 @@ data_trait_occupancy <- data_trait_occupancy %>% bind_rows() %>% dplyr::select(.
 
 # Colors
 col_form  <- data.frame(form             = levels(data_trait_occupancy$form), 
-                        col_form         = c("#6F38C5", "#937DC2", "#C689C6", "#FFABE1"))
+                        col_form         = c("#8675A9", "#C3AED6", "#EFBBCF", "#FFD5CD"))
 col_feed  <- data.frame(feeding          = levels(data_trait_occupancy$feeding), 
-                        col_feed         = c("#25316D", "#002B5B", "#2B4865", "#256D85", "#4CACBC", "#81CACF"))
+                        col_feed         = c("#11324D", "#424874", "#6B7AA1", "#A6B1E1", "#DCD6F7", "#F4EEFF"))
 col_grow  <- data.frame(growth           = levels(data_trait_occupancy$growth), 
-                        col_grow         = c("#0096FF", "#00D7FF", "#72FFFF"))
+                        col_grow         = c("#6886C5", "#9ADCFF", "#C1EFFF"))
 col_calc  <- data.frame(calcification    = levels(data_trait_occupancy$calcification), 
-                        col_calc         = c("#367E18", "#7DCE13"))
+                        col_calc         = c("#8DB596", "#BEDBBB"))
 col_mobi  <- data.frame(mobility         = levels(data_trait_occupancy$mobility), 
-                        col_mobi         = c("#FFDE00", "#FFE898"))
+                        col_mobi         = c("#F2D388", "#FFF6BF"))
 col_matu  <- data.frame(agerepromaturity = levels(data_trait_occupancy$agerepromaturity), 
-                        col_matu         = c("#F57328", "#FFAE6D"))
+                        col_matu         = c("#F5B971", "#FDD998"))
 col_chem  <- data.frame(chem             = levels(data_trait_occupancy$chem), 
-                        col_chem          = c("#C21010", "#EB4747"))
+                        col_chem         = c("#FF8787", "#F8C4B4"))
 
 # Add new variables
 data_trait_occupancy <- data_trait_occupancy %>% left_join(col_form) %>% left_join(col_feed) %>% 
