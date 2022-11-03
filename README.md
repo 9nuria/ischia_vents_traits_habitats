@@ -13,7 +13,8 @@ This Github repository is structured as follows:
   - :file_folder: [``2 – elaborated data``](https://github.com/9nuria/ischia_vents_habitats/tree/main/data/2%20–%20data%20generated) which hosts the data built with this script
   - :file_folder: [``3 – model``](https://github.com/9nuria/ischia_vents_habitats/tree/main/data/3%20–%20model) which hosts the models built with this script
 - :file_folder: [``outputs``](https://github.com/9nuria/ischia_vents_habitats/tree/main/outputs) contains the following sub-folders
-  - :file_folder: [``plot``](https://github.com/9nuria/ischia_vents_habitats/tree/main/outputs/plot) which hosts the plots built with this script
+  - :file_folder: [``plot``](https://github.com/9nuria/ischia_vents_habitats/tree/main/outputs/plot) which hosts the raw plots built with this script
+  - :file_folder: [``main figures for journal``](https://github.com/9nuria/ischia_vents_habitats/tree/main/outputs/Main_Figures_Journal) which hosts the figures edited for publication
 
 This analyze has been launched with the following machine parameters
 
