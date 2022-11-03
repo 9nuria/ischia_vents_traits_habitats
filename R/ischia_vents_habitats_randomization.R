@@ -1282,7 +1282,7 @@ plot1 <- ggplot(form_data_predicted_viz, aes(x = pH, y = Cover, color = Conditio
   geom_rect(aes(xmin = which(levels(as.factor(pH)) == "low") - 0.5,
                 xmax = which(levels(as.factor(pH)) == "low") + 0.6, ymin = -Inf, ymax = Inf),
             fill = "#fdbb84", color = "NA", alpha = 0.05, inherit.aes = F) +
-  scale_color_manual(values= colors4b, name="", labels = c("Encrusting", "Filaments", "Massive", "Tree")) +
+  scale_color_manual(values= colors4b, name="", labels = c("Encrusting", "Filament", "Massive", "Tree")) +
   scale_y_continuous(name = "Cover (%)", limits = c(0,100), breaks = c(0, 25, 50, 75, 100)) +
   scale_x_discrete(name = "", labels = c("","")) + labs(title = "Morphological form") + theme_bw() +
   theme(plot.title = element_text(size = 14, hjust = 0.5), axis.title.x = element_blank()) +
@@ -1302,7 +1302,7 @@ plot2 <- ggplot(feed_data_predicted_viz, aes(x = pH, y = Cover, color = Conditio
                 xmax = which(levels(as.factor(pH)) == "low") + 0.6, ymin = -Inf, ymax = Inf),
             fill = "#fdbb84", color = "NA", alpha = 0.05, inherit.aes = F) +
   scale_color_manual(values = colors6, name = "", labels = c("Autotroph", "Filter feeder", "Herbivor/Grazer", 
-                                                             "Carnivor", "Detritivor", "Parasite")) +
+                                                             "Carnivore", "Detritivor", "Parasite")) +
   scale_y_continuous(name = "Cover (%)", limits = c(0,100), breaks = c(0, 25, 50, 75, 100)) +
   scale_x_discrete(name = "", labels = c("","")) + labs(title = "Feeding activity") + theme_bw() +
   theme(plot.title = element_text(size = 14, hjust = 0.5), axis.title.x = element_blank()) +
