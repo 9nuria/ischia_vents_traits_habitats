@@ -3,6 +3,8 @@
 ## Kroeker, Fiorenza Micheli, Alice Mirasole, Sebastien Villéger, Cinzia De Vittor, Valeriano Parravacini 
 ## *corresponding author. Email: nuria.teixido@imev-mer.fr; nuria.teixido@szn.it 
 
+## Code done by ...
+
 rm(list=ls()) ; options(mc.cores = parallel::detectCores(), warn = - 1) ; #setwd("..")
 
 ## Loading packages and data ---------------------------------------------------------------------------------------
@@ -72,7 +74,7 @@ theme_box <- function (base_size = 11, base_family = "") {
           panel.grid.major = element_line(color = NA)) }
 
 # Number of iterations you desire
-n = 1 ; source(file.path(dir_scripts,"Lists_and_vectors.R"))
+n = 100 ; source(file.path(dir_scripts,"Lists_and_vectors.R"))
 
 ## Data preparation ------------------------------------------------------------------------------------------------
 # SCRIPT A ---------------------------------------------------------------------------------------------------------
@@ -681,7 +683,7 @@ fig.fun.v1v2 <- ggplot(pcoa_fun, aes(x = V1, y = V2, group = condition, fill = c
   scale_fill_manual(values   = c("#93a1fa","#f7d305","#f5a511","#6478f5","#f78e0c","#3953f7","#f7560c","#0219ad")) +
   scale_shape_manual(values  = c(rep(21, 2), rep(24, 2), rep(22, 2), rep(23, 2))) + 
   labs(title = "B) Functional diversity", x = "V1", y = "V2") + scale_x_continuous(limits = c(-0.6, 0.6)) + 
-  scale_y_continuous(limits  = c(-0.4, 0.4)) + theme(legend.title = element_blank(), legend.position = "bottom")
+  scale_y_continuous(limits  = c(-0.4, 0.4)) + theme(legend.title = element_blank(), legend.position = "none")
 fig.tax.v1v2 <- ggplot(pcoa_taxo, aes(x = V1, y = V2, group = condition, fill = condition, color = condition, 
                                       shape = condition)) + theme_light(base_size = 20) + geom_point(size = 6) +
   scale_colour_manual(values = c("#93a1fa","#f7d305","#f5a511","#6478f5","#f78e0c","#3953f7","#f7560c","#0219ad")) +
@@ -689,7 +691,6 @@ fig.tax.v1v2 <- ggplot(pcoa_taxo, aes(x = V1, y = V2, group = condition, fill = 
   scale_shape_manual(values  = c(rep(21, 2), rep(24, 2), rep(22, 2), rep(23, 2))) + 
   labs(title = "A) Taxonomic diversity", x = "V1", y = "V2") + scale_x_continuous(limits = c(-0.6, 0.6)) + 
   scale_y_continuous(limits  = c(-0.5, 0.5)) + theme(legend.position='none')
-mdsv1v2 <- (fig.tax.v1v2/fig.fun.v1v2)
 
 # SCRIPT G ---------------------------------------------------------------------------------------------------------
 #### Making Figure 3 -----------------------------------------------------------------------------------------------
@@ -798,7 +799,7 @@ data_trait_occupancy <- data_trait_occupancy %>% left_join(col_form) %>% left_jo
   hull_form_partial <- data_trait_occupancy_low %>% group_by(form) %>% slice(chull(PC1, PC2)) 
   Form_Low = ggplot(data_trait_occupancy_low, aes(x = PC1, y = PC2)) + theme_box() +
     geom_polygon(data = hull_total, col = "black", fill = NA) + 
-    geom_polygon(data = hull_form_partial, aes(fill = form, col = form), alpha = 0.75) +
+    geom_polygon(data = hull_form_partial, aes(fill = form), col = "darkgrey", alpha = 0.75) +
     scale_colour_manual(values = unique(data_trait_occupancy_low$col_form)) +
     scale_fill_manual(values = unique(data_trait_occupancy_low$col_form)) +
     geom_point(aes(fill = form), color = "black", shape = 21, alpha = .5) +
@@ -808,7 +809,7 @@ data_trait_occupancy <- data_trait_occupancy %>% left_join(col_form) %>% left_jo
   hull_feeding_partial <- data_trait_occupancy_low %>% group_by(feeding) %>% slice(chull(PC1, PC2)) 
   feeding_Low = ggplot(data_trait_occupancy_low, aes(x = PC1, y = PC2)) + theme_box() +
     geom_polygon(data = hull_total, col = "black", fill = NA) + 
-    geom_polygon(data = hull_feeding_partial, aes(fill = feeding, col = feeding), alpha = 0.75) +
+    geom_polygon(data = hull_feeding_partial, aes(fill = feeding), col = "darkgrey", alpha = 0.75) +
     scale_colour_manual(values = unique(data_trait_occupancy_low$col_feed)) +
     scale_fill_manual(values = unique(data_trait_occupancy_low$col_feed)) +
     geom_point(aes(fill = feeding), color = "black", shape = 21, alpha = .5) +
@@ -818,7 +819,7 @@ data_trait_occupancy <- data_trait_occupancy %>% left_join(col_form) %>% left_jo
   hull_growth_partial <- data_trait_occupancy_low %>% group_by(growth) %>% slice(chull(PC1, PC2)) 
   growth_Low = ggplot(data_trait_occupancy_low, aes(x = PC1, y = PC2)) + theme_box() +
     geom_polygon(data = hull_total, col = "black", fill = NA) + 
-    geom_polygon(data = hull_growth_partial, aes(fill = growth, col = growth), alpha = 0.75) +
+    geom_polygon(data = hull_growth_partial, aes(fill = growth), col = "darkgrey", alpha = 0.75) +
     scale_colour_manual(values = unique(data_trait_occupancy_low$col_grow)) +
     scale_fill_manual(values = unique(data_trait_occupancy_low$col_grow)) +
     geom_point(aes(fill = growth), color = "black", shape = 21, alpha = .5) +
@@ -828,7 +829,7 @@ data_trait_occupancy <- data_trait_occupancy %>% left_join(col_form) %>% left_jo
   hull_calcification_partial <- data_trait_occupancy_low %>% group_by(calcification) %>% slice(chull(PC1, PC2)) 
   calcification_Low = ggplot(data_trait_occupancy_low, aes(x = PC1, y = PC2)) + theme_box() +
     geom_polygon(data = hull_total, col = "black", fill = NA) + 
-    geom_polygon(data = hull_calcification_partial, aes(fill = calcification, col = calcification), alpha = 0.75) +
+    geom_polygon(data = hull_calcification_partial, aes(fill = calcification), col = "darkgrey", alpha = 0.75) +
     scale_colour_manual(values = unique(data_trait_occupancy_low$col_calc)) +
     scale_fill_manual(values = unique(data_trait_occupancy_low$col_calc)) +
     geom_point(aes(fill = calcification), color = "black", shape = 21, alpha = .5) +
@@ -838,7 +839,7 @@ data_trait_occupancy <- data_trait_occupancy %>% left_join(col_form) %>% left_jo
   hull_mobility_partial <- data_trait_occupancy_low %>% group_by(mobility) %>% slice(chull(PC1, PC2)) 
   mobility_Low = ggplot(data_trait_occupancy_low, aes(x = PC1, y = PC2)) + theme_box() +
     geom_polygon(data = hull_total, col = "black", fill = NA) + 
-    geom_polygon(data = hull_mobility_partial, aes(fill = mobility, col = mobility), alpha = 0.75) +
+    geom_polygon(data = hull_mobility_partial, aes(fill = mobility), col = "darkgrey", alpha = 0.75) +
     scale_colour_manual(values = unique(data_trait_occupancy_low$col_mobi)) +
     scale_fill_manual(values = unique(data_trait_occupancy_low$col_mobi)) +
     geom_point(aes(fill = mobility), color = "black", shape = 21, alpha = .5) +
@@ -848,8 +849,7 @@ data_trait_occupancy <- data_trait_occupancy %>% left_join(col_form) %>% left_jo
   hull_agerepromaturity_partial <- data_trait_occupancy_low %>% group_by(agerepromaturity) %>% slice(chull(PC1, PC2)) 
   agerepromaturity_Low = ggplot(data_trait_occupancy_low, aes(x = PC1, y = PC2)) + theme_box() +
     geom_polygon(data = hull_total, col = "black", fill = NA) + 
-    geom_polygon(data = hull_agerepromaturity_partial, aes(fill = agerepromaturity, 
-                                                           col = agerepromaturity), alpha = 0.75) +
+    geom_polygon(data = hull_agerepromaturity_partial, aes(fill = agerepromaturity), col = "darkgrey", alpha = 0.75) +
     scale_colour_manual(values = unique(data_trait_occupancy_low$col_matu)) +
     scale_fill_manual(values = unique(data_trait_occupancy_low$col_matu)) +
     geom_point(aes(fill = agerepromaturity), color = "black", shape = 21, alpha = .5) +
@@ -859,7 +859,7 @@ data_trait_occupancy <- data_trait_occupancy %>% left_join(col_form) %>% left_jo
   hull_chem_partial <- data_trait_occupancy_low %>% group_by(chem) %>% slice(chull(PC1, PC2)) 
   Chem_Low = ggplot(data_trait_occupancy_low, aes(x = PC1, y = PC2)) + theme_box() +
     geom_polygon(data = hull_total, col = "black", fill = NA) + 
-    geom_polygon(data = hull_chem_partial, aes(fill = chem, col = chem), alpha = 0.75) +
+    geom_polygon(data = hull_chem_partial, aes(fill = chem), col = "darkgrey", alpha = 0.75) +
     scale_colour_manual(values = unique(data_trait_occupancy_low$col_chem)) +
     scale_fill_manual(values = unique(data_trait_occupancy_low$col_chem)) +
     geom_point(aes(fill = chem), color = "black", shape = 21, alpha = .5) +
@@ -872,7 +872,7 @@ data_trait_occupancy <- data_trait_occupancy %>% left_join(col_form) %>% left_jo
   hull_form_partial <- data_trait_occupancy_amb %>% group_by(form) %>% slice(chull(PC1, PC2)) 
   Form_Amb = ggplot(data_trait_occupancy_amb, aes(x = PC1, y = PC2)) + theme_box() +
     geom_polygon(data = hull_total, col = "black", fill = NA) + 
-    geom_polygon(data = hull_form_partial, aes(fill = form, col = form), alpha = 0.75) +
+    geom_polygon(data = hull_form_partial, aes(fill = form), col = "darkgrey", alpha = 0.75) +
     scale_colour_manual(values = unique(data_trait_occupancy_amb$col_form)) +
     scale_fill_manual(values = unique(data_trait_occupancy_amb$col_form)) +
     geom_point(aes(fill = form), color = "black", shape = 21, alpha = .5) +
@@ -882,7 +882,7 @@ data_trait_occupancy <- data_trait_occupancy %>% left_join(col_form) %>% left_jo
   hull_feeding_partial <- data_trait_occupancy_amb %>% group_by(feeding) %>% slice(chull(PC1, PC2)) 
   feeding_Amb = ggplot(data_trait_occupancy_amb, aes(x = PC1, y = PC2)) + theme_box() +
     geom_polygon(data = hull_total, col = "black", fill = NA) + 
-    geom_polygon(data = hull_feeding_partial, aes(fill = feeding, col = feeding), alpha = 0.75) +
+    geom_polygon(data = hull_feeding_partial, aes(fill = feeding), col = "darkgrey", alpha = 0.75) +
     scale_colour_manual(values = unique(data_trait_occupancy_amb$col_feed)) +
     scale_fill_manual(values = unique(data_trait_occupancy_amb$col_feed)) +
     geom_point(aes(fill = feeding), color = "black", shape = 21, alpha = .5) +
@@ -892,7 +892,7 @@ data_trait_occupancy <- data_trait_occupancy %>% left_join(col_form) %>% left_jo
   hull_growth_partial <- data_trait_occupancy_amb %>% group_by(growth) %>% slice(chull(PC1, PC2)) 
   growth_Amb = ggplot(data_trait_occupancy_amb, aes(x = PC1, y = PC2)) + theme_box() +
     geom_polygon(data = hull_total, col = "black", fill = NA) + 
-    geom_polygon(data = hull_growth_partial, aes(fill = growth, col = growth), alpha = 0.75) +
+    geom_polygon(data = hull_growth_partial, aes(fill = growth), col = "darkgrey", alpha = 0.75) +
     scale_colour_manual(values = unique(data_trait_occupancy_amb$col_grow)) +
     scale_fill_manual(values = unique(data_trait_occupancy_amb$col_grow)) +
     geom_point(aes(fill = growth), color = "black", shape = 21, alpha = .5) +
@@ -902,7 +902,7 @@ data_trait_occupancy <- data_trait_occupancy %>% left_join(col_form) %>% left_jo
   hull_calcification_partial <- data_trait_occupancy_amb %>% group_by(calcification) %>% slice(chull(PC1, PC2)) 
   calcification_Amb = ggplot(data_trait_occupancy_amb, aes(x = PC1, y = PC2)) + theme_box() +
     geom_polygon(data = hull_total, col = "black", fill = NA) + 
-    geom_polygon(data = hull_calcification_partial, aes(fill = calcification, col = calcification), alpha = 0.75) +
+    geom_polygon(data = hull_calcification_partial, aes(fill = calcification), col = "darkgrey", alpha = 0.75) +
     scale_colour_manual(values = unique(data_trait_occupancy_amb$col_calc)) +
     scale_fill_manual(values = unique(data_trait_occupancy_amb$col_calc)) +
     geom_point(aes(fill = calcification), color = "black", shape = 21, alpha = .5) +
@@ -912,7 +912,7 @@ data_trait_occupancy <- data_trait_occupancy %>% left_join(col_form) %>% left_jo
   hull_mobility_partial <- data_trait_occupancy_amb %>% group_by(mobility) %>% slice(chull(PC1, PC2)) 
   mobility_Amb = ggplot(data_trait_occupancy_amb, aes(x = PC1, y = PC2)) + theme_box() +
     geom_polygon(data = hull_total, col = "black", fill = NA) + 
-    geom_polygon(data = hull_mobility_partial, aes(fill = mobility, col = mobility), alpha = 0.75) +
+    geom_polygon(data = hull_mobility_partial, aes(fill = mobility), col = "darkgrey", alpha = 0.75) +
     scale_colour_manual(values = unique(data_trait_occupancy_amb$col_mobi)) +
     scale_fill_manual(values = unique(data_trait_occupancy_amb$col_mobi)) +
     geom_point(aes(fill = mobility), color = "black", shape = 21, alpha = .5) +
@@ -922,8 +922,7 @@ data_trait_occupancy <- data_trait_occupancy %>% left_join(col_form) %>% left_jo
   hull_agerepromaturity_partial <- data_trait_occupancy_amb %>% group_by(agerepromaturity) %>% slice(chull(PC1, PC2)) 
   agerepromaturity_Amb = ggplot(data_trait_occupancy_amb, aes(x = PC1, y = PC2)) + theme_box() +
     geom_polygon(data = hull_total, col = "black", fill = NA) + 
-    geom_polygon(data = hull_agerepromaturity_partial, aes(fill = agerepromaturity, 
-                                                           col = agerepromaturity), alpha = 0.75) +
+    geom_polygon(data = hull_agerepromaturity_partial, aes(fill = agerepromaturity), col = "darkgrey", alpha = 0.75) +
     scale_colour_manual(values = unique(data_trait_occupancy_amb$col_matu)) +
     scale_fill_manual(values = unique(data_trait_occupancy_amb$col_matu)) +
     geom_point(aes(fill = agerepromaturity), color = "black", shape = 21, alpha = .5) +
@@ -933,7 +932,7 @@ data_trait_occupancy <- data_trait_occupancy %>% left_join(col_form) %>% left_jo
   hull_chem_partial <- data_trait_occupancy_amb %>% group_by(chem) %>% slice(chull(PC1, PC2)) 
   Chem_Amb = ggplot(data_trait_occupancy_amb, aes(x = PC1, y = PC2)) + theme_box() +
     geom_polygon(data = hull_total, col = "black", fill = NA) + 
-    geom_polygon(data = hull_chem_partial, aes(fill = chem, col = chem), alpha = 0.75) +
+    geom_polygon(data = hull_chem_partial, aes(fill = chem), col = "darkgrey", alpha = 0.75) +
     scale_colour_manual(values = unique(data_trait_occupancy_amb$col_chem)) +
     scale_fill_manual(values = unique(data_trait_occupancy_amb$col_chem)) +
     geom_point(aes(fill = chem), color = "black", shape = 21, alpha = .5) +
@@ -1479,16 +1478,19 @@ fig.fun.v3v4 <- ggplot(pcoa_fun, aes(x = V3, y = V4, group = condition, fill = c
   scale_colour_manual(values = c("#93a1fa","#f7d305","#f5a511","#6478f5","#f78e0c","#3953f7","#f7560c","#0219ad")) +
   scale_fill_manual(values   = c("#93a1fa","#f7d305","#f5a511","#6478f5","#f78e0c","#3953f7","#f7560c","#0219ad")) +
   scale_shape_manual(values  = c(rep(21, 2), rep(24, 2), rep(22, 2), rep(23, 2))) + 
-  labs(title = "C) Functional diversity", x = "V3", y = "V4") + scale_x_continuous(limits = c(-0.25, 0.25)) + 
-  scale_y_continuous(limits  = c(-0.25, 0.25)) + theme(legend.title = element_blank(), legend.position = "bottom")
+  labs(title = "D) Functional diversity", x = "V3", y = "V4") + scale_x_continuous(limits = c(-0.6, 0.6)) + 
+  scale_y_continuous(limits  = c(-0.4, 0.4)) + theme(legend.title = element_blank(), legend.position = "bottom")
 fig.tax.v3v4 <- ggplot(pcoa_taxo, aes(x = V3, y = V4, group = condition, fill = condition, color = condition, 
                                       shape = condition)) + theme_light(base_size = 20) + geom_point(size = 6) +
   scale_colour_manual(values = c("#93a1fa","#f7d305","#f5a511","#6478f5","#f78e0c","#3953f7","#f7560c","#0219ad")) +
   scale_fill_manual(values   = c("#93a1fa","#f7d305","#f5a511","#6478f5","#f78e0c","#3953f7","#f7560c","#0219ad")) +
   scale_shape_manual(values  = c(rep(21, 2), rep(24, 2), rep(22, 2), rep(23, 2))) + 
-  labs(title = "D) Taxonomic diversity", x = "V3", y = "V4") + scale_x_continuous(limits = c(-0.5, 0.5)) + 
+  labs(title = "C) Taxonomic diversity", x = "V3", y = "V4") + scale_x_continuous(limits = c(-0.6, 0.6)) + 
   scale_y_continuous(limits  = c(-0.5, 0.5)) + theme(legend.position='none')
-mdsv3v4 <- (fig.tax.v3v4/fig.fun.v3v4)
+
+mds_top <- fig.tax.v1v2 + fig.tax.v3v4 
+mds_bot <- fig.fun.v1v2 + fig.fun.v3v4 + plot_layout(guides = "collect") & theme(legend.position = 'bottom')
+mds     <- mds_top / mds_bot + plot_layout(guides = "collect") & theme(legend.position = 'bottom')
 
 # SCRIPT C ---------------------------------------------------------------------------------------------------------
 #### Making Supplementary Figures S7 and S8 ------------------------------------------------------------------------
@@ -1584,10 +1586,8 @@ ggsave(Figure_5, filename = "Figure_5.png",  path = dir_plot, device="png", heig
 # Supplementary figures
 ggsave(FD_xy[[2]], filename = "Figure_S4.png", path = dir_plot, device = "png", width = 6,                    # S4
        height = 12)              
-ggsave(mdsv1v2, filename = "Figure_S6A.png", path = dir_plot, device = "png", height = 35, width = 35,        # S6A
+ggsave(mds, filename = "Figure_S6.png", path = dir_plot, device = "png", height = 35, width = 35,             # S6
        units = "cm", dpi = 300)
-ggsave(mdsv3v4, filename = "Figure_S6B.png", path = dir_plot, device = "png", height = 35,                    # S6B
-       width = 35, units = "cm", dpi = 300)
 ggsave(beta_cor_plot, filename = "Figure_S7.png", path = dir_plot, width = 4, height = 7.5)                   # S7
 ggsave(boxplot_beta, filename = "Figure_S8.png", path = dir_plot, width = 9, height = 5)                      # S8
 ggsave(boxplot, filename = "Figure_S9.png", path = dir_plot, device = "png", height = 35, width = 35,         # S9
