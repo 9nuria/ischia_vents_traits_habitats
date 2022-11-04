@@ -18,7 +18,7 @@ This Github repository is structured as follows:
   - :file_folder: [``main figures for journal``](https://github.com/9nuria/ischia_vents_habitats/tree/main/outputs/Main_Figures_Journal) which hosts the figures edited for publication
 
 :construction: [Temporary] Besides, the draft parts can be found here :
-- :scroll: [``Main text``](https://docs.google.com/document/d/19dQmJogld_zfeVn-PlFhylr4YOV3V9leLitA-roWJnY/edit)
+- :scroll: [``Main Text``](https://docs.google.com/document/d/19dQmJogld_zfeVn-PlFhylr4YOV3V9leLitA-roWJnY/edit)
 - :bar_chart: [``Main Figures``](https://docs.google.com/document/d/1CCsEoJ8hu2O83K_M-czgYDyJ9BlJ0SnR/edit)
 - :memo: [``Supplementary``](https://docs.google.com/document/d/13tBHacgPqnSYwwlGeU6BVpKVN0BQ4DKN/edit)
 
