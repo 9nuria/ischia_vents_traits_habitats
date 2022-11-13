@@ -5,7 +5,7 @@
 
 ## Code done by ...
 
-rm(list=ls()) ; options(mc.cores = parallel::detectCores(), warn = - 1) ; #setwd("..")
+rm(list=ls()) ; options(mc.cores = parallel::detectCores(), warn = - 1) ; setwd("..")
 
 ## Loading packages and data ---------------------------------------------------------------------------------------
 
