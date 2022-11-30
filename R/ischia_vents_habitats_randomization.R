@@ -3,7 +3,7 @@
 ## Kroeker, Fiorenza Micheli, Alice Mirasole, Sebastien Villéger, Cinzia De Vittor, Valeriano Parravacini 
 ## *corresponding author. Email: nuria.teixido@imev-mer.fr; nuria.teixido@szn.it 
 
-## Code done by ...
+## Code led by Jeremy Carlot, Sebastien Villeger, Valeriano Parravicini and Núria Teixidó
 
 rm(list=ls()) ; options(mc.cores = parallel::detectCores(), warn = - 1) ; setwd("..")
 
@@ -1412,18 +1412,16 @@ change_subdataset$FER_std  = sqrt(sub_data_change[[2]]$FER_std^2 + sub_data_chan
 change_subdataset$FDis_std = sqrt(sub_data_change[[2]]$FDis_std^2 + sub_data_change[[1]]$FDis_std^2)
 
 # Build the statistics dataset
-Cave = t(data_stat_FEs[2,c(1:2,4)] - data_stat_FEs[1,c(1:2,4)]) %>% data.frame() %>% rownames_to_column("Index_label")
+Cave = t((data_stat_FEs[2,c(1:2,4)] - data_stat_FEs[1,c(1:2,4)]) / data_stat_FEs[1,c(1:2,4)] * 100) %>% data.frame() %>% rownames_to_column("Index_label")
 colnames(Cave) = c("Index_label", "Index")
-Deep = t(data_stat_FEs[4,c(1:2,4)] - data_stat_FEs[3,c(1:2,4)]) %>% data.frame() %>% rownames_to_column("Index_label")
+Deep = t((data_stat_FEs[4,c(1:2,4)] - data_stat_FEs[3,c(1:2,4)]) / data_stat_FEs[3,c(1:2,4)] * 100) %>% data.frame() %>% rownames_to_column("Index_label")
 colnames(Deep) = c("Index_label", "Index")
-Reef = t(data_stat_FEs[6,c(1:2,4)] - data_stat_FEs[5,c(1:2,4)]) %>% data.frame() %>% rownames_to_column("Index_label")
+Reef = t((data_stat_FEs[6,c(1:2,4)] - data_stat_FEs[5,c(1:2,4)]) / data_stat_FEs[5,c(1:2,4)] * 100) %>% data.frame() %>% rownames_to_column("Index_label")
 colnames(Reef) = c("Index_label", "Index")
-Shal = t(data_stat_FEs[8,c(1:2,4)] - data_stat_FEs[7,c(1:2,4)]) %>% data.frame() %>% rownames_to_column("Index_label")
+Shal = t((data_stat_FEs[8,c(1:2,4)] - data_stat_FEs[7,c(1:2,4)]) / data_stat_FEs[7,c(1:2,4)] * 100) %>% data.frame() %>% rownames_to_column("Index_label")
 colnames(Shal) = c("Index_label", "Index")
 Stat_Change = data.frame(Habitat = rep(c('shallow_reef','cave','reef','deep_reef'), each = 3), 
                          rbind(Shal, Cave, Reef, Deep))
-Stat_Change$Index[which(Stat_Change$Index_label == "fdis")] = 
-  Stat_Change$Index[which(Stat_Change$Index_label == "fdis")] * 100
 
 # Vizualisation
 Stat_Change$Habitat = factor(Stat_Change$Habitat, levels = c('shallow_reef','cave','reef','deep_reef'))
@@ -1439,7 +1437,7 @@ Fig5sub1 = ggplot(Stat_Change) + geom_hline(yintercept = 0) +
   geom_point(aes(x = Index_label, y = Index, fill = Index), position = position_dodge(.7), 
              size = 7, shape = 21, color = "black") +
   coord_flip() + theme_bw() + labs(x = "", color = "") + 
-  scale_y_continuous(name = "Change in biodiversity", limits = c(-45, 45), breaks = seq(-40, 40, 20)) +
+  scale_y_continuous(name = "Change in biodiversity (%)", limits = c(-60, 60), breaks = seq(-60, 60, 30)) +
   scale_fill_gradientn(colours = color_gradient(10)) + scale_color_gradientn(colours = color_gradient(10)) +
   scale_x_discrete(labels = c("RS" = "Species richness", "FE" = "Functional entity\nrichness",
                               "fdis" = "Functional dispersion")) +
