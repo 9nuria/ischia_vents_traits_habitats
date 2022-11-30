@@ -1374,7 +1374,7 @@ Predation      <- data_trait[[3]] %>% dplyr::filter(., Condition == "d") %>% gro
 # Calcification
 Calcification  <- data_trait[[1]] %>% dplyr::filter(., Condition == "b") %>% group_by(Habitat, pH, Trait) %>% 
   summarize(., Cover = sum(Cover), std.error = mean(std.error), Q2.5 = sum(Q2.5), Q97.5 = sum(Q97.5))
-# Dataset functionning
+# Dataset functioning
 data_functions <- rbind(Habitat, Prim_Prod, Herbivory, Predation, Calcification) %>% data.frame() %>% 
   mutate(., Function = c(rep("Habitat Complexity", 8), rep("Primary Production", 8), rep("Herbivory", 8), 
                          rep("Predation", 8), rep("Calcification", 8))) %>% 
