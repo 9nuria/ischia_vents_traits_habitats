@@ -97,6 +97,12 @@ species_sumcover        <- vector("list", length = n)
 tab                     <- vector("list", length = n)       
 x.fun                   <- vector("list", length = n) 
 x.tax                   <- vector("list", length = n)
+bray_df                 <- vector("list", length = n)
+bray_df.sp              <- vector("list", length = n)
+divsp                   <- vector("list", length = n)
+beta_long_sp            <- vector("list", length = n)
+groupsp                 <- vector("list", length = n)
+modsp                   <- vector("list", length = n)
 
 # Empty vectors
 FE_C_amb        <- rep(NA, n) 

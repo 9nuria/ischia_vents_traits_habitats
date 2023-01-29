@@ -441,6 +441,64 @@ modtaxo[[Q]]        <- betadisper(beta_long_taxo[[Q]], groupt[[Q]], bias.adjust 
 anova(modtaxo[[Q]]) ; permutest(modtaxo[[Q]], permutations = 999) # ; plot(modtaxo[[Q]]) ; boxplot(modtaxo[[Q]])
 }
 
+# SCRIPT P ---------------------------------------------------------------------------------------------------------
+###### PERMANOVA Exploration #2 ------------------------------------------------------------------------------------
+# Script to quantify species richness difference looking with Bray-Curtis transformation 
+
+# Shallow reefs, species richness (Bray-Curtis)
+for (Q in 1:n) { 
+  bray_df[[Q]]        <- vegdist(quadrats_species_cover[[Q]], method="bray") %>% as.dist()
+  bray_df.sp[[Q]]     <- melt(as.matrix(bray_df[[Q]]), varnames = c("x1", "x2")) %>% dplyr::filter(value > 0) 
+  habitat             <- c("SRA",  "SRL")
+  quad                <- info[info$condition %in% habitat,]$Quadrats       
+  divsp[[Q]]          <- bray_df.sp[[Q]][bray_df.sp[[Q]]$x1 %in% quad,] 
+  divsp[[Q]]          <- divsp[[Q]][divsp[[Q]]$x2 %in% quad,] 
+  beta_long_sp[[Q]]   <- long_to_wide_distance(divsp[[Q]])
+  groupsp[[Q]]        <- sapply(labels(beta_long_sp[[Q]]), function(x) {info[info$Quadrats == x,]$condition})
+  modsp[[Q]]          <- betadisper(beta_long_sp[[Q]], groupsp[[Q]], bias.adjust = T)
+  print(anova(modsp[[Q]])$`Pr(>F)`)
+  permutest(modsp[[Q]], permutations = 999) ; #plot(modsp[[Q]]) ; boxplot(modsp[[Q]]) # Permutation test for F
+}
+
+# Cave, species richness (Bray-Curtis)
+for (Q in 1:n) { 
+  habitat             <- c("CA",  "CL")
+  quad                <- info[info$condition %in% habitat,]$Quadrats       
+  divsp[[Q]]          <- bray_df.sp[[Q]][bray_df.sp[[Q]]$x1 %in% quad,] 
+  divsp[[Q]]          <- divsp[[Q]][divsp[[Q]]$x2 %in% quad,] 
+  beta_long_sp[[Q]]   <- long_to_wide_distance(divsp[[Q]])
+  groupsp[[Q]]        <- sapply(labels(beta_long_sp[[Q]]), function(x) {info[info$Quadrats == x,]$condition})
+  modsp[[Q]]          <- betadisper(beta_long_sp[[Q]], groupsp[[Q]], bias.adjust = T)
+  print(anova(modsp[[Q]])$`Pr(>F)`)
+  permutest(modsp[[Q]], permutations = 999) ; #plot(modsp[[Q]]) ; boxplot(modsp[[Q]])  # ; plot(modf[[Q]]) ; boxplot(modf[[Q]])
+}
+
+# Reefs, species richness (Bray-Curtis)
+for (Q in 1:n) { 
+  habitat             <- c("RA",  "RL")
+  quad                <- info[info$condition %in% habitat,]$Quadrats       
+  divsp[[Q]]          <- bray_df.sp[[Q]][bray_df.sp[[Q]]$x1 %in% quad,] 
+  divsp[[Q]]          <- divsp[[Q]][divsp[[Q]]$x2 %in% quad,] 
+  beta_long_sp[[Q]]   <- long_to_wide_distance(divsp[[Q]])
+  groupsp[[Q]]        <- sapply(labels(beta_long_sp[[Q]]), function(x) {info[info$Quadrats == x,]$condition})
+  modsp[[Q]]          <- betadisper(beta_long_sp[[Q]], groupsp[[Q]], bias.adjust = T)
+  print(anova(modsp[[Q]])$`Pr(>F)`)
+  permutest(modsp[[Q]], permutations = 999) ; #plot(modsp[[Q]]) ; boxplot(modsp[[Q]])  # ; plot(modf[[Q]]) ; boxplot(modf[[Q]])
+}
+
+# Deep Reefs, species richness (Bray-Curtis)
+for (Q in 1:n) { 
+  habitat             <- c("CoA",  "CoL")
+  quad                <- info[info$condition %in% habitat,]$Quadrats       
+  divsp[[Q]]          <- bray_df.sp[[Q]][bray_df.sp[[Q]]$x1 %in% quad,] 
+  divsp[[Q]]          <- divsp[[Q]][divsp[[Q]]$x2 %in% quad,] 
+  beta_long_sp[[Q]]   <- long_to_wide_distance(divsp[[Q]])
+  groupsp[[Q]]        <- sapply(labels(beta_long_sp[[Q]]), function(x) {info[info$Quadrats == x,]$condition})
+  modsp[[Q]]          <- betadisper(beta_long_sp[[Q]], groupsp[[Q]], bias.adjust = T)
+  print(anova(modsp[[Q]])$`Pr(>F)`)
+  permutest(modsp[[Q]], permutations = 999) ; #plot(modsp[[Q]]) ; boxplot(modsp[[Q]])  # ; plot(modf[[Q]]) ; boxplot(modf[[Q]])
+}
+
 # SCRIPT I ---------------------------------------------------------------------------------------------------------
 ###### Functional statistics ---------------------------------------------------------------------------------------
 
