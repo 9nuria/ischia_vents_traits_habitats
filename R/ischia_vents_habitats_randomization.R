@@ -23,6 +23,7 @@ library(Rcpp)
 library(reshape2)
 library(tidyverse)
 library(vegan)
+library(ecole)
 
 # Directories
 dir_raw_data   <- "./data/1 – raw data"              # folder to load raw data 
@@ -443,61 +444,68 @@ anova(modtaxo[[Q]]) ; permutest(modtaxo[[Q]], permutations = 999) # ; plot(modta
 
 # SCRIPT P ---------------------------------------------------------------------------------------------------------
 ###### PERMANOVA Exploration #2 ------------------------------------------------------------------------------------
-# Script to quantify species richness difference looking with Bray-Curtis transformation 
+# Script to quantify species richness, FE & Fdis difference >> Figure S5
 
-# Shallow reefs, species richness (Bray-Curtis)
-for (Q in 1:n) { 
-  bray_df[[Q]]        <- vegdist(quadrats_species_cover[[Q]], method="bray") %>% as.dist()
-  bray_df.sp[[Q]]     <- melt(as.matrix(bray_df[[Q]]), varnames = c("x1", "x2")) %>% dplyr::filter(value > 0) 
-  habitat             <- c("SRA",  "SRL")
-  quad                <- info[info$condition %in% habitat,]$Quadrats       
-  divsp[[Q]]          <- bray_df.sp[[Q]][bray_df.sp[[Q]]$x1 %in% quad,] 
-  divsp[[Q]]          <- divsp[[Q]][divsp[[Q]]$x2 %in% quad,] 
-  beta_long_sp[[Q]]   <- long_to_wide_distance(divsp[[Q]])
-  groupsp[[Q]]        <- sapply(labels(beta_long_sp[[Q]]), function(x) {info[info$Quadrats == x,]$condition})
-  modsp[[Q]]          <- betadisper(beta_long_sp[[Q]], groupsp[[Q]], bias.adjust = T)
-  print(anova(modsp[[Q]])$`Pr(>F)`)
-  permutest(modsp[[Q]], permutations = 999) ; #plot(modsp[[Q]]) ; boxplot(modsp[[Q]]) # Permutation test for F
-}
+for (Q in 1:10) { # Block to 10 instead of n loops because it's taking a lot of memory use.
+  # Shallow reefs
+  habitat              <- c("SRA")
+  quad                 <- info[info$condition %in% habitat,]$Quadrats   
+  AOV_dataset_SRA[[Q]] <- quadrats_biodiv[[Q]][which (quadrats_biodiv[[Q]]$Quadrats %in% quad),]
+  habitat              <- c("SRL")
+  quad                 <- info[info$condition %in% habitat,]$Quadrats   
+  AOV_dataset_SRL[[Q]] <- quadrats_biodiv[[Q]][which (quadrats_biodiv[[Q]]$Quadrats %in% quad),]
+  # Cave
+  habitat              <- c("CA")
+  quad                 <- info[info$condition %in% habitat,]$Quadrats   
+  AOV_dataset_CA[[Q]]  <- quadrats_biodiv[[Q]][which (quadrats_biodiv[[Q]]$Quadrats %in% quad),]
+  habitat              <- c("CL")
+  quad                 <- info[info$condition %in% habitat,]$Quadrats   
+  AOV_dataset_CL[[Q]]  <- quadrats_biodiv[[Q]][which (quadrats_biodiv[[Q]]$Quadrats %in% quad),]
+  # Reefs
+  habitat              <- c("RA")
+  quad                 <- info[info$condition %in% habitat,]$Quadrats   
+  AOV_dataset_RA[[Q]]  <- quadrats_biodiv[[Q]][which (quadrats_biodiv[[Q]]$Quadrats %in% quad),]
+  habitat              <- c("RL")
+  quad                 <- info[info$condition %in% habitat,]$Quadrats   
+  AOV_dataset_RL[[Q]]  <- quadrats_biodiv[[Q]][which (quadrats_biodiv[[Q]]$Quadrats %in% quad),]
+  # Deep reefs
+  habitat              <- c("CoA")
+  quad                 <- info[info$condition %in% habitat,]$Quadrats   
+  AOV_dataset_CoA[[Q]] <- quadrats_biodiv[[Q]][which (quadrats_biodiv[[Q]]$Quadrats %in% quad),]
+  habitat              <- c("CoL")
+  quad                 <- info[info$condition %in% habitat,]$Quadrats   
+  AOV_dataset_CoL[[Q]] <- quadrats_biodiv[[Q]][which (quadrats_biodiv[[Q]]$Quadrats %in% quad),]
+  # General dataset
+  AOV_dataset[[Q]]     <- rbind(AOV_dataset_SRA[[Q]], AOV_dataset_SRL[[Q]], AOV_dataset_CA[[Q]], 
+                                AOV_dataset_CL[[Q]] , AOV_dataset_RA[[Q]] , AOV_dataset_RL[[Q]], 
+                                AOV_dataset_CoA[[Q]], AOV_dataset_CoL[[Q]])
+  euc_dist_sr[[Q]]     <- stats::dist(AOV_dataset[[Q]]$Nb_sp, method = "euclidean")
+  pairwise_sr[[Q]]     <- ecole::permanova_pairwise(x = euc_dist_sr[[Q]], 
+                                                    grp = AOV_dataset[[Q]]$condition, 
+                                                    permutations = 999)
+  pairwise_sr[[Q]]     <- pairwise_sr[[Q]][c(1,14,23,28),c(1,3,5)]
+  euc_dist_fe[[Q]]     <- stats::dist(AOV_dataset[[Q]]$FE_richness, method = "euclidean")
+  pairwise_fe[[Q]]     <- ecole::permanova_pairwise(x = euc_dist_fe[[Q]], 
+                                                    grp = AOV_dataset[[Q]]$condition, 
+                                                    permutations = 999)
+  pairwise_fe[[Q]]     <- pairwise_fe[[Q]][c(1,14,23,28),c(1,3,5)]
+  euc_dist_fdis[[Q]]   <- stats::dist(AOV_dataset[[Q]]$fdis, method = "euclidean")
+  pairwise_fdis[[Q]]   <- ecole::permanova_pairwise(x = euc_dist_fdis[[Q]], 
+                                                    grp = AOV_dataset[[Q]]$condition, 
+                                                    permutations = 999)
+  pairwise_fdis[[Q]]   <- pairwise_fdis[[Q]][c(1,14,23,28),c(1,3,5)]}
 
-# Cave, species richness (Bray-Curtis)
-for (Q in 1:n) { 
-  habitat             <- c("CA",  "CL")
-  quad                <- info[info$condition %in% habitat,]$Quadrats       
-  divsp[[Q]]          <- bray_df.sp[[Q]][bray_df.sp[[Q]]$x1 %in% quad,] 
-  divsp[[Q]]          <- divsp[[Q]][divsp[[Q]]$x2 %in% quad,] 
-  beta_long_sp[[Q]]   <- long_to_wide_distance(divsp[[Q]])
-  groupsp[[Q]]        <- sapply(labels(beta_long_sp[[Q]]), function(x) {info[info$Quadrats == x,]$condition})
-  modsp[[Q]]          <- betadisper(beta_long_sp[[Q]], groupsp[[Q]], bias.adjust = T)
-  print(anova(modsp[[Q]])$`Pr(>F)`)
-  permutest(modsp[[Q]], permutations = 999) ; #plot(modsp[[Q]]) ; boxplot(modsp[[Q]])  # ; plot(modf[[Q]]) ; boxplot(modf[[Q]])
-}
+# Species richness stats
+pairwise_sr            <- pairwise_sr %>% bind_rows() %>% group_by(pairs) %>% summarise_all(mean)
+pairwise_sr_general    <- adonis2(AOV_dataset[[1]]$Nb_sp ~ AOV_dataset[[1]]$condition, AOV_dataset[[1]])
 
-# Reefs, species richness (Bray-Curtis)
-for (Q in 1:n) { 
-  habitat             <- c("RA",  "RL")
-  quad                <- info[info$condition %in% habitat,]$Quadrats       
-  divsp[[Q]]          <- bray_df.sp[[Q]][bray_df.sp[[Q]]$x1 %in% quad,] 
-  divsp[[Q]]          <- divsp[[Q]][divsp[[Q]]$x2 %in% quad,] 
-  beta_long_sp[[Q]]   <- long_to_wide_distance(divsp[[Q]])
-  groupsp[[Q]]        <- sapply(labels(beta_long_sp[[Q]]), function(x) {info[info$Quadrats == x,]$condition})
-  modsp[[Q]]          <- betadisper(beta_long_sp[[Q]], groupsp[[Q]], bias.adjust = T)
-  print(anova(modsp[[Q]])$`Pr(>F)`)
-  permutest(modsp[[Q]], permutations = 999) ; #plot(modsp[[Q]]) ; boxplot(modsp[[Q]])  # ; plot(modf[[Q]]) ; boxplot(modf[[Q]])
-}
+# Functional richness stats
+pairwise_fe            <- pairwise_fe %>% bind_rows() %>% group_by(pairs) %>% summarise_all(mean)
+pairwise_fe_general    <- adonis2(AOV_dataset[[1]]$FE_richness ~ AOV_dataset[[1]]$condition, AOV_dataset[[1]])
 
-# Deep Reefs, species richness (Bray-Curtis)
-for (Q in 1:n) { 
-  habitat             <- c("CoA",  "CoL")
-  quad                <- info[info$condition %in% habitat,]$Quadrats       
-  divsp[[Q]]          <- bray_df.sp[[Q]][bray_df.sp[[Q]]$x1 %in% quad,] 
-  divsp[[Q]]          <- divsp[[Q]][divsp[[Q]]$x2 %in% quad,] 
-  beta_long_sp[[Q]]   <- long_to_wide_distance(divsp[[Q]])
-  groupsp[[Q]]        <- sapply(labels(beta_long_sp[[Q]]), function(x) {info[info$Quadrats == x,]$condition})
-  modsp[[Q]]          <- betadisper(beta_long_sp[[Q]], groupsp[[Q]], bias.adjust = T)
-  print(anova(modsp[[Q]])$`Pr(>F)`)
-  permutest(modsp[[Q]], permutations = 999) ; #plot(modsp[[Q]]) ; boxplot(modsp[[Q]])  # ; plot(modf[[Q]]) ; boxplot(modf[[Q]])
-}
+# Functional dispersion stats
+pairwise_fdis          <- pairwise_fdis %>% bind_rows() %>% group_by(pairs) %>% summarise_all(mean)
+pairwise_fdis_general  <- adonis2(AOV_dataset[[1]]$fdis ~ AOV_dataset[[1]]$condition, AOV_dataset[[1]])
 
 # SCRIPT I ---------------------------------------------------------------------------------------------------------
 ###### Functional statistics ---------------------------------------------------------------------------------------
@@ -830,17 +838,17 @@ data_trait_occupancy <- data_trait_occupancy %>% bind_rows() %>% dplyr::select(.
 
 # Colors
 col_form  <- data.frame(form             = levels(data_trait_occupancy$form), 
-                        col_form         = c("#8675A9", "#C3AED6", "#EFBBCF", "#FFD5CD"))
+                        col_form         = c("#D8F3DC", "#FFCDD2", "#F2D388", "#CC9966"))
 col_feed  <- data.frame(feeding          = levels(data_trait_occupancy$feeding), 
-                        col_feed         = c("#11324D", "#424874", "#6B7AA1", "#A6B1E1", "#DCD6F7", "#F4EEFF"))
+                        col_feed         = c("#D9ED92", "#FFCC99", "#9CCC65", "#CC9999", "#BCAAA4", "#F4EEFF"))
 col_grow  <- data.frame(growth           = levels(data_trait_occupancy$growth), 
-                        col_grow         = c("#6886C5", "#9ADCFF", "#C1EFFF"))
+                        col_grow         = c("#3F51B5", "#9ADCFF", "#BDBDBD"))
 col_calc  <- data.frame(calcification    = levels(data_trait_occupancy$calcification), 
                         col_calc         = c("#8DB596", "#BEDBBB"))
 col_mobi  <- data.frame(mobility         = levels(data_trait_occupancy$mobility), 
-                        col_mobi         = c("#F2D388", "#FFF6BF"))
+                        col_mobi         = c("#F6BD60", "#FFF6BF"))
 col_matu  <- data.frame(agerepromaturity = levels(data_trait_occupancy$agerepromaturity), 
-                        col_matu         = c("#F5B971", "#FDD998"))
+                        col_matu         = c("#6886C5", "#C1EFFF"))
 col_chem  <- data.frame(chem             = levels(data_trait_occupancy$chem), 
                         col_chem         = c("#FF8787", "#F8C4B4"))
 
@@ -855,6 +863,7 @@ data_trait_occupancy <- data_trait_occupancy %>% left_join(col_form) %>% left_jo
   data_trait_occupancy_low <- data_trait_occupancy %>% dplyr::filter(Low_presence > 0.1)
   # Form
   hull_form_partial <- data_trait_occupancy_low %>% group_by(form) %>% slice(chull(PC1, PC2)) 
+  data_trait_occupancy_low <- data_trait_occupancy_low %>% arrange(form)
   Form_Low = ggplot(data_trait_occupancy_low, aes(x = PC1, y = PC2)) + theme_box() +
     geom_polygon(data = hull_total, col = "black", fill = NA) + 
     geom_polygon(data = hull_form_partial, aes(fill = form), col = "darkgrey", alpha = 0.75) +
@@ -865,6 +874,7 @@ data_trait_occupancy <- data_trait_occupancy %>% left_join(col_form) %>% left_jo
     theme(legend.position = "none")
   # Feeding
   hull_feeding_partial <- data_trait_occupancy_low %>% group_by(feeding) %>% slice(chull(PC1, PC2)) 
+  data_trait_occupancy_low <- data_trait_occupancy_low %>% arrange(feeding)
   feeding_Low = ggplot(data_trait_occupancy_low, aes(x = PC1, y = PC2)) + theme_box() +
     geom_polygon(data = hull_total, col = "black", fill = NA) + 
     geom_polygon(data = hull_feeding_partial, aes(fill = feeding), col = "darkgrey", alpha = 0.75) +
@@ -875,6 +885,7 @@ data_trait_occupancy <- data_trait_occupancy %>% left_join(col_form) %>% left_jo
     theme(legend.position = "none")
   # Growth
   hull_growth_partial <- data_trait_occupancy_low %>% group_by(growth) %>% slice(chull(PC1, PC2)) 
+  data_trait_occupancy_low <- data_trait_occupancy_low %>% arrange(growth)
   growth_Low = ggplot(data_trait_occupancy_low, aes(x = PC1, y = PC2)) + theme_box() +
     geom_polygon(data = hull_total, col = "black", fill = NA) + 
     geom_polygon(data = hull_growth_partial, aes(fill = growth), col = "darkgrey", alpha = 0.75) +
@@ -885,6 +896,7 @@ data_trait_occupancy <- data_trait_occupancy %>% left_join(col_form) %>% left_jo
     theme(legend.position = "none")
   # Calcification
   hull_calcification_partial <- data_trait_occupancy_low %>% group_by(calcification) %>% slice(chull(PC1, PC2)) 
+  data_trait_occupancy_low <- data_trait_occupancy_low %>% arrange(calcification)
   calcification_Low = ggplot(data_trait_occupancy_low, aes(x = PC1, y = PC2)) + theme_box() +
     geom_polygon(data = hull_total, col = "black", fill = NA) + 
     geom_polygon(data = hull_calcification_partial, aes(fill = calcification), col = "darkgrey", alpha = 0.75) +
@@ -895,6 +907,7 @@ data_trait_occupancy <- data_trait_occupancy %>% left_join(col_form) %>% left_jo
     theme(legend.position = "none")
   # Mobility
   hull_mobility_partial <- data_trait_occupancy_low %>% group_by(mobility) %>% slice(chull(PC1, PC2)) 
+  data_trait_occupancy_low <- data_trait_occupancy_low %>% arrange(mobility)
   mobility_Low = ggplot(data_trait_occupancy_low, aes(x = PC1, y = PC2)) + theme_box() +
     geom_polygon(data = hull_total, col = "black", fill = NA) + 
     geom_polygon(data = hull_mobility_partial, aes(fill = mobility), col = "darkgrey", alpha = 0.75) +
@@ -905,6 +918,7 @@ data_trait_occupancy <- data_trait_occupancy %>% left_join(col_form) %>% left_jo
     theme(legend.position = "none")
   # Age Repro Maturity
   hull_agerepromaturity_partial <- data_trait_occupancy_low %>% group_by(agerepromaturity) %>% slice(chull(PC1, PC2)) 
+  data_trait_occupancy_low <- data_trait_occupancy_low %>% arrange(agerepromaturity)
   agerepromaturity_Low = ggplot(data_trait_occupancy_low, aes(x = PC1, y = PC2)) + theme_box() +
     geom_polygon(data = hull_total, col = "black", fill = NA) + 
     geom_polygon(data = hull_agerepromaturity_partial, aes(fill = agerepromaturity), col = "darkgrey", alpha = 0.75) +
@@ -915,6 +929,7 @@ data_trait_occupancy <- data_trait_occupancy %>% left_join(col_form) %>% left_jo
     theme(legend.position = "none")
   # Chem
   hull_chem_partial <- data_trait_occupancy_low %>% group_by(chem) %>% slice(chull(PC1, PC2)) 
+  data_trait_occupancy_low <- data_trait_occupancy_low %>% arrange(chem)
   Chem_Low = ggplot(data_trait_occupancy_low, aes(x = PC1, y = PC2)) + theme_box() +
     geom_polygon(data = hull_total, col = "black", fill = NA) + 
     geom_polygon(data = hull_chem_partial, aes(fill = chem), col = "darkgrey", alpha = 0.75) +
@@ -923,11 +938,13 @@ data_trait_occupancy <- data_trait_occupancy %>% left_join(col_form) %>% left_jo
     geom_point(aes(fill = chem), color = "black", shape = 21, alpha = .5) +
     scale_x_continuous(name = "") + scale_y_continuous(name = "") + guides(size = "none") +
     theme(legend.position = "none")}
+
 # 2nd row – Ambient pH Conditions
 {hull_total               <- data_trait_occupancy %>% slice(chull(PC1, PC2)) 
   data_trait_occupancy_amb <- data_trait_occupancy %>% dplyr::filter(Amb_presence > 0.1)
   # Form
   hull_form_partial <- data_trait_occupancy_amb %>% group_by(form) %>% slice(chull(PC1, PC2)) 
+  data_trait_occupancy_amb <- data_trait_occupancy_amb %>% arrange(form)
   Form_Amb = ggplot(data_trait_occupancy_amb, aes(x = PC1, y = PC2)) + theme_box() +
     geom_polygon(data = hull_total, col = "black", fill = NA) + 
     geom_polygon(data = hull_form_partial, aes(fill = form), col = "darkgrey", alpha = 0.75) +
@@ -938,6 +955,7 @@ data_trait_occupancy <- data_trait_occupancy %>% left_join(col_form) %>% left_jo
     ggtitle("Form") + theme(legend.position = "none")
   # Feeding
   hull_feeding_partial <- data_trait_occupancy_amb %>% group_by(feeding) %>% slice(chull(PC1, PC2)) 
+  data_trait_occupancy_amb <- data_trait_occupancy_amb %>% arrange(feeding)
   feeding_Amb = ggplot(data_trait_occupancy_amb, aes(x = PC1, y = PC2)) + theme_box() +
     geom_polygon(data = hull_total, col = "black", fill = NA) + 
     geom_polygon(data = hull_feeding_partial, aes(fill = feeding), col = "darkgrey", alpha = 0.75) +
@@ -948,6 +966,7 @@ data_trait_occupancy <- data_trait_occupancy %>% left_join(col_form) %>% left_jo
     ggtitle("Feeding") + theme(legend.position = "none")
   # Growth
   hull_growth_partial <- data_trait_occupancy_amb %>% group_by(growth) %>% slice(chull(PC1, PC2)) 
+  data_trait_occupancy_amb <- data_trait_occupancy_amb %>% arrange(growth)
   growth_Amb = ggplot(data_trait_occupancy_amb, aes(x = PC1, y = PC2)) + theme_box() +
     geom_polygon(data = hull_total, col = "black", fill = NA) + 
     geom_polygon(data = hull_growth_partial, aes(fill = growth), col = "darkgrey", alpha = 0.75) +
@@ -958,6 +977,7 @@ data_trait_occupancy <- data_trait_occupancy %>% left_join(col_form) %>% left_jo
     ggtitle("Growth") + theme(legend.position = "none")
   # Calcification
   hull_calcification_partial <- data_trait_occupancy_amb %>% group_by(calcification) %>% slice(chull(PC1, PC2)) 
+  data_trait_occupancy_amb <- data_trait_occupancy_amb %>% arrange(calcification)
   calcification_Amb = ggplot(data_trait_occupancy_amb, aes(x = PC1, y = PC2)) + theme_box() +
     geom_polygon(data = hull_total, col = "black", fill = NA) + 
     geom_polygon(data = hull_calcification_partial, aes(fill = calcification), col = "darkgrey", alpha = 0.75) +
@@ -968,6 +988,7 @@ data_trait_occupancy <- data_trait_occupancy %>% left_join(col_form) %>% left_jo
     ggtitle("Calcification") + theme(legend.position = "none")
   # Mobility
   hull_mobility_partial <- data_trait_occupancy_amb %>% group_by(mobility) %>% slice(chull(PC1, PC2)) 
+  data_trait_occupancy_amb <- data_trait_occupancy_amb %>% arrange(mobility)
   mobility_Amb = ggplot(data_trait_occupancy_amb, aes(x = PC1, y = PC2)) + theme_box() +
     geom_polygon(data = hull_total, col = "black", fill = NA) + 
     geom_polygon(data = hull_mobility_partial, aes(fill = mobility), col = "darkgrey", alpha = 0.75) +
@@ -978,6 +999,7 @@ data_trait_occupancy <- data_trait_occupancy %>% left_join(col_form) %>% left_jo
     ggtitle("Mobility") + theme(legend.position = "none")
   # Age Repro Maturity
   hull_agerepromaturity_partial <- data_trait_occupancy_amb %>% group_by(agerepromaturity) %>% slice(chull(PC1, PC2)) 
+  data_trait_occupancy_amb <- data_trait_occupancy_amb %>% arrange(agerepromaturity)
   agerepromaturity_Amb = ggplot(data_trait_occupancy_amb, aes(x = PC1, y = PC2)) + theme_box() +
     geom_polygon(data = hull_total, col = "black", fill = NA) + 
     geom_polygon(data = hull_agerepromaturity_partial, aes(fill = agerepromaturity), col = "darkgrey", alpha = 0.75) +
@@ -988,6 +1010,7 @@ data_trait_occupancy <- data_trait_occupancy %>% left_join(col_form) %>% left_jo
     ggtitle("Age reproductive maturity") + theme(legend.position = "none")
   # Chem
   hull_chem_partial <- data_trait_occupancy_amb %>% group_by(chem) %>% slice(chull(PC1, PC2)) 
+  data_trait_occupancy_amb <- data_trait_occupancy_amb %>% arrange(chem)
   Chem_Amb = ggplot(data_trait_occupancy_amb, aes(x = PC1, y = PC2)) + theme_box() +
     geom_polygon(data = hull_total, col = "black", fill = NA) + 
     geom_polygon(data = hull_chem_partial, aes(fill = chem), col = "darkgrey", alpha = 0.75) +
@@ -1084,20 +1107,27 @@ VTot = cxhull::cxhull(data_trait_occupancy[,8:11] %>% as.matrix())$volume
 
 # Table volume
 data_trait_occupancy <- data_trait_occupancy %>% drop_na()
-data_volume = data.frame(Traits = c(unique(data_trait_occupancy$form), 
-                                    unique(data_trait_occupancy$feeding), 
-                                    unique(data_trait_occupancy$growth), 
-                                    unique(data_trait_occupancy$calcification), 
-                                    unique(data_trait_occupancy$mobility), 
-                                    unique(data_trait_occupancy$agerepromaturity), 
-                                    unique(data_trait_occupancy$chem)),
-                         VAmb   = (c(volume_form_amb, volume_feed_amb, NA, volume_grow_amb, 
-                                     volume_calc_amb, volume_mobi_amb, volume_matu_amb, 
-                                     volume_chem_amb)) / VTot * 100,
-                         VLow   = (c(volume_form_low, volume_feed_low[c(1,2)], NA, 
-                                     volume_feed_low[3], NA, volume_feed_low[4], volume_grow_low, 
-                                     volume_calc_low, volume_mobi_low, volume_matu_low, 
-                                     volume_chem_low)) / VTot * 100)
+data_volume = data.frame(Code     = c(unique(data_trait_occupancy$form), 
+                                      unique(data_trait_occupancy$feeding), 
+                                      unique(data_trait_occupancy$growth), 
+                                      unique(data_trait_occupancy$calcification), 
+                                      unique(data_trait_occupancy$mobility), 
+                                      unique(data_trait_occupancy$agerepromaturity), 
+                                      unique(data_trait_occupancy$chem)),
+                         Category = c(rep("Form", 4), rep("Feeding", 6), rep("Growth", 3),
+                                      rep("Calcification", 2), rep("Mobility", 2), rep("AgeRepro", 2),
+                                      rep("Chem_Def", 2)),
+                         Trait.   = c("Encrusting", "Filaments", "Massive", "Tree", "Autotrophs",
+                                      "Filters", "Carnivors", "Grazers", "Detritivors", "Parasites",
+                                      "Low", "Moderate", "High", "Non-calcifyers", "calcifyers",
+                                      "Sessile", "Mobile", "lower_1yr", "higher_1yr", "No", "Yes"),
+                         VAmb     = round(c(volume_form_amb, volume_feed_amb, NA, volume_grow_amb, 
+                                            volume_calc_amb, volume_mobi_amb, volume_matu_amb, 
+                                            volume_chem_amb) / VTot,3),
+                         VLow     = round(c(volume_form_low, volume_feed_low[c(1,2)], NA, 
+                                            volume_feed_low[3], NA, volume_feed_low[4], volume_grow_low, 
+                                            volume_calc_low, volume_mobi_low, volume_matu_low, 
+                                            volume_chem_low) / VTot,3))
 
 # Final plot
 # Low pH
