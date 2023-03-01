@@ -2,4 +2,6 @@
 .Rhistory
 .RData
 .Ruserdata
-echo .DS_Store >> .gitignore
+.DS_Store
+draft/
+R/Preliminary scripts/

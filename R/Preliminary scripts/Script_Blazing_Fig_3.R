@@ -35,7 +35,7 @@ long_to_wide_distance <- function (df) {             # function to convert dista
 
 # Raw data
 sites_quadrats_info <- read.csv(file.path(dir_raw_data,"Sites_Quadrats.csv"))
-sp_tr               <- read.csv(file.path(dir_raw_data,"species_traits.csv"))
+sp_tr               <- read.csv(file.path(dir_raw_data,"species_traits.csv"), sep = ";")
 dat_cast            <- read.csv(file.path(dir_raw_data,"Data_Cover_tCastello.csv")) %>% 
   pivot_longer(cols = ! X, names_to = "species" , values_to = "cover")
 dat_cora            <- read.csv(file.path(dir_raw_data,"Data_Cover_tCoralligenous.csv")) %>% 
@@ -660,7 +660,9 @@ VTot = cxhull::cxhull(data_trait_occupancy[,8:11] %>% as.matrix())$volume
   df = data_trait_occupancy_low %>% dplyr::select(form, PC1, PC2, PC3, PC4) %>% group_split(form)
   for (i in 1:4) {
     if (nrow(df[[i]]) > 4) {volume_form_low[i] = (cxhull::cxhull(df[[i]][,2:5] %>% as.matrix()))$volume
-    } else {volume_form_low[i] = ((cxhull::cxhull(df[[i]][,2:3] %>% as.matrix()))$volume)^2}}
+    } else if (nrow(df[[i]]) >= 3) {
+      volume_form_low[i] = ((cxhull::cxhull(df[[i]][,2:3] %>% as.matrix()))$volume)^2}
+    else {volume_form_low[i] = 0 }}
   # Feeding
   df = data_trait_occupancy_low %>% dplyr::select(feeding, PC1, PC2, PC3, PC4) %>% group_split(feeding)
   for (i in 1:4) {
@@ -701,7 +703,9 @@ VTot = cxhull::cxhull(data_trait_occupancy[,8:11] %>% as.matrix())$volume
   df = data_trait_occupancy_amb %>% dplyr::select(form, PC1, PC2, PC3, PC4) %>% group_split(form)
   for (i in 1:4) {
     if (nrow(df[[i]]) > 4) {volume_form_amb[i] = (cxhull::cxhull(df[[i]][,2:5] %>% as.matrix()))$volume
-    } else {volume_form_amb[i] = ((cxhull::cxhull(df[[i]][,2:3] %>% as.matrix()))$volume)^2}}
+    } else if (nrow(df[[i]]) >= 3) {
+      volume_form_amb[i] = ((cxhull::cxhull(df[[i]][,2:3] %>% as.matrix()))$volume)^2}
+    else {volume_form_amb[i] = 0 }}
   # Feeding
   df = data_trait_occupancy_amb %>% dplyr::select(feeding, PC1, PC2, PC3, PC4) %>% group_split(feeding)
   for (i in 1:5) {
