@@ -5,7 +5,7 @@
 
 ## Code led by Jeremy Carlot, Sebastien Villeger, Valeriano Parravicini and Núria Teixidó
 
-rm(list=ls()) ; options(mc.cores = parallel::detectCores(), warn = - 1) ; setwd("..")
+rm(list=ls()) ; options(mc.cores = parallel::detectCores(), warn = - 1) ; #setwd("..")
 
 ## Loading packages and data ---------------------------------------------------------------------------------------
 
@@ -1463,13 +1463,16 @@ Herbivory      <- data_trait[[3]] %>% dplyr::filter(., Condition == "c") %>% gro
 # Predation
 Predation      <- data_trait[[3]] %>% dplyr::filter(., Condition == "d") %>% group_by(Habitat, pH, Trait) %>% 
   summarize(., Cover = sum(Cover), std.error = mean(std.error), Q2.5 = sum(Q2.5), Q97.5 = sum(Q97.5))
+# Filter Feeders
+Filters        <- data_trait[[3]] %>% dplyr::filter(., Condition == "b") %>% group_by(Habitat, pH, Trait) %>% 
+  summarize(., Cover = sum(Cover), std.error = mean(std.error), Q2.5 = sum(Q2.5), Q97.5 = sum(Q97.5))
 # Calcification
 Calcification  <- data_trait[[1]] %>% dplyr::filter(., Condition == "b") %>% group_by(Habitat, pH, Trait) %>% 
   summarize(., Cover = sum(Cover), std.error = mean(std.error), Q2.5 = sum(Q2.5), Q97.5 = sum(Q97.5))
 # Dataset functioning
-data_functions <- rbind(Habitat, Prim_Prod, Herbivory, Predation, Calcification) %>% data.frame() %>% 
-  mutate(., Function = c(rep("Habitat Complexity", 8), rep("Primary Production", 8), rep("Herbivory", 8), 
-                         rep("Predation", 8), rep("Calcification", 8))) %>% 
+data_functions <- rbind(Habitat, Prim_Prod, Herbivory, Filters, Calcification) %>% data.frame() %>% 
+  mutate(., Function = c(rep("Canopy-forming species", 8), rep("Autotrophs", 8), rep("Herbivores/Grazers", 8), 
+                         rep("Filter feeders", 8), rep("Calcifiers", 8))) %>% 
   dplyr::select(Function, Habitat, pH, Cover, std.error, Q2.5, Q97.5) 
 
 # Quantify the difference between Low and ambient
@@ -1540,12 +1543,19 @@ Fig5sub1 = ggplot(Stat_Change) + geom_hline(yintercept = 0) +
         panel.grid.major.y = element_blank(), panel.grid.minor.y = element_blank())    
 
 color_gradient <- colorRampPalette(c("red4", "brown3", "brown1", "skyblue1", "skyblue2", "steelblue1", "royalblue3"))
+
+
+Function_Change$Function = ordered()
+  
 Fig5sub2 = ggplot(Function_Change) + geom_hline(yintercept = 0) + 
   facet_wrap(~Habitat, ncol = 4, labeller = labeller(Habitat = c("shallow_reef" = "", "cave" = "", 
                                                                  "reef" = "", "deep_reef" = ""))) +
-  geom_segment(aes(x = Function, xend = Function, y = 0, yend = Cover, color = Cover), 
+  geom_segment(aes(x = factor(Function, level=c("Calcifiers", "Canopy-forming species", "Herbivores/Grazers", "Filter feeders", "Autotrophs")), 
+                   xend = factor(Function, level=c("Calcifiers", "Canopy-forming species", "Herbivores/Grazers", "Filter feeders", "Autotrophs")), 
+                   y = 0, yend = Cover, color = Cover), 
                position = position_dodge(.7), size = 2, linetype = 1) +
-  geom_point(aes(x = Function, y = Cover, fill = Cover), position = position_dodge(.7), 
+  geom_point(aes(x = factor(Function, level=c("Calcifiers", "Canopy-forming species", "Herbivores/Grazers", "Filter feeders", "Autotrophs")), 
+                 y = Cover, fill = Cover), position = position_dodge(.7), 
              size = 7, shape = 21, color = "black") +
   coord_flip() + theme_bw() + labs(x = "", color = "") + 
   scale_y_continuous(name = "Change in cover (%)", limits = c(-43, 43), breaks = c(-25, 0, 25)) +
