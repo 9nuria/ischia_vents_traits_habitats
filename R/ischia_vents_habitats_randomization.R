@@ -1519,8 +1519,8 @@ Stat_Change = data.frame(Habitat = rep(c('shallow_reef','cave','reef','deep_reef
                          rbind(Shal, Cave, Reef, Deep))
 
 # Vizualisation
-Stat_Change$Habitat = factor(Stat_Change$Habitat, levels = c('shallow_reef','cave','reef','deep_reef'))
-Function_Change$Habitat = factor(Function_Change$Habitat, levels = c('shallow_reef','cave','reef','deep_reef'))
+Stat_Change$Habitat = factor(Stat_Change$Habitat, levels = rev(c('shallow_reef','cave','reef','deep_reef')))
+Function_Change$Habitat = factor(Function_Change$Habitat, levels = rev(c('shallow_reef','cave','reef','deep_reef')))
 color_gradient <- colorRampPalette(c("red4", "brown3", "brown1", "skyblue2", "royalblue3"))
 plot(rep(1,1000),col=color_gradient(1000),pch=19,cex=3) # Viz palette
 
@@ -1543,20 +1543,14 @@ Fig5sub1 = ggplot(Stat_Change) + geom_hline(yintercept = 0) +
         panel.grid.major.y = element_blank(), panel.grid.minor.y = element_blank())    
 
 color_gradient <- colorRampPalette(c("red4", "brown3", "brown1", "skyblue1", "skyblue2", "steelblue1", "royalblue3"))
-
-
-Function_Change$Function = ordered()
   
-Fig5sub2 = ggplot(Function_Change) + geom_hline(yintercept = 0) + 
+Fig5sub2 = Function_Change %>%
+  mutate(Function = fct_relevel(Function, "Calcifiers", "Canopy-forming species", "Herbivores/Grazers", "Filter feeders", "Autotrophs")) %>%
+  ggplot() + geom_hline(yintercept = 0) + 
   facet_wrap(~Habitat, ncol = 4, labeller = labeller(Habitat = c("shallow_reef" = "", "cave" = "", 
                                                                  "reef" = "", "deep_reef" = ""))) +
-  geom_segment(aes(x = factor(Function, level=c("Calcifiers", "Canopy-forming species", "Herbivores/Grazers", "Filter feeders", "Autotrophs")), 
-                   xend = factor(Function, level=c("Calcifiers", "Canopy-forming species", "Herbivores/Grazers", "Filter feeders", "Autotrophs")), 
-                   y = 0, yend = Cover, color = Cover), 
-               position = position_dodge(.7), size = 2, linetype = 1) +
-  geom_point(aes(x = factor(Function, level=c("Calcifiers", "Canopy-forming species", "Herbivores/Grazers", "Filter feeders", "Autotrophs")), 
-                 y = Cover, fill = Cover), position = position_dodge(.7), 
-             size = 7, shape = 21, color = "black") +
+  geom_segment(aes(x = Function, xend = Function, y = 0, yend = Cover, color = Cover), position = position_dodge(.7), size = 2, linetype = 1) +
+  geom_point(aes(x = Function, y = Cover, fill = Cover), position = position_dodge(.7), size = 7, shape = 21, color = "black") +
   coord_flip() + theme_bw() + labs(x = "", color = "") + 
   scale_y_continuous(name = "Change in cover (%)", limits = c(-43, 43), breaks = c(-25, 0, 25)) +
   scale_fill_gradientn(colours = color_gradient(100)) + scale_color_gradientn(colours = color_gradient(100)) +
