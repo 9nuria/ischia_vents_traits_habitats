@@ -1532,7 +1532,7 @@ Fig5sub1 = ggplot(Stat_Change) + geom_hline(yintercept = 0) +
   geom_point(aes(x = Index_label, y = Index, fill = Index), position = position_dodge(.7), 
              size = 7, shape = 21, color = "black") +
   coord_flip() + theme_bw() + labs(x = "", color = "") + 
-  scale_y_continuous(name = "Change in biodiversity (%)", limits = c(-60, 60), breaks = seq(-60, 60, 30)) +
+  scale_y_continuous(name = "Change in biodiversity (%)", limits = c(-62, 62), breaks = seq(-60, 60, 30)) +
   scale_fill_gradientn(colours = color_gradient(10)) + scale_color_gradientn(colours = color_gradient(10)) +
   scale_x_discrete(labels = c("RS" = "Species richness", "FE" = "Functional entity\nrichness",
                               "fdis" = "Functional dispersion")) +
