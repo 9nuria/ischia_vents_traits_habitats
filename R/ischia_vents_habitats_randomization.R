@@ -5,7 +5,7 @@
 
 ## Code led by Jeremy Carlot, Sebastien Villeger, Valeriano Parravicini and Núria Teixidó
 
-rm(list=ls()) ; options(mc.cores = parallel::detectCores(), warn = - 1) ; #setwd("..")
+rm(list=ls()) ; options(mc.cores = parallel::detectCores(), warn = - 1) ; setwd("..")
 
 ## Loading packages and data ---------------------------------------------------------------------------------------
 
@@ -90,6 +90,16 @@ habph <- unique(sites_quadrats_info$habitat_ph) # 12 levels
 
 # Number of quadrats per habitat_pH
 (habph_nbquadrats <- sites_quadrats_info %>% group_by(habitat_ph) %>% summarize(Ntot=n())) # highly variable (12–54)
+
+## Main raw documents ----------------------------------------------------------------------------------------------
+# SCRIPT Q ---------------------------------------------------------------------------------------------------------
+
+raw_data <- rbind(dat_cast, dat_cora, dat_chia, dat_cave) %>% data.frame()
+# Define number of species observed
+raw_pst    <- raw_data %>% dplyr::filter(cover > 0)
+sp_raw     <- unique(raw_pst$species) %>% data.frame() # 225 species observed
+# Remove species without traits information
+sp_to_keep <- sp_raw$.[sp_raw$. %in% sp_tr$Species]    # 215 species observed
 
 ## Testing the difference between ambient sites --------------------------------------------------------------------
 # SCRIPT N ---------------------------------------------------------------------------------------------------------
