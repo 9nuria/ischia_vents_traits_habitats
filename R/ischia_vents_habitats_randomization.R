@@ -100,6 +100,8 @@ raw_pst    <- raw_data %>% dplyr::filter(cover > 0)
 sp_raw     <- unique(raw_pst$species) %>% data.frame() # 225 species observed
 # Remove species without traits information
 sp_to_keep <- sp_raw$.[sp_raw$. %in% sp_tr$Species]    # 215 species observed
+# Number of observations
+raw_pstobs <- raw_data %>% dplyr::filter(species %in% sp_tr$Species, cover > 0)
 
 ## Testing the difference between ambient sites --------------------------------------------------------------------
 # SCRIPT N ---------------------------------------------------------------------------------------------------------
