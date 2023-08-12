@@ -94,14 +94,15 @@ habph <- unique(sites_quadrats_info$habitat_ph) # 12 levels
 ## Main raw documents ----------------------------------------------------------------------------------------------
 # SCRIPT Q ---------------------------------------------------------------------------------------------------------
 
-raw_data <- rbind(dat_cast, dat_cora, dat_chia, dat_cave) %>% data.frame()
+raw_data   <- rbind(dat_cast, dat_cora, dat_chia, dat_cave) %>% data.frame()
 # Define number of species observed
 raw_pst    <- raw_data %>% dplyr::filter(cover > 0)
 sp_raw     <- unique(raw_pst$species) %>% data.frame() # 225 species observed
 # Remove species without traits information
 sp_to_keep <- sp_raw$.[sp_raw$. %in% sp_tr$Species]    # 215 species observed
 # Number of observations
-raw_pstobs <- raw_data %>% dplyr::filter(species %in% sp_tr$Species, cover > 0)
+raw_pstobs <- raw_data %>% dplyr::filter(species %in% sp_tr$Species, cover > 0) %>% 
+  rename(Quadrats = X) %>% right_join(sites_quadrats_info %>% dplyr::select(Quadrats, Description.condition))
 
 ## Testing the difference between ambient sites --------------------------------------------------------------------
 # SCRIPT N ---------------------------------------------------------------------------------------------------------
