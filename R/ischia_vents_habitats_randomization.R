@@ -104,6 +104,9 @@ sp_to_keep <- sp_raw$.[sp_raw$. %in% sp_tr$Species]    # 215 species observed
 raw_pstobs <- raw_data %>% dplyr::filter(species %in% sp_tr$Species, cover > 0) %>% 
   rename(Quadrats = X) %>% right_join(sites_quadrats_info %>% dplyr::select(Quadrats, Description.condition))
 
+### FOR NURIA – Only one xlsx file in data/2 – data generated
+xlsx::write.xlsx(raw_pstobs, file = paste(dir_data, "raw_pstobs.xlsx", sep = "/"), row.names = F)
+
 ## Testing the difference between ambient sites --------------------------------------------------------------------
 # SCRIPT N ---------------------------------------------------------------------------------------------------------
 
