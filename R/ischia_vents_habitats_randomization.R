@@ -28,7 +28,7 @@ library(ecole)
 # Directories
 dir_raw_data   <- "./data/1 – raw data"              # folder to load raw data 
 dir_data       <- "./data/2 – data generated"        # folder to save ready to use data
-dir_plot       <- "./outputs/plot"                   # folder with plot 
+dir_plot       <- "./outputs/Figures"                # folder with plot 
 dir_plot_trait <- "./outputs/plot/traits"            # folder to save plot as png
 dir_model      <- "./data/3 – model"                 # folder to save models
 dir_scripts    <- "./R"                              # folder to load scripts
@@ -1722,3 +1722,10 @@ save(traits_cat, file = file.path(dir_data, "traits_cat.Rdata"))
 save(sp_to_fe, file = file.path(dir_data, "sp_to_fe.Rdata"))
 save(fe_tr, file = file.path(dir_data, "fe_tr.Rdata"))
 save(fe_sp, file = file.path(dir_data, "fe_sp.Rdata"))
+
+## Saving important table results as xlsx ---------------------------------------------------------------------------
+
+xlsx::write.xlsx(Function_Change %>% data.frame(), file = "outputs/Tables/Function_Change.xlsx")
+xlsx::write.xlsx(Stat_Change %>% data.frame(), file = "outputs/Tables/Stat_Change.xlsx")
+xlsx::write.xlsx(sub_data_change[[1]] %>% data.frame(), file = "outputs/Tables/sub_data_change_amb.xlsx")
+xlsx::write.xlsx(sub_data_change[[2]] %>% data.frame(), file = "outputs/Tables/sub_data_change_low.xlsx")
