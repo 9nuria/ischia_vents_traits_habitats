@@ -9,6 +9,8 @@ rm(list=ls()) ; options(mc.cores = parallel::detectCores(), warn = - 1) ; setwd(
 
 ## Loading packages and data ---------------------------------------------------------------------------------------
 
+remotes::install_github("phytomosaic/ecole")
+
 # Packages
 library(ape)
 library(brms)
@@ -101,7 +103,20 @@ sp_raw     <- unique(raw_pst$species) %>% data.frame() # 225 species observed
 # Remove species without traits information
 sp_to_keep <- sp_raw$.[sp_raw$. %in% sp_tr$Species]    # 215 species observed
 # Number of observations
-raw_pstobs <- raw_data %>% dplyr::filter(species %in% sp_tr$Species, cover > 0)
+raw_pstobs <- raw_data %>% 
+  dplyr::filter(species %in% sp_tr$Species, cover > 0)%>% 
+  rename(Quadrats = X) %>% 
+  right_join(sites_quadrats_info %>% 
+               dplyr::select(Quadrats, Description.condition))
+write.csv(raw_pstobs, file.path(dir_data, "raw_spcover.csv"), row.names = FALSE)
+
+#Nuria code
+colnames(raw_pstobs)[1]="Quadrats"
+description_condition <- sites_quadrats_info[, c(1,4)]
+merged_data <- merge(raw_pstobs, description_condition, by = "Quadrats", all.x = TRUE)
+stwd(dir_data)
+write.csv(merged_data, "raw_pstobs.csv", row.names = FALSE)
+write_xlsx(merged_data, "raw_pstobs.xlsx", row.names = FALSE)
 
 ## Testing the difference between ambient sites --------------------------------------------------------------------
 # SCRIPT N ---------------------------------------------------------------------------------------------------------
