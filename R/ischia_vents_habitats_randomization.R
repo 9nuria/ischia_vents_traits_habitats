@@ -1,7 +1,8 @@
-# Functional biodiversity shifts within and across benthic habitats under ocean acidification ----------------------
-## Núria Teixidó*, Enric Ballesteros, Samir Alliouane, Maria Cristina Gambi, Jean-Pierre Gattuso, Kristy 
-## Kroeker, Fiorenza Micheli, Alice Mirasole, Sebastien Villéger, Cinzia De Vittor, Valeriano Parravacini 
-## *corresponding author. Email: nuria.teixido@imev-mer.fr; nuria.teixido@szn.it 
+## Functional changes across marine habitats due to ocean acidification 
+## Núria Teixidó*, Jérémy Carlot, Samir Alliouane,  Enric Ballesteros, Cinzia De Vittor, Maria Cristina Gambi, Jean-Pierre Gattuso, Kristy 
+## Kroeker, Fiorenza Micheli, Alice Mirasole, Valeriano Parravacini, Sebastien Villéger
+## Global Change Biology
+## corresponding author. Email: nuria.teixido@imev-mer.fr; nuria.teixido@szn.it 
 
 ## Code led by Jeremy Carlot, Sebastien Villeger, Valeriano Parravicini and Núria Teixidó
 
@@ -30,7 +31,7 @@ library(ecole)
 # Directories
 dir_raw_data   <- "./data/1 – raw data"              # folder to load raw data 
 dir_data       <- "./data/2 – data generated"        # folder to save ready to use data
-dir_plot       <- "./outputs/plot"                   # folder with plot 
+dir_plot       <- "./outputs/Figures"                # folder with plot 
 dir_plot_trait <- "./outputs/plot/traits"            # folder to save plot as png
 dir_model      <- "./data/3 – model"                 # folder to save models
 dir_scripts    <- "./R"                              # folder to load scripts
@@ -76,11 +77,10 @@ theme_box <- function (base_size = 11, base_family = "") {
           axis.text = element_text(color = NA),
           panel.grid.major = element_line(color = NA)) }
 
-# Number of iterations you desire
+# Number of iterations desired
 n = 100 ; source(file.path(dir_scripts,"Lists_and_vectors.R"))
 
 ## Data preparation ------------------------------------------------------------------------------------------------
-# SCRIPT A ---------------------------------------------------------------------------------------------------------
 
 row.names(sites_quadrats_info) <- sites_quadrats_info$Quadrats
 
@@ -94,15 +94,15 @@ habph <- unique(sites_quadrats_info$habitat_ph) # 12 levels
 (habph_nbquadrats <- sites_quadrats_info %>% group_by(habitat_ph) %>% summarize(Ntot=n())) # highly variable (12–54)
 
 ## Main raw documents ----------------------------------------------------------------------------------------------
-# SCRIPT Q ---------------------------------------------------------------------------------------------------------
 
-raw_data <- rbind(dat_cast, dat_cora, dat_chia, dat_cave) %>% data.frame()
+raw_data   <- rbind(dat_cast, dat_cora, dat_chia, dat_cave) %>% data.frame()
 # Define number of species observed
 raw_pst    <- raw_data %>% dplyr::filter(cover > 0)
 sp_raw     <- unique(raw_pst$species) %>% data.frame() # 225 species observed
 # Remove species without traits information
 sp_to_keep <- sp_raw$.[sp_raw$. %in% sp_tr$Species]    # 215 species observed
 # Number of observations
+### <<<<<<< HEAD
 raw_pstobs <- raw_data %>% 
   dplyr::filter(species %in% sp_tr$Species, cover > 0)%>% 
   rename(Quadrats = X) %>% 
@@ -117,9 +117,15 @@ merged_data <- merge(raw_pstobs, description_condition, by = "Quadrats", all.x =
 stwd(dir_data)
 write.csv(merged_data, "raw_pstobs.csv", row.names = FALSE)
 write_xlsx(merged_data, "raw_pstobs.xlsx", row.names = FALSE)
+=======
+raw_pstobs <- raw_data %>% dplyr::filter(species %in% sp_tr$Species, cover > 0) %>% 
+  rename(Quadrats = X) %>% right_join(sites_quadrats_info %>% dplyr::select(Quadrats, Description.condition))
+
+### FOR NURIA – Only one xlsx file in data/2 – data generated
+xlsx::write.xlsx(raw_pstobs, file = paste(dir_data, "raw_pstobs.xlsx", sep = "/"), row.names = F)
+>>>>>>> 50875b3f5d727ad0124dbbe61b72ba50b4e20702
 
 ## Testing the difference between ambient sites --------------------------------------------------------------------
-# SCRIPT N ---------------------------------------------------------------------------------------------------------
 
 # shallow reefs
 data_permanova_cast <- vegdist(
@@ -165,7 +171,7 @@ Gr   <- sites_quadrats_info %>% dplyr::filter(habitat == "deep_reef", pH %in% c(
 # (permanova_cave     <- adonis2(data_permanova_cave ~ pH, data = Gr, permutations = 999, method="bray")) # No diff.
 
 ## Randomization ---------------------------------------------------------------------------------------------------
-# SCRIPT M ---------------------------------------------------------------------------------------------------------
+
 
 Infos_FEs       <- sites_quadrats_info %>% dplyr::select(., Quadrats, pH, habitat)
 Infos_FEs$pH[which(Infos_FEs$pH == "ambient1")] = "ambient"
@@ -313,7 +319,6 @@ for (Q in 1:n) {
   }
 
 ## Quick exploration and functional entities computation -----------------------------------------------------------
-# SCRIPT B ---------------------------------------------------------------------------------------------------------
 ###### Functional indices ------------------------------------------------------------------------------------------
 
 # Basic statistics
@@ -370,7 +375,6 @@ for (Q in 1:n) {
   quadrats_beta_hill[[Q]]  <- list(taxo_q1= quadrats_betax_hill[[Q]]$q1, funct_q1 = quadrats_befun_hill[[Q]]$q1)
   } 
   
-# SCRIPT E ---------------------------------------------------------------------------------------------------------
 ###### PERMANOVA Exploration ---------------------------------------------------------------------------------------
 # Script to plot MDS on beta taxonomic and functional diversity with the Hill number framework. 
 # Script to calculate multivariate homogeneity of group variances for funct and taxonomic beta-diversity 
@@ -469,9 +473,9 @@ modtaxo[[Q]]        <- betadisper(beta_long_taxo[[Q]], groupt[[Q]], bias.adjust 
 anova(modtaxo[[Q]]) ; permutest(modtaxo[[Q]], permutations = 999) # ; plot(modtaxo[[Q]]) ; boxplot(modtaxo[[Q]])
 }
 
-# SCRIPT P ---------------------------------------------------------------------------------------------------------
-###### PERMANOVA Exploration #2 ------------------------------------------------------------------------------------
-# Script to quantify species richness, FE & Fdis difference >> Figure S5
+
+###### PERMANOVA ------------------------------------------------------------------------------------
+# Script to quantify statistics for Species richness, FEs, and Fdis differences across habitats and among pH zones 
 
 for (Q in 1:10) { # Block to 10 instead of n loops because it's taking a lot of memory use.
   # Shallow reefs
@@ -534,7 +538,7 @@ pairwise_fe_general    <- adonis2(AOV_dataset[[1]]$FE_richness ~ AOV_dataset[[1]
 pairwise_fdis          <- pairwise_fdis %>% bind_rows() %>% group_by(pairs) %>% summarise_all(mean)
 pairwise_fdis_general  <- adonis2(AOV_dataset[[1]]$fdis ~ AOV_dataset[[1]]$condition, AOV_dataset[[1]])
 
-# SCRIPT I ---------------------------------------------------------------------------------------------------------
+
 ###### Functional statistics ---------------------------------------------------------------------------------------
 
 for (Q in 1:n) { 
@@ -549,7 +553,7 @@ for (Q in 1:n) {
   }
 
 ## Functional entities for each habitat regarding  pH conditions ---------------------------------------
-# SCRIPT M ---------------------------------------------------------------------------------------------------------
+
 
 # Cave
 for (Q in 1:n) {
@@ -613,8 +617,7 @@ data_summary_FEs_std = data.frame(Habitat = rep(c("Shallow Reefs", "Cave", "Reef
                                           round(mean(FE_DR_amb), 0), round(mean(FE_DR_low), 0)))
 rm(FE_SR_amb, FE_SR_low, FE_C_amb, FE_C_low, FE_R_amb, FE_R_low, FE_DR_amb, FE_DR_low)
 
-## Analyze and Vizualisation ---------------------------------------------------------------------------------------
-# SCRIPT F ---------------------------------------------------------------------------------------------------------
+## Analysis and Visualization ---------------------------------------------------------------------------------------
 
 # Computing mean cover of FEs in the 2 pH levels: Ambient and Low pH
 for (Q in 1:n) {
@@ -645,7 +648,7 @@ data_stat_FEs  <- data_stat_FEs %>% bind_rows() %>% mutate(., Zone = rep(seq(1,8
   mutate(RS = RS$RS) %>% data.frame() %>% mutate(row = habph2_label) %>% column_to_rownames(var = "row") %>% 
   dplyr::select(RS, FE, fric, fdis, fdiv, fide_PC1, fide_PC2, fide_PC3, fide_PC4)
 
-#### Making Figure 2 and Supplementary Figure 4 --------------------------------------------------------------------
+#### Figure 2 and Supplementary Figure 6 trait diversity between pH zones and across habitats --------------------------------------------------------------------
 
 ## Plotting parameters
 # Color palette
@@ -730,7 +733,7 @@ for (z in 1:length(pairs_axes)) {
   FD_xy[[z]] <- (ggplot_list[[1]] + ggplot_list[[2]]) / (ggplot_list[[3]] + ggplot_list[[4]]) / 
     (ggplot_list[[5]] + ggplot_list[[6]]) / (ggplot_list[[7]] + ggplot_list[[8]])}
 
-# SCRIPT E ---------------------------------------------------------------------------------------------------------
+
 #### Making Figure SM X --------------------------------------------------------------------------------------------
 # MDS plot  on beta taxonomic and functional diversity with the Hill number framework 
 
@@ -785,9 +788,9 @@ fig.tax.v1v2 <- ggplot(pcoa_taxo, aes(x = V1, y = V2, group = condition, fill = 
   labs(title = "A) Taxonomic diversity", x = "V1", y = "V2") + scale_x_continuous(limits = c(-0.6, 0.6)) + 
   scale_y_continuous(limits  = c(-0.5, 0.5)) + theme(legend.position='none')
 
-# SCRIPT G ---------------------------------------------------------------------------------------------------------
-#### Making Figure 3 -----------------------------------------------------------------------------------------------
-#### Functional diversity indices based on Hill numbers across habitats and among pH zones (Low and Ambient pH)
+
+#### Figure S7 -----------------------------------------------------------------------------------------------
+#### Functional diversity indices based on Hill numbers across habitats and among pH zones
 
 # setting parameters for plot
 for (Q in 1:n) {
@@ -844,8 +847,8 @@ fdisp_plot <- ggplot(data = quadrats_biodiv_avg, aes(x = condition, y = fdis, co
 # Assembling 
 boxplot <- nbsp_plot / fe_plot / fdisp_plot 
 
-## Data trait occupancy  -------------------------------------------------------------------------------------------
-# SCRIPT O ---------------------------------------------------------------------------------------------------------
+## Distribution of trait categories -------------------------------------------------------------------------------------------
+
 
 # Setting up the dataset
 for (Q in 1:n) { 
@@ -1176,9 +1179,9 @@ Amb_occupancy_trait =
 # Plot combined
 (Fig_Trait_occupancy = (Amb_occupancy_trait / Low_occupancy_trait))
 
-# SCRIPT K ---------------------------------------------------------------------------------------------------------
-#### Making Figure 4 -----------------------------------------------------------------------------------------------
-# Bayesian prediction probability of the likelihood of benthic cover 
+
+#### Figure 4 -----------------------------------------------------------------------------------------------
+# Bayesian prediction probability of the likelihood of benthic cover to belong to a functional trait category across habitats and between pH zones
 
 # species cover in quadrats in longer style
 quad_sp_long <- vector("list")
@@ -1298,7 +1301,7 @@ rm(Calcification, Chem, Feeding, Form, Growth, Mobility, Reproduction,matrice_ca
    matrice_feeding, matrice_form, matrice_growth, matrice_mobility, matrice_reproduction)
 
 # Bayesian Model
-# The model lasts more than 4 hours with a 2,3 GHz Dual-Core Intel Core i5 and 16 GB memory
+# The model lasts more than 4 hours with a 2,3 GHz Dual-Core Intel Core i5 and 16 GB memory. Outputs from the model are provided as Data S3 (see article).
 # mn = vector("list", 7) ; for (i in 1:7) {
 # mn[[i]] <- brms::brm(tr | trials(s) ~ 1 + pH + (1 + pH | habitat), data = data_model[[i]]$tr, 
 #                  family = multinomial(), control=list(adapt_delta=0.99, max_treedepth=15), 
@@ -1379,7 +1382,7 @@ data_predicted = vector("list", 7)
                                    Trait = rep("Mobility", 294*1*2))}
 data_predicted = data_predicted %>% bind_rows()
 
-# SCRIPT J ---------------------------------------------------------------------------------------------------------
+
 # Vizualisation bayesian model
 data_predicted_viz = data_predicted %>% group_by(Habitat, pH, Condition, Trait) %>% summarise_all(mean) 
 data_predicted_viz$Habitat = factor(data_predicted_viz$Habitat, levels = c('shallow_reef','cave','reef','deep_reef'))
@@ -1470,9 +1473,9 @@ plot4 <- ggplot(cal_data_predicted_viz, aes(x = pH, y = Cover, color = Condition
 # Everything combined
 all4 <- (plot1/plot2/plot3/plot4)
 
-# SCRIPT L ---------------------------------------------------------------------------------------------------------
-#### Making Figure 5 -----------------------------------------------------------------------------------------------
-# taxonomic and functional diversity and processes of ecosystem function across habitats and among pH zones
+
+#### Figure 5 -----------------------------------------------------------------------------------------------
+# diversity (species and traits) and predicted benthic cover of some functional traits categories across habitats and among pH zones
 
 data_trait     <- data_predicted %>% group_by(., Habitat, pH, Condition, Trait) %>% summarise_all(mean) %>% 
   data.frame()
@@ -1515,7 +1518,7 @@ Qmin_value = NA ; Qmax_value = NA ; for (i in 1:length(data_functions[[1]]$Q2.5)
 change_dataset$Q2.5  = Qmin_value ; change_dataset$Q97.5 = Qmax_value
 Function_Change      = cbind(data_functions[[1]][,c(1:2)], change_dataset) %>% data.frame()
 
-# Statistics from Figure 3
+# Statistics from Species richness, FEs, and Fdisp 
 sub_data_change = quadrats_biodiv_avg %>% group_by(condition) %>% 
   summarise(SR = mean(Nb_sp), SR_std = std_err(Nb_sp), FER = mean(FE_richness), FER_std = std_err(FE_richness),
             FDis = mean(fdis), FDis_std = std_err(fdis)) %>% data.frame() %>% 
@@ -1545,7 +1548,7 @@ colnames(Shal) = c("Index_label", "Index")
 Stat_Change = data.frame(Habitat = rep(c('shallow_reef','cave','reef','deep_reef'), each = 3), 
                          rbind(Shal, Cave, Reef, Deep))
 
-# Vizualisation
+# Visualization
 Stat_Change$Habitat = factor(Stat_Change$Habitat, levels = rev(c('shallow_reef','cave','reef','deep_reef')))
 Function_Change$Habitat = factor(Function_Change$Habitat, levels = rev(c('shallow_reef','cave','reef','deep_reef')))
 color_gradient <- colorRampPalette(c("red4", "brown3", "brown1", "skyblue2", "royalblue3"))
@@ -1590,8 +1593,8 @@ Fig5sub2 = Function_Change %>%
 # Combine
 Figure_5 = Fig5sub1 / Fig5sub2 + plot_layout(heights = c(1,3))
 
-# SCRIPT E ---------------------------------------------------------------------------------------------------------
-#### Making Supplementary Figure 6 ---------------------------------------------------------------------------------
+
+#### Supplementary Figure MDS ---------------------------------------------------------------------------------
 
 # V3 and V4
 fig.fun.v3v4 <- ggplot(pcoa_fun, aes(x = V3, y = V4, group = condition, fill = condition, color = condition, 
@@ -1613,8 +1616,8 @@ mds_top <- fig.tax.v1v2 + fig.tax.v3v4
 mds_bot <- fig.fun.v1v2 + fig.fun.v3v4 + plot_layout(guides = "collect") & theme(legend.position = 'bottom')
 mds     <- mds_top / mds_bot + plot_layout(guides = "collect") & theme(legend.position = 'bottom')
 
-# SCRIPT C ---------------------------------------------------------------------------------------------------------
-#### Making Supplementary Figures S7 and S8 ------------------------------------------------------------------------
+
+#### Supplementary Figures ------------------------------------------------------------------------
 # mean of taxo and functional beta within / between sites & conditions
 # Correlation of beta-diversity values between taxonomic and functional facets as boxplot and scatter plot S. Methods 
 
@@ -1652,8 +1655,8 @@ beta_funct_plot <- ggplot(data = quadrats_beta_df, aes(x = pair_type, y = funct_
   xlab("Habitat and pH of pair of quadrats") + ylab("Func beta (q=1)")
 boxplot_beta <- beta_taxo_plot / beta_funct_plot
 
-# SCRIPT D ---------------------------------------------------------------------------------------------------------
-#### Making Supplementary Figures X --------------------------------------------------------------------------------
+
+####  Supplementary Figures --------------------------------------------------------------------------------
 
 # Color palette
 hab_ph  <- c("shallow_reef_ambient1", "shallow_reef_ambient2", "shallow_reef_low", "cave_ambient1", "cave_ambient2",
@@ -1705,16 +1708,16 @@ ggsave(Figure_5, filename = "Figure_5.png",  path = dir_plot, device="png", heig
        units = "cm", dpi = 300)
 
 # Supplementary figures
-ggsave(FD_xy[[2]], filename = "Figure_S4.png", path = dir_plot, device = "png", width = 6,                    # S4
+ggsave(FD_xy[[2]], filename = "Figure_S4.png", path = dir_plot, device = "png", width = 6,                    # S6
        height = 12)              
-ggsave(mds, filename = "Figure_S6.png", path = dir_plot, device = "png", height = 35, width = 35,             # S6
+ggsave(mds, filename = "Figure_S6.png", path = dir_plot, device = "png", height = 35, width = 35,             # S7
        units = "cm", dpi = 300)
-ggsave(beta_cor_plot, filename = "Figure_S7.png", path = dir_plot, width = 4, height = 7.5)                   # S7
-ggsave(boxplot_beta, filename = "Figure_S8.png", path = dir_plot, width = 9, height = 5)                      # S8
-ggsave(boxplot, filename = "Figure_S9.png", path = dir_plot, device = "png", height = 35, width = 35,         # S9
+ggsave(beta_cor_plot, filename = "Figure_S7.png", path = dir_plot, width = 4, height = 7.5)                   # not included ms
+ggsave(boxplot_beta, filename = "Figure_S8.png", path = dir_plot, width = 9, height = 5)                      # not included ms
+ggsave(boxplot, filename = "Figure_S9.png", path = dir_plot, device = "png", height = 35, width = 35,         # not included ms
        units = "cm", dpi = 300)
 for (t in names(fe_tr)) {  
-  ggsave(plot_t_mod_pcover[[t]], filename = paste0("Figure_Sx_", t, "_.png"), path = dir_plot_trait,          # Sx
+  ggsave(plot_t_mod_pcover[[t]], filename = paste0("Figure_Sx_", t, "_.png"), path = dir_plot_trait,          # not included ms
          width = 14, height = 5)}
 
 ## Saving outputs --------------------------------------------------------------------------------------------------
@@ -1733,3 +1736,10 @@ save(traits_cat, file = file.path(dir_data, "traits_cat.Rdata"))
 save(sp_to_fe, file = file.path(dir_data, "sp_to_fe.Rdata"))
 save(fe_tr, file = file.path(dir_data, "fe_tr.Rdata"))
 save(fe_sp, file = file.path(dir_data, "fe_sp.Rdata"))
+
+## Saving important table results as xlsx ---------------------------------------------------------------------------
+
+xlsx::write.xlsx(Function_Change %>% data.frame(), file = "outputs/Tables/Function_Change.xlsx")
+xlsx::write.xlsx(Stat_Change %>% data.frame(), file = "outputs/Tables/Stat_Change.xlsx")
+xlsx::write.xlsx(sub_data_change[[1]] %>% data.frame(), file = "outputs/Tables/sub_data_change_amb.xlsx")
+xlsx::write.xlsx(sub_data_change[[2]] %>% data.frame(), file = "outputs/Tables/sub_data_change_low.xlsx")
