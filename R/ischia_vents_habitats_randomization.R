@@ -1415,7 +1415,7 @@ Fig5sub2 = Function_Change %>%
 # Combine
 Figure_5 = Fig5sub1 / Fig5sub2 + plot_layout(heights = c(1,3))
 
-####  Supplementary Figures --------------------------------------------------------------------------------
+####  Extra Analyses and Figures not included in the manuscript --------------------------------------------------------------------------------
 
 # Color palette
 hab_ph  <- c("shallow_reef_ambient1", "shallow_reef_ambient2", "shallow_reef_low", "cave_ambient1", "cave_ambient2",
@@ -1425,7 +1425,7 @@ vcolors <- c("#93a1fa", "#93a1fa", "#f7d305", "#6478f5", "#6478f5", "#f5a511", "
              "#0219ad", "#0219ad", "#f7560c")
 names(vcolors) <- hab_ph
 
-#### Making Figure SM X --------------------------------------------------------------------------------------------
+#### Figure extra --------------------------------------------------------------------------------------------
 # MDS plot  on beta taxonomic and functional diversity with the Hill number framework 
 
 # PCOA functional and taxo
@@ -1479,7 +1479,7 @@ fig.tax.v1v2 <- ggplot(pcoa_taxo, aes(x = V1, y = V2, group = condition, fill = 
   labs(title = "A) Taxonomic diversity", x = "V1", y = "V2") + scale_x_continuous(limits = c(-0.6, 0.6)) + 
   scale_y_continuous(limits  = c(-0.5, 0.5)) + theme(legend.position='none')
 
-#### Supplementary Figure MDS ---------------------------------------------------------------------------------
+#### Supplementary Figure V3 and V4 ---------------------------------------------------------------------------------
 
 # V3 and V4
 fig.fun.v3v4 <- ggplot(pcoa_fun, aes(x = V3, y = V4, group = condition, fill = condition, color = condition, 
@@ -1599,7 +1599,7 @@ for (Q in 1:n) {
   anova(modtaxo[[Q]]) ; permutest(modtaxo[[Q]], permutations = 999) # ; plot(modtaxo[[Q]]) ; boxplot(modtaxo[[Q]])
 }
 
-#### Supplementary Figures ------------------------------------------------------------------------
+#### Extra  Figures ------------------------------------------------------------------------
 # mean of taxo and functional beta within / between sites & conditions
 # Correlation of beta-diversity values between taxonomic and functional facets as boxplot and scatter plot S. Methods 
 
