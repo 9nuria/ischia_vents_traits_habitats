@@ -1637,36 +1637,6 @@ beta_funct_plot <- ggplot(data = quadrats_beta_df, aes(x = pair_type, y = funct_
   xlab("Habitat and pH of pair of quadrats") + ylab("Func beta (q=1)")
 boxplot_beta <- beta_taxo_plot / beta_funct_plot
 
-### Vizualize Trait categories cover across habitats
-# This figure is for pure illustration
-fe_tr = fe_tr[[1]] ; quadrats_fe_cover = quadrats_fe_cover[[1]]
-
-habph_tr_moddom <- list() ; plot_t_mod_pcover = list () ; for (t in names(fe_tr) ) {
-  # Modalities of trait t
-  t_mod <- levels(fe_tr[,t])
-  # Matrix to store results
-  t_mod_pcover <- matrix(NA, length(hab_ph) , length(t_mod), dimnames=list(hab_ph, t_mod))
-  # Percentage of cover of each modality through double loop
-  for (h in hab_ph) {
-    # Quadrats from h
-    q_h <- row.names(sites_quadrats_info)[which(sites_quadrats_info[,"habitat_ph"] == h)] 
-    q_h <- q_h[q_h %in% row.names(quadrats_fe_cover)]
-    for (m in all_of(t_mod)) {
-      # FEs with modality m
-      fe_m <- row.names(fe_tr)[which(fe_tr[,t] == m)]
-      # Average cover of m in h
-      if(length(fe_m) == 1) {  
-        t_mod_pcover[h,m] <- mean(quadrats_fe_cover[q_h,fe_m])
-      } else {
-        t_mod_pcover[h,m] <- mean(apply(quadrats_fe_cover[q_h,fe_m],1,sum))}}}
-  # storing
-  habph_tr_moddom[[t]] <- t_mod_pcover
-  # illustrating as stacked barplot after pivoting
-  plot_t_mod_pcover[[t]] <- t_mod_pcover %>% as_tibble(t_mod_pcover, rownames = "habitat_pH") %>%
-    pivot_longer(cols = t_mod, names_to = "modality", values_to = "cover") %>%
-    ggplot(aes(fill = modality, y = cover, x = habitat_pH)) + geom_bar(position = "stack", stat = "identity") +
-    theme(legend.position = "top") }
-
 ## Savings figures -------------------------------------------------------------------------------------------------
 
 # Main Figures  
