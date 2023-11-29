@@ -6,11 +6,9 @@
 
 ## Code led by Jeremy Carlot, Sebastien Villeger, Valeriano Parravicini and Núria Teixidó
 
-rm(list=ls()) ; options(mc.cores = parallel::detectCores(), warn = - 1) ; setwd("..")
+rm(list=ls()) ; options(mc.cores = parallel::detectCores(), warn = - 1) ; #setwd("..")
 
 ## Loading packages and data ---------------------------------------------------------------------------------------
-
-remotes::install_github("phytomosaic/ecole")
 
 # Packages
 library(ape)
@@ -101,29 +99,6 @@ raw_pst    <- raw_data %>% dplyr::filter(cover > 0)
 sp_raw     <- unique(raw_pst$species) %>% data.frame() # 225 species observed
 # Remove species without traits information
 sp_to_keep <- sp_raw$.[sp_raw$. %in% sp_tr$Species]    # 215 species observed
-# Number of observations
-### <<<<<<< HEAD
-raw_pstobs <- raw_data %>% 
-  dplyr::filter(species %in% sp_tr$Species, cover > 0)%>% 
-  rename(Quadrats = X) %>% 
-  right_join(sites_quadrats_info %>% 
-               dplyr::select(Quadrats, Description.condition))
-write.csv(raw_pstobs, file.path(dir_data, "raw_spcover.csv"), row.names = FALSE)
-
-#Nuria code
-colnames(raw_pstobs)[1]="Quadrats"
-description_condition <- sites_quadrats_info[, c(1,4)]
-merged_data <- merge(raw_pstobs, description_condition, by = "Quadrats", all.x = TRUE)
-stwd(dir_data)
-write.csv(merged_data, "raw_pstobs.csv", row.names = FALSE)
-write_xlsx(merged_data, "raw_pstobs.xlsx", row.names = FALSE)
-=======
-raw_pstobs <- raw_data %>% dplyr::filter(species %in% sp_tr$Species, cover > 0) %>% 
-  rename(Quadrats = X) %>% right_join(sites_quadrats_info %>% dplyr::select(Quadrats, Description.condition))
-
-### FOR NURIA – Only one xlsx file in data/2 – data generated
-xlsx::write.xlsx(raw_pstobs, file = paste(dir_data, "raw_pstobs.xlsx", sep = "/"), row.names = F)
->>>>>>> 50875b3f5d727ad0124dbbe61b72ba50b4e20702
 
 ## Testing the difference between ambient sites --------------------------------------------------------------------
 
@@ -156,19 +131,19 @@ Gr   <- sites_quadrats_info %>% dplyr::filter(habitat == "deep_reef", pH %in% c(
 
 # cave – Different sampling effort in the cave according to line 81
 # For obscure reason, it fails the whole script
-# cave_amb1           <- sites_quadrats_info %>% dplyr::filter(habitat == "cave", pH == "ambient1")
-# cave_amb2           <- sites_quadrats_info %>% dplyr::filter(habitat == "cave", pH == "ambient2")
-# cave_amb1           <- sample(unique(cave_amb1$Quadrats), length(unique(cave_amb2$Quadrats)), replace = F)
-# cave_amb2           <- unique(cave_amb2$Quadrats)
-# Quadrats_cave       <- c(cave_amb1, cave_amb2) ; rm(cave_amb1, cave_amb2)
-# data_permanova_cave <- vegdist(
-#  merge(sites_quadrats_info, dat_cave, by.x = "Quadrats", by.y = "X") %>% 
-#    dplyr::filter(., pH != "low", Quadrats %in% Quadrats_cave) %>% dplyr::select(Quadrats, species, cover) %>% 
-#    pivot_wider(., names_from = Quadrats, values_from = cover) %>% 
-#    column_to_rownames(., var = "species") %>% as.matrix() %>% t(), "bray") %>% 
-#  as.matrix() %>% melt(., varnames = c("row", "col")) %>% long_to_wide_distance()
-# Gr   <- sites_quadrats_info %>% dplyr::filter(Quadrats %in% Quadrats_cave)
-# (permanova_cave     <- adonis2(data_permanova_cave ~ pH, data = Gr, permutations = 999, method="bray")) # No diff.
+cave_amb1           <- sites_quadrats_info %>% dplyr::filter(habitat == "cave", pH == "ambient1")
+cave_amb2           <- sites_quadrats_info %>% dplyr::filter(habitat == "cave", pH == "ambient2")
+cave_amb1           <- sample(unique(cave_amb1$Quadrats), length(unique(cave_amb2$Quadrats)), replace = F)
+cave_amb2           <- unique(cave_amb2$Quadrats)
+Quadrats_cave       <- c(cave_amb1, cave_amb2) ; rm(cave_amb1, cave_amb2)
+data_permanova_cave <- vegdist(
+merge(sites_quadrats_info, dat_cave, by.x = "Quadrats", by.y = "X") %>% 
+  dplyr::filter(., pH != "low", Quadrats %in% Quadrats_cave) %>% dplyr::select(Quadrats, species, cover) %>% 
+  pivot_wider(., names_from = Quadrats, values_from = cover) %>% 
+  column_to_rownames(., var = "species") %>% as.matrix() %>% t(), "bray") %>% 
+  as.matrix() %>% melt(., varnames = c("row", "col")) %>% long_to_wide_distance()
+Gr   <- sites_quadrats_info %>% dplyr::filter(Quadrats %in% Quadrats_cave)
+(permanova_cave     <- adonis2(data_permanova_cave ~ pH, data = Gr, permutations = 999, method="bray")) # No diff.
 
 ## Randomization ---------------------------------------------------------------------------------------------------
 
@@ -374,108 +349,11 @@ for (Q in 1:n) {
                                            q = 1, tau = "mean", details_returned = FALSE )
   quadrats_beta_hill[[Q]]  <- list(taxo_q1= quadrats_betax_hill[[Q]]$q1, funct_q1 = quadrats_befun_hill[[Q]]$q1)
   } 
-  
-###### PERMANOVA Exploration ---------------------------------------------------------------------------------------
-# Script to plot MDS on beta taxonomic and functional diversity with the Hill number framework. 
-# Script to calculate multivariate homogeneity of group variances for funct and taxonomic beta-diversity 
-
-info <- sites_quadrats_info %>% dplyr::select(Quadrats, condition, Description.condition, pH, habitat)
-
-# Shallow reefs, functional
-for (Q in 1:n) { 
-beta_df[[Q]]        <- mFD::dist.to.df(quadrats_beta_hill[[Q]])
-beta_df.fun[[Q]]    <- beta_df[[Q]] %>% dplyr::select(-taxo_q1)
-habitat             <- c("SRA",  "SRL")
-quad                <- info[info$condition %in% habitat,]$Quadrats                # select quadrat–habitat (i.e. 1s1)
-divf[[Q]]           <- beta_df.fun[[Q]][beta_df.fun[[Q]]$x1 %in% quad,]           # select quadrat SR for asb.1
-divf[[Q]]           <- divf[[Q]][divf[[Q]]$x2 %in% quad,]                         # select quadrat SR for asb.2
-beta_long_fun[[Q]]  <- long_to_wide_distance(divf[[Q]])
-groupf[[Q]]         <- sapply(labels(beta_long_fun[[Q]]), function(x) {info[info$Quadrats == x,]$condition})
-modf[[Q]]           <- betadisper(beta_long_fun[[Q]], groupf[[Q]], bias.adjust = T)
-anova(modf[[Q]])                                                                  # To test if Var1 != Var2
-permutest(modf[[Q]], permutations = 999) # ; plot(modf[[Q]]) ; boxplot(modf[[Q]]) # Permutation test for F
-}
-
-# Shallow reefs, taxonomic
-for (Q in 1:n) { 
-beta_df.taxo[[Q]]   <- beta_df[[Q]] %>% dplyr::select(-funct_q1)
-divtaxo[[Q]]        <- beta_df.taxo[[Q]][beta_df.taxo[[Q]]$x1 %in% quad,]         # select quadrat–habitat (i.e. 1s1)
-divtaxo[[Q]]        <- divtaxo[[Q]][divtaxo[[Q]]$x2 %in% quad,]
-beta_long_taxo[[Q]] <- long_to_wide_distance(divtaxo[[Q]])
-groupt[[Q]]         <- sapply(labels(beta_long_taxo[[Q]]), function(x) {info[info$Quadrats == x,]$condition})
-modtaxo[[Q]]        <- betadisper(beta_long_taxo[[Q]], groupt[[Q]], bias.adjust = TRUE)
-anova(modtaxo[[Q]]) ; permutest(modtaxo[[Q]], permutations = 999) # ; plot(modtaxo[[Q]]) ; boxplot(modtaxo[[Q]])
-}
-
-# Caves, functional
-for (Q in 1:n) { 
-habitat             <- c("CA",  "CL")
-quad                <- info[info$condition %in% habitat,]$Quadrats 
-divf[[Q]]           <- beta_df.fun[[Q]][beta_df.fun[[Q]]$x1 %in% quad,] 
-divf[[Q]]           <- divf[[Q]][divf[[Q]]$x2 %in% quad,]
-beta_long_fun[[Q]]  <- long_to_wide_distance(divf[[Q]])
-groupf[[Q]]         <- sapply(labels(beta_long_fun[[Q]]), function(x) {info[info$Quadrats == x,]$condition})
-modf[[Q]]           <- betadisper(beta_long_fun[[Q]], groupf[[Q]], bias.adjust = TRUE)
-anova(modf[[Q]]) ; permutest(modf[[Q]], permutations = 999, pairwise = T) # ; plot(modf[[Q]]) ; boxplot(modf[[Q]])
-}
-
-# Caves, taxonomic
-for (Q in 1:n) { 
-divtaxo[[Q]]        <- beta_df.taxo[[Q]][beta_df.taxo[[Q]]$x1 %in% quad,]
-divtaxo[[Q]]        <- divtaxo[[Q]][divtaxo[[Q]]$x2 %in% quad,]
-beta_long_taxo[[Q]] <- long_to_wide_distance(divtaxo[[Q]])
-groupt[[Q]]         <- sapply(labels(beta_long_taxo[[Q]]), function(x) {info[info$Quadrats == x,]$condition})
-modtaxo[[Q]]        <- betadisper(beta_long_taxo[[Q]], groupt[[Q]], bias.adjust = TRUE)
-anova(modtaxo[[Q]]) ; permutest(modtaxo[[Q]], permutations = 999) # ; plot(modtaxo[[Q]]) ; boxplot(modtaxo[[Q]])
-}
-
-# Reefs, functional
-for (Q in 1:n) { 
-habitat             <- c("RA",  "RL")
-quad                <- info[info$condition %in% habitat,]$Quadrats 
-divf[[Q]]           <- beta_df.fun[[Q]][beta_df.fun[[Q]]$x1 %in% quad,] 
-divf[[Q]]           <- divf[[Q]][divf[[Q]]$x2 %in% quad,]
-beta_long_fun[[Q]]  <- long_to_wide_distance(divf[[Q]])
-groupf[[Q]]         <- sapply(labels(beta_long_fun[[Q]]), function(x) {info[info$Quadrats == x,]$condition})
-modf[[Q]]           <- betadisper(beta_long_fun[[Q]], groupf[[Q]], bias.adjust = TRUE)
-anova(modf[[Q]]) ; permutest(modf[[Q]], permutations = 999, pairwise = T) # ; plot(modf[[Q]]) ; boxplot(modf[[Q]])
-}
-
-# Reefs, taxonomic
-for (Q in 1:n) { 
-divtaxo[[Q]]        <- beta_df.taxo[[Q]][beta_df.taxo[[Q]]$x1 %in% quad,] 
-divtaxo[[Q]]        <- divtaxo[[Q]][divtaxo[[Q]]$x2 %in% quad,]
-beta_long_taxo[[Q]] <- long_to_wide_distance(divtaxo[[Q]])
-groupt[[Q]]         <- sapply(labels(beta_long_taxo[[Q]]), function(x) {info[info$Quadrats == x,]$condition})
-modtaxo[[Q]]        <- betadisper(beta_long_taxo[[Q]], groupt[[Q]], bias.adjust = TRUE)
-anova(modtaxo[[Q]]) ; permutest(modtaxo[[Q]], permutations = 999) # ; plot(modtaxo[[Q]]) ; boxplot(modtaxo[[Q]])
-}
-
-# Deep reefs, functional
-for (Q in 1:n) { 
-habitat             <- c("CoA",  "CoL")
-quad                <- info[info$condition %in% habitat,]$Quadrats 
-divf[[Q]]           <- beta_df.fun[[Q]][beta_df.fun[[Q]]$x1 %in% quad,] 
-divf[[Q]]           <- divf[[Q]][divf[[Q]]$x2 %in% quad,]
-beta_long_fun[[Q]]  <- long_to_wide_distance(divf[[Q]])
-groupf[[Q]]         <- sapply(labels(beta_long_fun[[Q]]), function(x) {info[info$Quadrats == x,]$condition})
-modf[[Q]]           <- betadisper(beta_long_fun[[Q]], groupf[[Q]], bias.adjust = TRUE)
-anova(modf[[Q]]) ; permutest(modf[[Q]], permutations = 999, pairwise = T) # ; plot(modf[[Q]]) ; boxplot(modf[[Q]])
-}
-
-# Deep reefs, taxonomic 
-for (Q in 1:n) { 
-divtaxo[[Q]]        <- beta_df.taxo[[Q]][beta_df.taxo[[Q]]$x1 %in% quad,] 
-divtaxo[[Q]]        <- divtaxo[[Q]][divtaxo[[Q]]$x2 %in% quad,]
-beta_long_taxo[[Q]] <- long_to_wide_distance(divtaxo[[Q]])
-groupt[[Q]]         <- sapply(labels(beta_long_taxo[[Q]]), function(x) {info[info$Quadrats == x,]$condition})
-modtaxo[[Q]]        <- betadisper(beta_long_taxo[[Q]], groupt[[Q]], bias.adjust = TRUE)
-anova(modtaxo[[Q]]) ; permutest(modtaxo[[Q]], permutations = 999) # ; plot(modtaxo[[Q]]) ; boxplot(modtaxo[[Q]])
-}
-
 
 ###### PERMANOVA ------------------------------------------------------------------------------------
 # Script to quantify statistics for Species richness, FEs, and Fdis differences across habitats and among pH zones 
+
+info <- sites_quadrats_info %>% dplyr::select(Quadrats, condition, Description.condition, pH, habitat)
 
 for (Q in 1:10) { # Block to 10 instead of n loops because it's taking a lot of memory use.
   # Shallow reefs
@@ -732,62 +610,6 @@ for (z in 1:length(pairs_axes)) {
   # patchwork of plots : 4 habitats (rows) * 2 columns (pH)
   FD_xy[[z]] <- (ggplot_list[[1]] + ggplot_list[[2]]) / (ggplot_list[[3]] + ggplot_list[[4]]) / 
     (ggplot_list[[5]] + ggplot_list[[6]]) / (ggplot_list[[7]] + ggplot_list[[8]])}
-
-
-#### Making Figure SM X --------------------------------------------------------------------------------------------
-# MDS plot  on beta taxonomic and functional diversity with the Hill number framework 
-
-# PCOA functional and taxo
-sites_info <- sites_quadrats_info %>% dplyr::select(Quadrats, condition, Description.condition, pH, habitat)
-for (Q in 1:n) {
-  pcoa_fun[[Q]] <- as.data.frame(cmdscale(quadrats_beta_hill[[Q]]$funct_q1, 4)) %>% data.frame() %>% 
-    rownames_to_column(var = "Quadrats") 
-  pcoa_taxo[[Q]] <- as.data.frame(cmdscale(quadrats_beta_hill[[Q]]$taxo_q1, 4)) %>% data.frame() %>% 
-    rownames_to_column(var = "Quadrats")}
-pcoa_fun <- pcoa_fun %>% bind_rows() %>% group_by(Quadrats) %>% mutate_all(., ~replace_na(.,0)) %>% 
-  summarise_all(mean) %>% ungroup() %>% left_join(sites_info)
-pcoa_taxo <- pcoa_taxo %>% bind_rows() %>% group_by(Quadrats) %>% mutate_all(., ~replace_na(.,0)) %>% 
-  summarise_all(mean) %>% ungroup() %>% left_join(sites_info)
-
-# Eigenvalues to get an overall idea
-for (Q in 1:n) { 
-  x.fun[[Q]] <- cmdscale(quadrats_beta_hill[[Q]]$funct_q1, eig=TRUE) 
-  x.tax[[Q]] <- cmdscale(quadrats_beta_hill[[Q]]$taxo_q1,eig=TRUE)
-  }
-cumsum(x.fun[[1]]$eig[x.fun[[1]]$eig>=0]) / sum(x.fun[[1]]$eig[x.fun[[1]]$eig>0])       # 0.62 0.72 0.78 0.81
-cumsum(x.tax[[1]]$eig[x.tax[[1]]$eig>=0]) / sum(x.tax[[1]]$eig[x.tax[[1]]$eig>0])       # 0.24 0.38 0.45 0.50
-
-# Rename Functional PCOA dataset
-pcoa_fun$condition  <- as.factor(pcoa_fun$condition)
-pcoa_fun$condition  <- factor(pcoa_fun$condition, levels = c("SRA", "SRL", "CL", "CA", "RL", "RA", "CoL", "CoA"))
-pcoa_fun$condition  <- recode_factor(pcoa_fun$condition, SRA = "Shallow Reef Ambient pH", 
-                                     SRL = "Shallow Reef Low pH", CL = "Cave Low pH", CA = "Cave Ambient pH", 
-                                     RL = "Reef Low pH", RA = "Reef Ambient pH", CoL = "Deep Reef Low pH", 
-                                     CoA = "Deep Reef Ambient pH")
-
-# Rename Taxonomic PCOA dataset
-pcoa_taxo$condition <- factor(pcoa_taxo$condition, levels = c("SRA", "SRL", "CL", "CA", "RL", "RA", "CoL", "CoA"))
-pcoa_taxo$condition <- recode_factor(pcoa_taxo$condition, SRA = "Shallow Reef Ambient pH", 
-                                     SRL = "Shallow Reef Low pH", CL = "Cave Low pH", CA = "Cave Ambient pH", 
-                                     RL = "Reef Low pH", RA = "Reef Ambient pH", CoL = "Deep Reef Low pH", 
-                                     CoA = "Deep Reef Ambient pH")
-
-# V1 and V2
-fig.fun.v1v2 <- ggplot(pcoa_fun, aes(x = V1, y = V2, group = condition, fill = condition, color = condition, 
-                                     shape = condition)) + theme_light(base_size = 20) + geom_point(size = 6) +
-  scale_colour_manual(values = c("#93a1fa","#f7d305","#f5a511","#6478f5","#f78e0c","#3953f7","#f7560c","#0219ad")) +
-  scale_fill_manual(values   = c("#93a1fa","#f7d305","#f5a511","#6478f5","#f78e0c","#3953f7","#f7560c","#0219ad")) +
-  scale_shape_manual(values  = c(rep(21, 2), rep(24, 2), rep(22, 2), rep(23, 2))) + 
-  labs(title = "B) Functional diversity", x = "V1", y = "V2") + scale_x_continuous(limits = c(-0.6, 0.6)) + 
-  scale_y_continuous(limits  = c(-0.4, 0.4)) + theme(legend.title = element_blank(), legend.position = "none")
-fig.tax.v1v2 <- ggplot(pcoa_taxo, aes(x = V1, y = V2, group = condition, fill = condition, color = condition, 
-                                      shape = condition)) + theme_light(base_size = 20) + geom_point(size = 6) +
-  scale_colour_manual(values = c("#93a1fa","#f7d305","#f5a511","#6478f5","#f78e0c","#3953f7","#f7560c","#0219ad")) +
-  scale_fill_manual(values   = c("#93a1fa","#f7d305","#f5a511","#6478f5","#f78e0c","#3953f7","#f7560c","#0219ad")) +
-  scale_shape_manual(values  = c(rep(21, 2), rep(24, 2), rep(22, 2), rep(23, 2))) + 
-  labs(title = "A) Taxonomic diversity", x = "V1", y = "V2") + scale_x_continuous(limits = c(-0.6, 0.6)) + 
-  scale_y_continuous(limits  = c(-0.5, 0.5)) + theme(legend.position='none')
-
 
 #### Figure S7 -----------------------------------------------------------------------------------------------
 #### Functional diversity indices based on Hill numbers across habitats and among pH zones
@@ -1301,7 +1123,8 @@ rm(Calcification, Chem, Feeding, Form, Growth, Mobility, Reproduction,matrice_ca
    matrice_feeding, matrice_form, matrice_growth, matrice_mobility, matrice_reproduction)
 
 # Bayesian Model
-# The model lasts more than 4 hours with a 2,3 GHz Dual-Core Intel Core i5 and 16 GB memory. Outputs from the model are provided as Data S3 (see article).
+# The model lasts more than 4 hours with a 2,3 GHz Dual-Core Intel Core i5 and 16 GB memory. 
+# Outputs from the model are provided as Data S3 (see article).
 # mn = vector("list", 7) ; for (i in 1:7) {
 # mn[[i]] <- brms::brm(tr | trials(s) ~ 1 + pH + (1 + pH | habitat), data = data_model[[i]]$tr, 
 #                  family = multinomial(), control=list(adapt_delta=0.99, max_treedepth=15), 
@@ -1473,7 +1296,6 @@ plot4 <- ggplot(cal_data_predicted_viz, aes(x = pH, y = Cover, color = Condition
 # Everything combined
 all4 <- (plot1/plot2/plot3/plot4)
 
-
 #### Figure 5 -----------------------------------------------------------------------------------------------
 # diversity (species and traits) and predicted benthic cover of some functional traits categories across habitats and among pH zones
 
@@ -1593,6 +1415,69 @@ Fig5sub2 = Function_Change %>%
 # Combine
 Figure_5 = Fig5sub1 / Fig5sub2 + plot_layout(heights = c(1,3))
 
+####  Supplementary Figures --------------------------------------------------------------------------------
+
+# Color palette
+hab_ph  <- c("shallow_reef_ambient1", "shallow_reef_ambient2", "shallow_reef_low", "cave_ambient1", "cave_ambient2",
+             "cave_low", "reef_ambient1", "reef_ambient2", "reef_low", "deep_reef_ambient1", "deep_reef_ambient2", 
+             "deep_reef_low")
+vcolors <- c("#93a1fa", "#93a1fa", "#f7d305", "#6478f5", "#6478f5", "#f5a511", "#3953f7", "#3953f7", "#f78e0c", 
+             "#0219ad", "#0219ad", "#f7560c")
+names(vcolors) <- hab_ph
+
+#### Making Figure SM X --------------------------------------------------------------------------------------------
+# MDS plot  on beta taxonomic and functional diversity with the Hill number framework 
+
+# PCOA functional and taxo
+sites_info <- sites_quadrats_info %>% dplyr::select(Quadrats, condition, Description.condition, pH, habitat)
+for (Q in 1:n) {
+  pcoa_fun[[Q]] <- as.data.frame(cmdscale(quadrats_beta_hill[[Q]]$funct_q1, 4)) %>% data.frame() %>% 
+    rownames_to_column(var = "Quadrats") 
+  pcoa_taxo[[Q]] <- as.data.frame(cmdscale(quadrats_beta_hill[[Q]]$taxo_q1, 4)) %>% data.frame() %>% 
+    rownames_to_column(var = "Quadrats")}
+pcoa_fun <- pcoa_fun %>% bind_rows() %>% group_by(Quadrats) %>% mutate_all(., ~replace_na(.,0)) %>% 
+  summarise_all(mean) %>% ungroup() %>% left_join(sites_info)
+pcoa_taxo <- pcoa_taxo %>% bind_rows() %>% group_by(Quadrats) %>% mutate_all(., ~replace_na(.,0)) %>% 
+  summarise_all(mean) %>% ungroup() %>% left_join(sites_info)
+
+# Eigenvalues to get an overall idea
+for (Q in 1:n) { 
+  x.fun[[Q]] <- cmdscale(quadrats_beta_hill[[Q]]$funct_q1, eig=TRUE) 
+  x.tax[[Q]] <- cmdscale(quadrats_beta_hill[[Q]]$taxo_q1,eig=TRUE)
+}
+cumsum(x.fun[[1]]$eig[x.fun[[1]]$eig>=0]) / sum(x.fun[[1]]$eig[x.fun[[1]]$eig>0])       # 0.62 0.72 0.78 0.81
+cumsum(x.tax[[1]]$eig[x.tax[[1]]$eig>=0]) / sum(x.tax[[1]]$eig[x.tax[[1]]$eig>0])       # 0.24 0.38 0.45 0.50
+
+# Rename Functional PCOA dataset
+pcoa_fun$condition  <- as.factor(pcoa_fun$condition)
+pcoa_fun$condition  <- factor(pcoa_fun$condition, levels = c("SRA", "SRL", "CL", "CA", "RL", "RA", "CoL", "CoA"))
+pcoa_fun$condition  <- recode_factor(pcoa_fun$condition, SRA = "Shallow Reef Ambient pH", 
+                                     SRL = "Shallow Reef Low pH", CL = "Cave Low pH", CA = "Cave Ambient pH", 
+                                     RL = "Reef Low pH", RA = "Reef Ambient pH", CoL = "Deep Reef Low pH", 
+                                     CoA = "Deep Reef Ambient pH")
+
+# Rename Taxonomic PCOA dataset
+pcoa_taxo$condition <- factor(pcoa_taxo$condition, levels = c("SRA", "SRL", "CL", "CA", "RL", "RA", "CoL", "CoA"))
+pcoa_taxo$condition <- recode_factor(pcoa_taxo$condition, SRA = "Shallow Reef Ambient pH", 
+                                     SRL = "Shallow Reef Low pH", CL = "Cave Low pH", CA = "Cave Ambient pH", 
+                                     RL = "Reef Low pH", RA = "Reef Ambient pH", CoL = "Deep Reef Low pH", 
+                                     CoA = "Deep Reef Ambient pH")
+
+# V1 and V2
+fig.fun.v1v2 <- ggplot(pcoa_fun, aes(x = V1, y = V2, group = condition, fill = condition, color = condition, 
+                                     shape = condition)) + theme_light(base_size = 20) + geom_point(size = 6) +
+  scale_colour_manual(values = c("#93a1fa","#f7d305","#f5a511","#6478f5","#f78e0c","#3953f7","#f7560c","#0219ad")) +
+  scale_fill_manual(values   = c("#93a1fa","#f7d305","#f5a511","#6478f5","#f78e0c","#3953f7","#f7560c","#0219ad")) +
+  scale_shape_manual(values  = c(rep(21, 2), rep(24, 2), rep(22, 2), rep(23, 2))) + 
+  labs(title = "B) Functional diversity", x = "V1", y = "V2") + scale_x_continuous(limits = c(-0.6, 0.6)) + 
+  scale_y_continuous(limits  = c(-0.4, 0.4)) + theme(legend.title = element_blank(), legend.position = "none")
+fig.tax.v1v2 <- ggplot(pcoa_taxo, aes(x = V1, y = V2, group = condition, fill = condition, color = condition, 
+                                      shape = condition)) + theme_light(base_size = 20) + geom_point(size = 6) +
+  scale_colour_manual(values = c("#93a1fa","#f7d305","#f5a511","#6478f5","#f78e0c","#3953f7","#f7560c","#0219ad")) +
+  scale_fill_manual(values   = c("#93a1fa","#f7d305","#f5a511","#6478f5","#f78e0c","#3953f7","#f7560c","#0219ad")) +
+  scale_shape_manual(values  = c(rep(21, 2), rep(24, 2), rep(22, 2), rep(23, 2))) + 
+  labs(title = "A) Taxonomic diversity", x = "V1", y = "V2") + scale_x_continuous(limits = c(-0.6, 0.6)) + 
+  scale_y_continuous(limits  = c(-0.5, 0.5)) + theme(legend.position='none')
 
 #### Supplementary Figure MDS ---------------------------------------------------------------------------------
 
@@ -1616,6 +1501,103 @@ mds_top <- fig.tax.v1v2 + fig.tax.v3v4
 mds_bot <- fig.fun.v1v2 + fig.fun.v3v4 + plot_layout(guides = "collect") & theme(legend.position = 'bottom')
 mds     <- mds_top / mds_bot + plot_layout(guides = "collect") & theme(legend.position = 'bottom')
 
+###### PERMANOVA Exploration ---------------------------------------------------------------------------------------
+# Script to plot MDS on beta taxonomic and functional diversity with the Hill number framework. 
+# Script to calculate multivariate homogeneity of group variances for funct and taxonomic beta-diversity 
+
+info <- sites_quadrats_info %>% dplyr::select(Quadrats, condition, Description.condition, pH, habitat)
+
+# Shallow reefs, functional
+for (Q in 1:n) { 
+  beta_df[[Q]]        <- mFD::dist.to.df(quadrats_beta_hill[[Q]])
+  beta_df.fun[[Q]]    <- beta_df[[Q]] %>% dplyr::select(-taxo_q1)
+  habitat             <- c("SRA",  "SRL")
+  quad                <- info[info$condition %in% habitat,]$Quadrats                # select quadrat–habitat (i.e. 1s1)
+  divf[[Q]]           <- beta_df.fun[[Q]][beta_df.fun[[Q]]$x1 %in% quad,]           # select quadrat SR for asb.1
+  divf[[Q]]           <- divf[[Q]][divf[[Q]]$x2 %in% quad,]                         # select quadrat SR for asb.2
+  beta_long_fun[[Q]]  <- long_to_wide_distance(divf[[Q]])
+  groupf[[Q]]         <- sapply(labels(beta_long_fun[[Q]]), function(x) {info[info$Quadrats == x,]$condition})
+  modf[[Q]]           <- betadisper(beta_long_fun[[Q]], groupf[[Q]], bias.adjust = T)
+  anova(modf[[Q]])                                                                  # To test if Var1 != Var2
+  permutest(modf[[Q]], permutations = 999) # ; plot(modf[[Q]]) ; boxplot(modf[[Q]]) # Permutation test for F
+}
+
+# Shallow reefs, taxonomic
+for (Q in 1:n) { 
+  beta_df.taxo[[Q]]   <- beta_df[[Q]] %>% dplyr::select(-funct_q1)
+  divtaxo[[Q]]        <- beta_df.taxo[[Q]][beta_df.taxo[[Q]]$x1 %in% quad,]         # select quadrat–habitat (i.e. 1s1)
+  divtaxo[[Q]]        <- divtaxo[[Q]][divtaxo[[Q]]$x2 %in% quad,]
+  beta_long_taxo[[Q]] <- long_to_wide_distance(divtaxo[[Q]])
+  groupt[[Q]]         <- sapply(labels(beta_long_taxo[[Q]]), function(x) {info[info$Quadrats == x,]$condition})
+  modtaxo[[Q]]        <- betadisper(beta_long_taxo[[Q]], groupt[[Q]], bias.adjust = TRUE)
+  anova(modtaxo[[Q]]) ; permutest(modtaxo[[Q]], permutations = 999) # ; plot(modtaxo[[Q]]) ; boxplot(modtaxo[[Q]])
+}
+
+# Caves, functional
+for (Q in 1:n) { 
+  habitat             <- c("CA",  "CL")
+  quad                <- info[info$condition %in% habitat,]$Quadrats 
+  divf[[Q]]           <- beta_df.fun[[Q]][beta_df.fun[[Q]]$x1 %in% quad,] 
+  divf[[Q]]           <- divf[[Q]][divf[[Q]]$x2 %in% quad,]
+  beta_long_fun[[Q]]  <- long_to_wide_distance(divf[[Q]])
+  groupf[[Q]]         <- sapply(labels(beta_long_fun[[Q]]), function(x) {info[info$Quadrats == x,]$condition})
+  modf[[Q]]           <- betadisper(beta_long_fun[[Q]], groupf[[Q]], bias.adjust = TRUE)
+  anova(modf[[Q]]) ; permutest(modf[[Q]], permutations = 999, pairwise = T) # ; plot(modf[[Q]]) ; boxplot(modf[[Q]])
+}
+
+# Caves, taxonomic
+for (Q in 1:n) { 
+  divtaxo[[Q]]        <- beta_df.taxo[[Q]][beta_df.taxo[[Q]]$x1 %in% quad,]
+  divtaxo[[Q]]        <- divtaxo[[Q]][divtaxo[[Q]]$x2 %in% quad,]
+  beta_long_taxo[[Q]] <- long_to_wide_distance(divtaxo[[Q]])
+  groupt[[Q]]         <- sapply(labels(beta_long_taxo[[Q]]), function(x) {info[info$Quadrats == x,]$condition})
+  modtaxo[[Q]]        <- betadisper(beta_long_taxo[[Q]], groupt[[Q]], bias.adjust = TRUE)
+  anova(modtaxo[[Q]]) ; permutest(modtaxo[[Q]], permutations = 999) # ; plot(modtaxo[[Q]]) ; boxplot(modtaxo[[Q]])
+}
+
+# Reefs, functional
+for (Q in 1:n) { 
+  habitat             <- c("RA",  "RL")
+  quad                <- info[info$condition %in% habitat,]$Quadrats 
+  divf[[Q]]           <- beta_df.fun[[Q]][beta_df.fun[[Q]]$x1 %in% quad,] 
+  divf[[Q]]           <- divf[[Q]][divf[[Q]]$x2 %in% quad,]
+  beta_long_fun[[Q]]  <- long_to_wide_distance(divf[[Q]])
+  groupf[[Q]]         <- sapply(labels(beta_long_fun[[Q]]), function(x) {info[info$Quadrats == x,]$condition})
+  modf[[Q]]           <- betadisper(beta_long_fun[[Q]], groupf[[Q]], bias.adjust = TRUE)
+  anova(modf[[Q]]) ; permutest(modf[[Q]], permutations = 999, pairwise = T) # ; plot(modf[[Q]]) ; boxplot(modf[[Q]])
+}
+
+# Reefs, taxonomic
+for (Q in 1:n) { 
+  divtaxo[[Q]]        <- beta_df.taxo[[Q]][beta_df.taxo[[Q]]$x1 %in% quad,] 
+  divtaxo[[Q]]        <- divtaxo[[Q]][divtaxo[[Q]]$x2 %in% quad,]
+  beta_long_taxo[[Q]] <- long_to_wide_distance(divtaxo[[Q]])
+  groupt[[Q]]         <- sapply(labels(beta_long_taxo[[Q]]), function(x) {info[info$Quadrats == x,]$condition})
+  modtaxo[[Q]]        <- betadisper(beta_long_taxo[[Q]], groupt[[Q]], bias.adjust = TRUE)
+  anova(modtaxo[[Q]]) ; permutest(modtaxo[[Q]], permutations = 999) # ; plot(modtaxo[[Q]]) ; boxplot(modtaxo[[Q]])
+}
+
+# Deep reefs, functional
+for (Q in 1:n) { 
+  habitat             <- c("CoA",  "CoL")
+  quad                <- info[info$condition %in% habitat,]$Quadrats 
+  divf[[Q]]           <- beta_df.fun[[Q]][beta_df.fun[[Q]]$x1 %in% quad,] 
+  divf[[Q]]           <- divf[[Q]][divf[[Q]]$x2 %in% quad,]
+  beta_long_fun[[Q]]  <- long_to_wide_distance(divf[[Q]])
+  groupf[[Q]]         <- sapply(labels(beta_long_fun[[Q]]), function(x) {info[info$Quadrats == x,]$condition})
+  modf[[Q]]           <- betadisper(beta_long_fun[[Q]], groupf[[Q]], bias.adjust = TRUE)
+  anova(modf[[Q]]) ; permutest(modf[[Q]], permutations = 999, pairwise = T) # ; plot(modf[[Q]]) ; boxplot(modf[[Q]])
+}
+
+# Deep reefs, taxonomic 
+for (Q in 1:n) { 
+  divtaxo[[Q]]        <- beta_df.taxo[[Q]][beta_df.taxo[[Q]]$x1 %in% quad,] 
+  divtaxo[[Q]]        <- divtaxo[[Q]][divtaxo[[Q]]$x2 %in% quad,]
+  beta_long_taxo[[Q]] <- long_to_wide_distance(divtaxo[[Q]])
+  groupt[[Q]]         <- sapply(labels(beta_long_taxo[[Q]]), function(x) {info[info$Quadrats == x,]$condition})
+  modtaxo[[Q]]        <- betadisper(beta_long_taxo[[Q]], groupt[[Q]], bias.adjust = TRUE)
+  anova(modtaxo[[Q]]) ; permutest(modtaxo[[Q]], permutations = 999) # ; plot(modtaxo[[Q]]) ; boxplot(modtaxo[[Q]])
+}
 
 #### Supplementary Figures ------------------------------------------------------------------------
 # mean of taxo and functional beta within / between sites & conditions
@@ -1655,17 +1637,7 @@ beta_funct_plot <- ggplot(data = quadrats_beta_df, aes(x = pair_type, y = funct_
   xlab("Habitat and pH of pair of quadrats") + ylab("Func beta (q=1)")
 boxplot_beta <- beta_taxo_plot / beta_funct_plot
 
-
-####  Supplementary Figures --------------------------------------------------------------------------------
-
-# Color palette
-hab_ph  <- c("shallow_reef_ambient1", "shallow_reef_ambient2", "shallow_reef_low", "cave_ambient1", "cave_ambient2",
-             "cave_low", "reef_ambient1", "reef_ambient2", "reef_low", "deep_reef_ambient1", "deep_reef_ambient2", 
-             "deep_reef_low")
-vcolors <- c("#93a1fa", "#93a1fa", "#f7d305", "#6478f5", "#6478f5", "#f5a511", "#3953f7", "#3953f7", "#f78e0c", 
-             "#0219ad", "#0219ad", "#f7560c")
-names(vcolors) <- hab_ph
-
+### Vizualize Trait categories cover across habitats
 # This figure is for pure illustration
 fe_tr = fe_tr[[1]] ; quadrats_fe_cover = quadrats_fe_cover[[1]]
 

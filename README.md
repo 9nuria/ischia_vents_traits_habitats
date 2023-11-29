@@ -1,11 +1,10 @@
-# Functional biodiversity shifts within and across benthic habitats under ocean acidification
+# Functional changes across marine habitats due to ocean acidification
 
 ![GitHub](https://img.shields.io/badge/GitHub-39457E?style=for-the-badge&logo=github&logoColor=white)
 ![Gitlab](https://img.shields.io/badge/GitLab-FFA500?style=for-the-badge&logo=gitlab&logoColor=white)
 ![RStudio](https://img.shields.io/badge/RStudio-75AADB?style=for-the-badge&logo=RStudio&logoColor=white)
-![Google Drive](https://img.shields.io/badge/Google%20Drive-FCD535?style=for-the-badge&logo=googledrive&logoColor=white)
 
-Scripts and data for functional diversity under ocean acidification across different habitat types    
+Scripts and data for Functional changes across marine habitats due to ocean acidification   
 This Github repository is structured as follows:
 
 - :file_folder: [``R``](https://github.com/9nuria/ischia_vents_habitats/tree/main/R) contains the current script and R project related to this study
@@ -14,13 +13,8 @@ This Github repository is structured as follows:
   - :file_folder: [``2 – elaborated data``](https://github.com/9nuria/ischia_vents_habitats/tree/main/data/2%20–%20data%20generated) which hosts the data built with this script
   - :file_folder: [``3 – model``](https://github.com/9nuria/ischia_vents_habitats/tree/main/data/3%20–%20model) which hosts the models built with this script
 - :file_folder: [``outputs``](https://github.com/9nuria/ischia_vents_habitats/tree/main/outputs) contains the following sub-folders
-  - :file_folder: [``plot``](https://github.com/9nuria/ischia_vents_habitats/tree/main/outputs/plot) which hosts the raw plots built with this script
-  - :file_folder: [``main figures for journal``](https://github.com/9nuria/ischia_vents_habitats/tree/main/outputs/Main_Figures_Journal) which hosts the figures edited for publication
-
-:construction: [Temporary] Besides, the draft parts can be found here :
-- :scroll: [``Main Text``](https://docs.google.com/document/d/19dQmJogld_zfeVn-PlFhylr4YOV3V9leLitA-roWJnY/edit)
-- :bar_chart: [``Main Figures``](https://docs.google.com/document/d/1CCsEoJ8hu2O83K_M-czgYDyJ9BlJ0SnR/edit)
-- :memo: [``Supplementary``](https://docs.google.com/document/d/13tBHacgPqnSYwwlGeU6BVpKVN0BQ4DKN/edit)
+  - :file_folder: [``Figures``](https://github.com/9nuria/ischia_vents_habitats/tree/main/outputs/Figures) which hosts the figures built with this script
+  - :file_folder: [``Tables``](https://github.com/9nuria/ischia_vents_habitats/tree/main/outputs/Tables) which hosts the tables from this script
 
 This analyze has been launched with the following machine parameters
 
